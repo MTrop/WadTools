@@ -14,7 +14,7 @@ int main(int argc, char** argv)
 		return 1;
 	}
 	
-	wad_t* wad = wad_create(argv[1]);
+	wad_t* wad = WAD_Create(argv[1]);
 	
 	if (!wad)
 	{
@@ -25,6 +25,6 @@ int main(int argc, char** argv)
 		return 1;
 	}
 	
-	wad_close(wad);
+	WAD_Close(wad);
 	return 0;
 }

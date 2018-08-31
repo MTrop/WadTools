@@ -23,41 +23,41 @@ typedef struct
 	/** Amount of objects added. */
 	int size;
 	
-} mtvector_t;
+} vector_t;
 
 /**
  * Creates a dynamic vector object. 
  * This can dynamically grow in size if need be, and memory is avaliable to do so.
  * @param capacity the size in references.
  */
-mtvector_t* MT_VectorNew(int capacity);
+vector_t* MT_VectorNew(int capacity);
 
 /**
  * Frees the contents of a dynamic vector object.
  * DOES NOT FREE THE CONTAINED OBJECTS.
  * @param vector the address of the vector object.
  */
-void MT_VectorDestroy(mtvector_t *vector);
+void MT_VectorDestroy(vector_t *vector);
 
 /**
  * Clears the contents of a vector object.
  * This removes all refs.
  * @param vector the address of the vector object.
  */
-void MT_VectorClear(mtvector_t *vector);
+void MT_VectorClear(vector_t *vector);
 
 /**
  * Returns amount of refs in the selector.
  * @param vector the address of the vector object.
  */
-int MT_VectorLength(mtvector_t *vector);
+int MT_VectorLength(vector_t *vector);
 
 /**
  * Returns amount of refs that can be added to the selector 
  * before expansion (or capacity).
  * @param vector the address of the vector object.
  */
-int MT_VectorCapacity(mtvector_t *vector);
+int MT_VectorCapacity(vector_t *vector);
 
 /**
  * Changes the internal capacity of the vector.
@@ -65,7 +65,7 @@ int MT_VectorCapacity(mtvector_t *vector);
  * @param vector the address of the vector object.
  * @param capacity the new capacity.
  */
-int MT_VectorSetCapacity(mtvector_t *vector, int capacity);
+int MT_VectorSetCapacity(vector_t *vector, int capacity);
 
 /**
  * Adds a ref (if not exist).
@@ -73,7 +73,7 @@ int MT_VectorSetCapacity(mtvector_t *vector, int capacity);
  * @param value the reference to add.
  * @return 1 if added, 0 if not.
  */
-int MT_VectorAdd(mtvector_t *vector, void *value);
+int MT_VectorAdd(vector_t *vector, void *value);
 
 /**
  * Adds a ref at a position. 
@@ -84,7 +84,7 @@ int MT_VectorAdd(mtvector_t *vector, void *value);
  * @param value the reference to add.
  * @return 1 if added, 0 if not.
  */
-int MT_VectorAddAt(mtvector_t *vector, int index, void *value);
+int MT_VectorAddAt(vector_t *vector, int index, void *value);
 
 /**
  * Removes a ref from a position in the vector. 
@@ -93,12 +93,12 @@ int MT_VectorAddAt(mtvector_t *vector, int index, void *value);
  * @param index the target index.
  * @return the pointer to the object if removed, NULL if not.
  */
-void* MT_VectorRemoveAt(mtvector_t *vector, int index);
+void* MT_VectorRemoveAt(vector_t *vector, int index);
 
 /**
  * Dump refs to STDOUT.
  */
-void MT_VectorDump(mtvector_t *vector, void (*dumpfunc)(void*));
+void MT_VectorDump(vector_t *vector, void (*dumpfunc)(void*));
 
 
 

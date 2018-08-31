@@ -37,14 +37,14 @@ void print_wad(wad_t *wad)
 	printf("Content Size %d bytes\n", wad->header.entry_list_offset - WADHEADER_LEN);
 	printf("List start at %d\n", wad->header.entry_list_offset);
 	
-	waditerator_t *iter = wad_iterator_create(wad, 0);
+	waditerator_t *iter = WAD_IteratorCreate(wad, 0);
 	wadentry_t *entry;
 	int i = 0;
 	printf("---- Name     Size     Offset\n");
-	while (entry = wad_iterator_next(iter))
+	while (entry = WAD_IteratorNext(iter))
 		printf("%04d %-8s %-8d %-9d\n", i++, entry->name, entry->length, entry->offset);
 	printf("Count %d\n", wad->header.entry_count);
-	wad_iterator_close(iter);
+	WAD_IteratorClose(iter);
 }
 
 void print_error()
@@ -60,8 +60,8 @@ void print_error()
 
 int main(int argc, char** argv)
 {
-	wad_t* wad = wad_create("TEST.wad");
-//	wad_t* wad = wad_create_buffer();
+	wad_t* wad = WAD_Create("TEST.wad");
+//	wad_t* wad = WAD_CreateBuffer();
 	
 	if (!wad)
 	{
@@ -72,26 +72,26 @@ int main(int argc, char** argv)
 		return 1;
 	}
 
-	wad_create_entry(wad, "LUMP00");
-	wad_create_entry(wad, "LUMP01");
-	wad_create_entry(wad, "LUMP02");
-	wad_create_entry_at(wad, "LUMP03", 1);
+	WAD_CreateEntry(wad, "LUMP00");
+	WAD_CreateEntry(wad, "LUMP01");
+	WAD_CreateEntry(wad, "LUMP02");
+	WAD_CreateEntryAt(wad, "LUMP03", 1);
 	
 	unsigned char *junk = "This is some kind of message.";
 	unsigned char *junk2 = "This is another type of message.";
 	
-	wad_add_entry(wad, "LUMP04", junk, strlen(junk));
+	WAD_AddEntry(wad, "LUMP04", junk, strlen(junk));
 	print_error();
 	
-	wad_add_entry_at(wad, "LUMP05", 2, junk2, strlen(junk2));
+	WAD_AddEntryAt(wad, "LUMP05", 2, junk2, strlen(junk2));
 	print_error();
 
 	FILE *f1 = fopen("gcc.txt", "rb");
 	FILE *f2 = fopen(".\\src\\wad\\wad.c", "rb");
 	
-	wad_add_entry_data(wad, "LUMP06", f1);
+	WAD_AddEntryData(wad, "LUMP06", f1);
 	print_error();
-	wad_add_entry_data_at(wad, "LUMP07", 3, f2);
+	WAD_AddEntryDataAt(wad, "LUMP07", 3, f2);
 	print_error();
 	
 	fclose(f1);
@@ -99,6 +99,6 @@ int main(int argc, char** argv)
 
 	print_wad(wad);
 	
-	wad_close(wad);
+	WAD_Close(wad);
 	return 0;
 }

@@ -17,7 +17,7 @@
 // Common Private Functions
 // ===========================================================================
 
-static int _expand(mtvector_t *vector, int newsize)
+static int _expand(vector_t *vector, int newsize)
 {
 	void **newr;
 	void **oldr = vector->items;
@@ -35,7 +35,7 @@ static int _expand(mtvector_t *vector, int newsize)
 	return newsize;
 }
 
-static int _canexpand(mtvector_t *vector)
+static int _canexpand(vector_t *vector)
 {
 	return vector->size == vector->capacity ? 1 : 0;
 }
@@ -45,9 +45,9 @@ static int _canexpand(mtvector_t *vector)
 // ===========================================================================
 
 // See mt_vector.h
-mtvector_t* MT_VectorNew(int capacity)
+vector_t* MT_VectorNew(int capacity)
 {
-	mtvector_t *out = (mtvector_t*)MTS_MALLOC(sizeof(mtvector_t));
+	vector_t *out = (vector_t*)MTS_MALLOC(sizeof(vector_t));
 	if (!out)
 	{
 		return NULL;
@@ -66,32 +66,32 @@ mtvector_t* MT_VectorNew(int capacity)
 }
 
 // See mt_vector.h
-void MT_VectorDestroy(mtvector_t *vector)
+void MT_VectorDestroy(vector_t *vector)
 {
 	MTS_FREE(vector->items);
 	MTS_FREE(vector);
 }
 
 // See mt_vector.h
-inline void MT_VectorClear(mtvector_t *vector)
+inline void MT_VectorClear(vector_t *vector)
 {
 	vector->size = 0;
 }
 
 // See mt_vector.h
-inline int MT_VectorLength(mtvector_t *vector)
+inline int MT_VectorLength(vector_t *vector)
 {
 	return vector->size;
 }
 
 // See mt_vector.h
-inline int MT_VectorCapacity(mtvector_t *vector)
+inline int MT_VectorCapacity(vector_t *vector)
 {
 	return vector->capacity;
 }
 
 // See mt_vector.h
-int MT_VectorAdd(mtvector_t *vector, void *value)
+int MT_VectorAdd(vector_t *vector, void *value)
 {
 	int i;
 	
@@ -106,7 +106,7 @@ int MT_VectorAdd(mtvector_t *vector, void *value)
 
 
 // See mt_vector.h
-int MT_VectorAddAt(mtvector_t *vector, int index, void *value)
+int MT_VectorAddAt(vector_t *vector, int index, void *value)
 {
 	int i;
 
@@ -128,7 +128,7 @@ int MT_VectorAddAt(mtvector_t *vector, int index, void *value)
 }
 
 // See mt_vector.h
-void* MT_VectorRemoveAt(mtvector_t *vector, int index)
+void* MT_VectorRemoveAt(vector_t *vector, int index)
 {
 	int i;
 	void *out;
@@ -152,7 +152,7 @@ void* MT_VectorRemoveAt(mtvector_t *vector, int index)
 }
 
 // See mt_vector.h
-void MT_VectorDump(mtvector_t *vector, void (*dumpfunc)(void*))
+void MT_VectorDump(vector_t *vector, void (*dumpfunc)(void*))
 {
 	int i;
 	printf("VECTOR CAP %d, CNT %d [ ", vector->capacity, vector->size);

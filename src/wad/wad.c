@@ -8,14 +8,19 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
+#include <string.h>
 #include <errno.h>
 #include "wadconfig.h"
 #include "wad.h"
 #include "waderrno.h"
 
+#ifndef min
 #define min(x,y) ((x) < (y) ? (x) : (y))
+#endif
+
+#ifndef max
 #define max(x,y) ((x) > (y) ? (x) : (y))
+#endif
 
 // Character buffer.
 #define CBUF_LEN 16384
@@ -31,7 +36,7 @@ extern int errno;
 // ===========================================================================
 
 // Create WAD file.
-static wad_t* wad_init()
+static wad_t* WAD_Init()
 {
 	wad_t *out = (wad_t*)WAD_MALLOC(sizeof(wad_t));
 	
@@ -54,7 +59,7 @@ static wad_t* wad_init()
 }
 
 // Open a file handle to a WAD and check if it is correct.
-static int wad_setup_open_file_handle(FILE *fp, wadheader_t *header)
+static int WAD_SetupOpenFileHandle(FILE *fp, wadheader_t *header)
 {
 	int buf;
 
@@ -79,7 +84,7 @@ static int wad_setup_open_file_handle(FILE *fp, wadheader_t *header)
 }
 
 // Expands/reallocates the internal entry list in a wad_t, if new size is greater than the current size.
-static int wad_expand_entrylist(wad_t *wad, int newsize)
+static int WAD_ExpandEntrylist(wad_t *wad, int newsize)
 {
 	int i;
 	wadentry_t **oldarray;
@@ -120,7 +125,7 @@ static int wad_expand_entrylist(wad_t *wad, int newsize)
 }
 
 // Expands/reallocates the internal data buffer in a wad_t, if new size is greater than the current capacity.
-static int wad_expand_buffer(wad_t *wad, int newsize)
+static int WAD_ExpandBuffer(wad_t *wad, int newsize)
 {
 	int i;
 	unsigned char *oldarray;
@@ -151,11 +156,11 @@ static int wad_expand_buffer(wad_t *wad, int newsize)
 
 
 // Load a WAD file's entries.
-static int wad_setup_build_entrylist(FILE *fp, wad_t *wad)
+static int WAD_SetupBuildEntrylist(FILE *fp, wad_t *wad)
 {
 	int i, count = wad->header.entry_count;
 	
-	if (wad_expand_entrylist(wad, count))
+	if (WAD_ExpandEntrylist(wad, count))
 		return 1;
 
 	// Seek to entry list.
@@ -171,14 +176,14 @@ static int wad_setup_build_entrylist(FILE *fp, wad_t *wad)
 }
 
 // Loads the contents of a WAD file into the buffer handle.
-static int wad_setup_build_buffer(FILE *fp, wad_t *wad)
+static int WAD_SetupBuildBuffer(FILE *fp, wad_t *wad)
 {
 	int i;
 	int len = (wad->header.entry_list_offset) - WADHEADER_LEN;
 	int remain = len;
 	int amount;
 	
-	if (wad_expand_buffer(wad, len))
+	if (WAD_ExpandBuffer(wad, len))
 		return 1;
 	
 	unsigned char *bufptr = wad->handle.buffer;
@@ -200,7 +205,7 @@ static int wad_setup_build_buffer(FILE *fp, wad_t *wad)
 }
 
 // Frees allocated data in a wad_t
-static void wad_free_allocated(wad_t *wad)
+static void WAD_FreeAllocated(wad_t *wad)
 {
 	int i;
 	for (i = 0; i < wad->entries_capacity; i++)
@@ -210,7 +215,7 @@ static void wad_free_allocated(wad_t *wad)
 }
 
 // Copies an entry name.
-static int wad_entry_name_copy(const char *src, char *dest)
+static int WAD_EntryNameCopy(const char *src, char *dest)
 {
 	int i = 0;
 	while (i < 8)
@@ -237,12 +242,12 @@ static int wad_entry_name_copy(const char *src, char *dest)
 }
 
 // Adds an entry.
-static wadentry_t* wad_add_entry_common(wad_t *wad, const char *name, int32_t length, uint32_t offset, int index)
+static wadentry_t* WAD_AddEntryCommon(wad_t *wad, const char *name, int32_t length, uint32_t offset, int index)
 {
 	index = min(wad->header.entry_count, index);
 	
 	if (index >= wad->entries_capacity)
-		if (wad_expand_entrylist(wad, wad->entries_capacity * 2))
+		if (WAD_ExpandEntrylist(wad, wad->entries_capacity * 2))
 			return NULL;
 	
 	wadentry_t *swap = wad->entries[wad->header.entry_count];
@@ -254,7 +259,7 @@ static wadentry_t* wad_add_entry_common(wad_t *wad, const char *name, int32_t le
 		i--;
 	}
 
-	swap->name[wad_entry_name_copy(name, swap->name)] = 0;
+	swap->name[WAD_EntryNameCopy(name, swap->name)] = 0;
 	swap->length = length;
 	swap->offset = offset;
 
@@ -317,12 +322,28 @@ static wadentry_t* wi_map_add_entry_data_at(wad_t *wad, const char *name, int in
 	return NULL;
 }
 
+static int wi_map_remove_entry_at(wad_t *wad, int index)
+{
+	// Not supported.
+	waderrno = WADERROR_NOT_SUPPORTED;
+	return 1;
+}
+
+static int wi_map_read_data(wad_t *wad, wadentry_t *entry, void *destination, size_t size, size_t count)
+{
+	// Not supported.
+	waderrno = WADERROR_NOT_SUPPORTED;
+	return 0;
+}
+
 static wadfuncs_t WI_MAP_WADFUNCS = {
 	wi_map_destroy,
 	wi_map_commit_entries,
 	wi_map_create_entry_at,
 	wi_map_add_entry_at,
 	wi_map_add_entry_data_at,
+	wi_map_remove_entry_at,
+	wi_map_read_data
 };
 
 // ===========================================================================
@@ -389,7 +410,7 @@ static int wi_file_commit_entries(wad_t *wad)
 static wadentry_t* wi_file_create_entry_at(wad_t *wad, const char *name, int index)
 {
 	wadentry_t* entry;
-	if (!(entry = wad_add_entry_common(wad, name, 0, 0, index)))
+	if (!(entry = WAD_AddEntryCommon(wad, name, 0, 0, index)))
 	{
 		waderrno = WADERROR_OUT_OF_MEMORY;
 		return NULL;
@@ -404,7 +425,7 @@ static wadentry_t* wi_file_add_entry_at(wad_t *wad, const char *name, int index,
 	int amount;
 	wadentry_t* entry;
 	int pos = wad->header.entry_list_offset;
-	if (!(entry = wad_add_entry_common(wad, name, size, pos, index)))
+	if (!(entry = WAD_AddEntryCommon(wad, name, size, pos, index)))
 	{
 		waderrno = WADERROR_OUT_OF_MEMORY;
 		return NULL;
@@ -456,7 +477,7 @@ static wadentry_t* wi_file_add_entry_data_at(wad_t *wad, const char *name, int i
 	
 	wad->header.entry_list_offset = pos + amount;
 
-	if (!(entry = wad_add_entry_common(wad, name, amount, pos, index)))
+	if (!(entry = WAD_AddEntryCommon(wad, name, amount, pos, index)))
 	{
 		waderrno = WADERROR_OUT_OF_MEMORY;
 		return NULL;
@@ -468,12 +489,26 @@ static wadentry_t* wi_file_add_entry_data_at(wad_t *wad, const char *name, int i
 	return entry;
 }
 
+static int wi_file_remove_entry_at(wad_t *wad, int index)
+{
+	// TODO: Finish this.
+	return 1;
+}
+
+static int wi_file_read_data(wad_t *wad, wadentry_t *entry, void *destination, size_t size, size_t count)
+{
+	// TODO: Finish this.
+	return 0;
+}
+
 static wadfuncs_t WI_FILE_WADFUNCS = {
 	wi_file_destroy,
 	wi_file_commit_entries,
 	wi_file_create_entry_at,
 	wi_file_add_entry_at,
 	wi_file_add_entry_data_at,
+	wi_file_remove_entry_at,
+	wi_file_read_data
 };
 
 // ===========================================================================
@@ -498,7 +533,7 @@ static int wi_buffer_commit_entries(wad_t *wad)
 static wadentry_t* wi_buffer_create_entry_at(wad_t *wad, const char *name, int index)
 {
 	wadentry_t* entry;
-	if (!(entry = wad_add_entry_common(wad, name, 0, 0, index)))
+	if (!(entry = WAD_AddEntryCommon(wad, name, 0, 0, index)))
 	{
 		waderrno = WADERROR_OUT_OF_MEMORY;
 		return NULL;
@@ -511,7 +546,7 @@ static int wi_buffer_attempt_expand(wad_t *wad, int add)
 	// expand buffer.
 	if (wad->buffer_size + add >= wad->buffer_capacity)
 	{
-		if (wad_expand_buffer(wad, wad->buffer_capacity * 2))
+		if (WAD_ExpandBuffer(wad, wad->buffer_capacity * 2))
 			return 1;
 	}
 	
@@ -530,7 +565,7 @@ static wadentry_t* wi_buffer_add_entry_at(wad_t *wad, const char *name, int inde
 	memcpy(dest, buffer, size);
 	
 	wadentry_t* entry;	
-	if (!(entry = wad_add_entry_common(wad, name, size, wad->buffer_size, index)))
+	if (!(entry = WAD_AddEntryCommon(wad, name, size, wad->buffer_size, index)))
 	{
 		waderrno = WADERROR_OUT_OF_MEMORY;
 		return NULL;
@@ -566,7 +601,7 @@ static wadentry_t* wi_buffer_add_entry_data_at(wad_t *wad, const char *name, int
 	wad->header.entry_list_offset = pos + amount;
 
 	wadentry_t* entry;
-	if (!(entry = wad_add_entry_common(wad, name, amount, pos, index)))
+	if (!(entry = WAD_AddEntryCommon(wad, name, amount, pos, index)))
 	{
 		waderrno = WADERROR_OUT_OF_MEMORY;
 		return NULL;
@@ -575,17 +610,31 @@ static wadentry_t* wi_buffer_add_entry_data_at(wad_t *wad, const char *name, int
 	return entry;
 }
 
+static int wi_buffer_remove_entry_at(wad_t *wad, int index)
+{
+	// TODO: Finish this.
+	return 1;
+}
+
+static int wi_buffer_read_data(wad_t *wad, wadentry_t *entry, void *destination, size_t size, size_t count)
+{
+	// TODO: Finish this.
+	return 0;
+}
+
 static wadfuncs_t WI_BUFFER_WADFUNCS = {
 	wi_buffer_destroy,
 	wi_buffer_commit_entries,
 	wi_buffer_create_entry_at,
 	wi_buffer_add_entry_at,
 	wi_buffer_add_entry_data_at,
+	wi_buffer_remove_entry_at,
+	wi_buffer_read_data
 };
 
 // ...........................................................................
 
-static wadfuncs_t* wad_funcs(wadimpl_t impl)
+static wadfuncs_t* WAD_funcs(wadimpl_t impl)
 {
 	switch (impl)
 	{
@@ -597,17 +646,17 @@ static wadfuncs_t* wad_funcs(wadimpl_t impl)
 	return NULL;
 }
 
-#define WI_FUNC(w,f) (wad_funcs((w)->type))->f
+#define WI_FUNC(w,f) (WAD_funcs((w)->type))->f
 
 // ===========================================================================
 // Public Functions
 // ===========================================================================
 
 // ---------------------------------------------------------------
-// wad_t* wad_open(char *filename)
+// wad_t* WAD_Open(char *filename)
 // See wad.h
 // ---------------------------------------------------------------
-wad_t* wad_open(char *filename)
+wad_t* WAD_Open(char *filename)
 {
 	wad_t *out;
 	FILE *fp;
@@ -622,18 +671,18 @@ wad_t* wad_open(char *filename)
 		return NULL;
 	}
 
-	out = wad_init();
+	out = WAD_Init();
 	if (!out)
 	{
 		waderrno = WADERROR_OUT_OF_MEMORY;
 		return NULL;
 	}
-	if (wad_setup_open_file_handle(fp, &(out->header)))
+	if (WAD_SetupOpenFileHandle(fp, &(out->header)))
 	{
 		waderrno = WADERROR_FILE_NOT_A_WAD;
 		return NULL;
 	}
-	if (wad_setup_build_entrylist(fp, out))
+	if (WAD_SetupBuildEntrylist(fp, out))
 	{
 		waderrno = WADERROR_OUT_OF_MEMORY;
 		return NULL;
@@ -646,10 +695,10 @@ wad_t* wad_open(char *filename)
 }
 
 // ---------------------------------------------------------------
-// wad_t* wad_create(char *filename)
+// wad_t* WAD_Create(char *filename)
 // See wad.h
 // ---------------------------------------------------------------
-wad_t* wad_create(char *filename)
+wad_t* WAD_Create(char *filename)
 {
 	wad_t *out;
 	FILE *fp;
@@ -664,13 +713,13 @@ wad_t* wad_create(char *filename)
 		return NULL;
 	}
 
-	out = wad_init();
+	out = WAD_Init();
 	if (!out)
 	{
 		waderrno = WADERROR_OUT_OF_MEMORY;
 		return NULL;
 	}
-	if (wad_expand_entrylist(out, 8))
+	if (WAD_ExpandEntrylist(out, 8))
 	{
 		waderrno = WADERROR_OUT_OF_MEMORY;
 		return NULL;
@@ -684,7 +733,7 @@ wad_t* wad_create(char *filename)
 		waderrno = WADERROR_CANNOT_COMMIT;
 		return NULL;
 	}
-	if (wad_setup_open_file_handle(fp, &(out->header)))
+	if (WAD_SetupOpenFileHandle(fp, &(out->header)))
 	{
 		waderrno = WADERROR_FILE_NOT_A_WAD;
 		return NULL;
@@ -694,10 +743,10 @@ wad_t* wad_create(char *filename)
 }
 
 // ---------------------------------------------------------------
-// wad_t* wad_open_map(char *filename)
+// wad_t* WAD_OpenMap(char *filename)
 // See wad.h
 // ---------------------------------------------------------------
-wad_t* wad_open_map(char *filename)
+wad_t* WAD_OpenMap(char *filename)
 {
 	wad_t *out;
 	FILE *fp;
@@ -712,18 +761,18 @@ wad_t* wad_open_map(char *filename)
 		return NULL;
 	}
 
-	out = wad_init();
+	out = WAD_Init();
 	if (!out)
 	{
 		waderrno = WADERROR_OUT_OF_MEMORY;
 		return NULL;
 	}
-	if (wad_setup_open_file_handle(fp, &(out->header)))
+	if (WAD_SetupOpenFileHandle(fp, &(out->header)))
 	{
 		waderrno = WADERROR_FILE_NOT_A_WAD;
 		return NULL;
 	}
-	if (wad_setup_build_entrylist(fp, out))
+	if (WAD_SetupBuildEntrylist(fp, out))
 	{
 		waderrno = WADERROR_OUT_OF_MEMORY;
 		return NULL;
@@ -736,10 +785,10 @@ wad_t* wad_open_map(char *filename)
 }
 
 // ---------------------------------------------------------------
-// wad_t* wad_open_buffer(char *filename)
+// wad_t* WAD_OpenBuffer(char *filename)
 // See wad.h
 // ---------------------------------------------------------------
-wad_t* wad_open_buffer(char *filename)
+wad_t* WAD_OpenBuffer(char *filename)
 {
 	wad_t *out;
 	FILE *fp;
@@ -754,23 +803,23 @@ wad_t* wad_open_buffer(char *filename)
 		return NULL;
 	}
 
-	out = wad_init();
+	out = WAD_Init();
 	if (!out)
 	{
 		waderrno = WADERROR_OUT_OF_MEMORY;
 		return NULL;
 	}
-	if (wad_setup_open_file_handle(fp, &(out->header)))
+	if (WAD_SetupOpenFileHandle(fp, &(out->header)))
 	{
 		waderrno = WADERROR_FILE_NOT_A_WAD;
 		return NULL;
 	}
-	if (wad_setup_build_entrylist(fp, out))
+	if (WAD_SetupBuildEntrylist(fp, out))
 	{
 		waderrno = WADERROR_OUT_OF_MEMORY;
 		return NULL;
 	}
-	if (wad_setup_build_buffer(fp, out))
+	if (WAD_SetupBuildBuffer(fp, out))
 	{
 		waderrno = WADERROR_OUT_OF_MEMORY;
 		return NULL;
@@ -782,37 +831,37 @@ wad_t* wad_open_buffer(char *filename)
 }
 
 // ---------------------------------------------------------------
-// wad_t* wad_create_buffer()
+// wad_t* WAD_CreateBuffer()
 // See wad.h
 // ---------------------------------------------------------------
-wad_t* wad_create_buffer()
+wad_t* WAD_CreateBuffer()
 {
-	return wad_create_buffer_init(WADBUFFER_INITSIZE);
+	return WAD_CreateBufferInit(WADBUFFER_INITSIZE);
 }
 
 // ---------------------------------------------------------------
-// wad_t* wad_create_buffer_init(int size)
+// wad_t* WAD_CreateBufferInit(int size)
 // See wad.h
 // ---------------------------------------------------------------
-wad_t* wad_create_buffer_init(int size)
+wad_t* WAD_CreateBufferInit(int size)
 {
 	wad_t *out;
 
 	// Reset error state.
 	waderrno = WADERROR_NO_ERROR;
 
-	out = wad_init();
+	out = WAD_Init();
 	if (!out)
 	{
 		waderrno = WADERROR_OUT_OF_MEMORY;
 		return NULL;
 	}
-	if (wad_expand_entrylist(out, 16))
+	if (WAD_ExpandEntrylist(out, 16))
 	{
 		waderrno = WADERROR_OUT_OF_MEMORY;
 		return NULL;
 	}
-	if (wad_expand_buffer(out, size))
+	if (WAD_ExpandBuffer(out, size))
 	{
 		waderrno = WADERROR_OUT_OF_MEMORY;
 		return NULL;
@@ -824,10 +873,10 @@ wad_t* wad_create_buffer_init(int size)
 }
 
 // ---------------------------------------------------------------
-// int wad_entry_count(wad_t *wad)
+// int WAD_EntryCount(wad_t *wad)
 // See wad.h
 // ---------------------------------------------------------------
-int wad_entry_count(wad_t *wad)
+int WAD_EntryCount(wad_t *wad)
 {	
 	// Reset error state.
 	waderrno = WADERROR_NO_ERROR;
@@ -842,10 +891,10 @@ int wad_entry_count(wad_t *wad)
 }
 
 // ---------------------------------------------------------------
-// waditerator_t* wad_iterator_create(wad_t *wad, int start)
+// waditerator_t* WAD_IteratorCreate(wad_t *wad, int start)
 // See wad.h
 // ---------------------------------------------------------------
-waditerator_t* wad_iterator_create(wad_t *wad, int start)
+waditerator_t* WAD_IteratorCreate(wad_t *wad, int start)
 {
 	// Reset error state.
 	waderrno = WADERROR_NO_ERROR;
@@ -867,10 +916,10 @@ waditerator_t* wad_iterator_create(wad_t *wad, int start)
 }
 
 // ---------------------------------------------------------------
-// void wad_iterator_reset(waditerator_t *iter, int start)
+// void WAD_IteratorReset(waditerator_t *iter, int start)
 // See wad.h
 // ---------------------------------------------------------------
-void wad_iterator_reset(waditerator_t *iter, int start)
+void WAD_IteratorReset(waditerator_t *iter, int start)
 {
 	iter->entry = NULL;
 	iter->next = start;
@@ -878,10 +927,10 @@ void wad_iterator_reset(waditerator_t *iter, int start)
 }
 
 // ---------------------------------------------------------------
-// wadentry_t* wad_iterator_next(waditerator_t *iter)
+// wadentry_t* WAD_IteratorNext(waditerator_t *iter)
 // See wad.h
 // ---------------------------------------------------------------
-wadentry_t* wad_iterator_next(waditerator_t *iter)
+wadentry_t* WAD_IteratorNext(waditerator_t *iter)
 {
 	if (iter->next < iter->count)
 	{
@@ -896,19 +945,19 @@ wadentry_t* wad_iterator_next(waditerator_t *iter)
 }
 
 // ---------------------------------------------------------------
-// void wad_iterator_close(waditerator_t *iter)
+// void WAD_IteratorClose(waditerator_t *iter)
 // See wad.h
 // ---------------------------------------------------------------
-void wad_iterator_close(waditerator_t *iter)
+void WAD_IteratorClose(waditerator_t *iter)
 {
 	WAD_FREE(iter);
 }
 
 // ---------------------------------------------------------------
-// int wad_commit_entries(wad_t *wad)
+// int WAD_CommitEntries(wad_t *wad)
 // See wad.h
 // ---------------------------------------------------------------
-int wad_commit_entries(wad_t *wad)
+int WAD_CommitEntries(wad_t *wad)
 {
 	// Reset error state.
 	waderrno = WADERROR_NO_ERROR;
@@ -929,10 +978,10 @@ int wad_commit_entries(wad_t *wad)
 }
 
 // ---------------------------------------------------------------
-// wadentry_t* wad_get_entry(wad_t *wad, int index)
+// wadentry_t* WAD_GetEntry(wad_t *wad, int index)
 // See wad.h
 // ---------------------------------------------------------------
-wadentry_t* wad_get_entry(wad_t *wad, int index)
+wadentry_t* WAD_GetEntry(wad_t *wad, int index)
 {
 	// Reset error state.
 	waderrno = WADERROR_NO_ERROR;
@@ -953,19 +1002,19 @@ wadentry_t* wad_get_entry(wad_t *wad, int index)
 }
 
 // ---------------------------------------------------------------
-// wadentry_t* wad_get_entry_by_name(wad_t *wad, char *name)
+// wadentry_t* WAD_GetEntryByName(wad_t *wad, char *name)
 // See wad.h
 // ---------------------------------------------------------------
-wadentry_t* wad_get_entry_by_name(wad_t *wad, const char *name)
+wadentry_t* WAD_GetEntryByName(wad_t *wad, const char *name)
 {
-	return wad_get_entry_by_name_offset(wad, name, 0);
+	return WAD_GetEntryByNameOffset(wad, name, 0);
 }
 
 // ---------------------------------------------------------------
-// wadentry_t* wad_get_entry_by_name_offset(wad_t *wad, char *name, int start)
+// wadentry_t* WAD_GetEntryByNameOffset(wad_t *wad, char *name, int start)
 // See wad.h
 // ---------------------------------------------------------------
-wadentry_t* wad_get_entry_by_name_offset(wad_t *wad, const char *name, int start)
+wadentry_t* WAD_GetEntryByNameOffset(wad_t *wad, const char *name, int start)
 {
 	// Reset error state.
 	waderrno = WADERROR_NO_ERROR;
@@ -994,19 +1043,19 @@ wadentry_t* wad_get_entry_by_name_offset(wad_t *wad, const char *name, int start
 }
 
 // ---------------------------------------------------------------
-// wadentry_t* wad_get_entry_by_name_nth(wad_t *wad, char *name, int nth)
+// wadentry_t* WAD_GetEntryByNameNth(wad_t *wad, char *name, int nth)
 // See wad.h
 // ---------------------------------------------------------------
-wadentry_t* wad_get_entry_by_name_nth(wad_t *wad, const char *name, int nth)
+wadentry_t* WAD_GetEntryByNameNth(wad_t *wad, const char *name, int nth)
 {
-	return wad_get_entry_by_name_offset_nth(wad, name, 0, nth);
+	return WAD_GetEntryByNameOffsetNth(wad, name, 0, nth);
 }
 
 // ---------------------------------------------------------------
-// wadentry_t* wad_get_entry_by_name_offset_nth(wad_t *wad, char *name, int start, int nth)
+// wadentry_t* WAD_GetEntryByNameOffsetNth(wad_t *wad, char *name, int start, int nth)
 // See wad.h
 // ---------------------------------------------------------------
-wadentry_t* wad_get_entry_by_name_offset_nth(wad_t *wad, const char *name, int start, int nth)
+wadentry_t* WAD_GetEntryByNameOffsetNth(wad_t *wad, const char *name, int start, int nth)
 {
 	// Reset error state.
 	waderrno = WADERROR_NO_ERROR;
@@ -1036,10 +1085,10 @@ wadentry_t* wad_get_entry_by_name_offset_nth(wad_t *wad, const char *name, int s
 }
 
 // ---------------------------------------------------------------
-// wadentry_t* wad_get_last_entry_by_name(wad_t *wad, char *name)
+// wadentry_t* WAD_GetLastEntryByName(wad_t *wad, char *name)
 // See wad.h
 // ---------------------------------------------------------------
-wadentry_t* wad_get_last_entry_by_name(wad_t *wad, const char *name)
+wadentry_t* WAD_GetLastEntryByName(wad_t *wad, const char *name)
 {
 	// Reset error state.
 	waderrno = WADERROR_NO_ERROR;
@@ -1063,10 +1112,10 @@ wadentry_t* wad_get_last_entry_by_name(wad_t *wad, const char *name)
 }
 
 // ---------------------------------------------------------------
-// int wad_get_entry_count(wad_t *wad, char *name)
+// int WAD_GetEntryCount(wad_t *wad, char *name)
 // See wad.h
 // ---------------------------------------------------------------
-int wad_get_entry_count(wad_t *wad, const char *name)
+int WAD_GetEntryCount(wad_t *wad, const char *name)
 {
 	// Reset error state.
 	waderrno = WADERROR_NO_ERROR;
@@ -1091,19 +1140,19 @@ int wad_get_entry_count(wad_t *wad, const char *name)
 }
 
 // ---------------------------------------------------------------
-// int wad_get_entry_index(wad_t *wad, char *name)
+// int WAD_GetEntryIndex(wad_t *wad, char *name)
 // See wad.h
 // ---------------------------------------------------------------
-int wad_get_entry_index(wad_t *wad, const char *name)
+int WAD_GetEntryIndex(wad_t *wad, const char *name)
 {
-	return wad_get_entry_index_offset(wad, name, 0);
+	return WAD_get_entry_index_offset(wad, name, 0);
 }
 
 // ---------------------------------------------------------------
-// int wad_get_entry_index_offset(wad_t *wad, char *name, int start)
+// int WAD_GetEntryIndexOffset(wad_t *wad, char *name, int start)
 // See wad.h
 // ---------------------------------------------------------------
-int wad_get_entry_index_offset(wad_t *wad, const char *name, int start)
+int WAD_GetEntryIndexOffset(wad_t *wad, const char *name, int start)
 {
 	// Reset error state.
 	waderrno = WADERROR_NO_ERROR;
@@ -1132,19 +1181,19 @@ int wad_get_entry_index_offset(wad_t *wad, const char *name, int start)
 }
 
 // ---------------------------------------------------------------
-// wad_get_entry_indices(wad_t *wad, const char *name, int *out, int offset, int max)
+// WAD_GetEntryIndices(wad_t *wad, const char *name, int *out, int offset, int max)
 // See wad.h
 // ---------------------------------------------------------------
-int wad_get_entry_indices(wad_t *wad, const char *name, int *out, int max)
+int WAD_GetEntryIndices(wad_t *wad, const char *name, int *out, int max)
 {
-	return wad_get_entry_indices_offset(wad, name, 0, out, max);
+	return WAD_get_entry_indices_offset(wad, name, 0, out, max);
 }
 
 // ---------------------------------------------------------------
-// wad_get_entry_indices_offset(wad_t *wad, const char *name, int start, int *out, int max)
+// WAD_GetEntryIndicesOffset(wad_t *wad, const char *name, int start, int *out, int max)
 // See wad.h
 // ---------------------------------------------------------------
-int wad_get_entry_indices_offset(wad_t *wad, const char *name, int start, int *out, int max)
+int WAD_GetEntryIndicesOffset(wad_t *wad, const char *name, int start, int *out, int max)
 {
 	// Reset error state.
 	waderrno = WADERROR_NO_ERROR;
@@ -1162,7 +1211,7 @@ int wad_get_entry_indices_offset(wad_t *wad, const char *name, int start, int *o
 	}
 	
 	int i = 0;
-	while ((*out = wad_get_entry_index_offset(wad, name, start)) >= 0)
+	while (i < max && (*out = WAD_GetEntryIndexOffset(wad, name, start)) >= 0)
 	{
 		start = (*out) + 1;
 		out += 1;
@@ -1173,10 +1222,10 @@ int wad_get_entry_indices_offset(wad_t *wad, const char *name, int start, int *o
 }
 
 // ---------------------------------------------------------------
-// int wad_get_entry_last_index(wad_t *wad, char *name)
+// int WAD_GetEntryLastIndex(wad_t *wad, char *name)
 // See wad.h
 // ---------------------------------------------------------------
-int wad_get_entry_last_index(wad_t *wad, const char *name)
+int WAD_GetEntryLastIndex(wad_t *wad, const char *name)
 {
 	// Reset error state.
 	waderrno = WADERROR_NO_ERROR;
@@ -1200,19 +1249,19 @@ int wad_get_entry_last_index(wad_t *wad, const char *name)
 }
 
 // ---------------------------------------------------------------
-// wadentry_t* wad_create_entry(wad_t *wad, char *name)
+// wadentry_t* WAD_CreateEntry(wad_t *wad, char *name)
 // See wad.h
 // ---------------------------------------------------------------
-wadentry_t* wad_create_entry(wad_t *wad, const char *name)
+wadentry_t* WAD_CreateEntry(wad_t *wad, const char *name)
 {
-	return wad_create_entry_at(wad, name, wad->header.entry_count);
+	return WAD_CreateEntryAt(wad, name, wad->header.entry_count);
 }
 
 // ---------------------------------------------------------------
-// wadentry_t* wad_create_entry_at(wad_t *wad, char *name, int index)
+// wadentry_t* WAD_CreateEntryAt(wad_t *wad, char *name, int index)
 // See wad.h
 // ---------------------------------------------------------------
-wadentry_t* wad_create_entry_at(wad_t *wad, const char *name, int index)
+wadentry_t* WAD_CreateEntryAt(wad_t *wad, const char *name, int index)
 {
 	// Reset error state.
 	waderrno = WADERROR_NO_ERROR;
@@ -1235,19 +1284,19 @@ wadentry_t* wad_create_entry_at(wad_t *wad, const char *name, int index)
 }
 
 // ---------------------------------------------------------------
-// wadentry_t* wad_add_entry(wad_t *wad, char *name, unsigned char *buffer, size_t buffer_size)
+// wadentry_t* WAD_AddEntry(wad_t *wad, char *name, unsigned char *buffer, size_t buffer_size)
 // See wad.h
 // ---------------------------------------------------------------
-wadentry_t* wad_add_entry(wad_t *wad, const char *name, unsigned char *buffer, size_t buffer_size)
+wadentry_t* WAD_AddEntry(wad_t *wad, const char *name, unsigned char *buffer, size_t buffer_size)
 {
-	return wad_add_entry_at(wad, name, wad->header.entry_count, buffer, buffer_size);
+	return WAD_AddEntryAt(wad, name, wad->header.entry_count, buffer, buffer_size);
 }
 
 // ---------------------------------------------------------------
-// wadentry_t* wad_add_entry_at(wad_t *wad, char *name, int index, unsigned char *buffer, size_t buffer_size)
+// wadentry_t* WAD_AddEntryAt(wad_t *wad, char *name, int index, unsigned char *buffer, size_t buffer_size)
 // See wad.h
 // ---------------------------------------------------------------
-wadentry_t* wad_add_entry_at(wad_t *wad, const char *name, int index, unsigned char *buffer, size_t buffer_size)
+wadentry_t* WAD_AddEntryAt(wad_t *wad, const char *name, int index, unsigned char *buffer, size_t buffer_size)
 {
 	// Reset error state.
 	waderrno = WADERROR_NO_ERROR;
@@ -1270,21 +1319,21 @@ wadentry_t* wad_add_entry_at(wad_t *wad, const char *name, int index, unsigned c
 }
 
 // ---------------------------------------------------------------
-// wadentry_t* wad_add_entry_data(wad_t *wad, const char *name, FILE *stream)
+// wadentry_t* WAD_AddEntryData(wad_t *wad, const char *name, FILE *stream)
 // See wad.h
 // ---------------------------------------------------------------
-wadentry_t* wad_add_entry_data(wad_t *wad, const char *name, FILE *stream)
+wadentry_t* WAD_AddEntryData(wad_t *wad, const char *name, FILE *stream)
 {
-	return wad_add_entry_data_at(wad, name, wad->header.entry_count, stream);
+	return WAD_AddEntryDataAt(wad, name, wad->header.entry_count, stream);
 }
 
 // ---------------------------------------------------------------
-// wadentry_t* wad_add_entry_data_at(wad_t *wad, const char *name, int index, FILE *stream)
+// wadentry_t* WAD_AddEntryDataAt(wad_t *wad, const char *name, int index, FILE *stream)
 // See wad.h
 // ---------------------------------------------------------------
-wadentry_t* wad_add_entry_data_at(wad_t *wad, const char *name, int index, FILE *stream)
+wadentry_t* WAD_AddEntryDataAt(wad_t *wad, const char *name, int index, FILE *stream)
 {
-		// Reset error state.
+	// Reset error state.
 	waderrno = WADERROR_NO_ERROR;
 	errno = 0;
 
@@ -1305,40 +1354,69 @@ wadentry_t* wad_add_entry_data_at(wad_t *wad, const char *name, int index, FILE 
 }
 
 // ---------------------------------------------------------------
-// int wad_remove_entry_at(wad_t *wad, int index)
+// int WAD_RemoveEntryAt(wad_t *wad, int index)
 // See wad.h
 // ---------------------------------------------------------------
-int wad_remove_entry_at(wad_t *wad, int index)
+int WAD_RemoveEntryAt(wad_t *wad, int index)
 {
-	// TODO: Finish this.
-	return 1;
-}
+	// Reset error state.
+	waderrno = WADERROR_NO_ERROR;
+	errno = 0;
 
-// ---------------------------------------------------------------
-// int wad_get_entry_data(wad_t *wad, wadentry_t *entry, void *destination)
-// See wad.h
-// ---------------------------------------------------------------
-int wad_get_entry_data(wad_t *wad, wadentry_t *entry, unsigned char *destination)
-{
-	int out = wad_read_entry_data(wad, entry, destination, entry->length, 1);
-	return out >= 0 ? out * entry->length : out;
-}
+	if (wad == NULL)
+	{
+		waderrno = WADERROR_WAD_INVALID;
+		return 1;
+	}
+	
+	if ((WI_FUNC(wad, remove_entry_at))(wad, index))
+	{
+		// waderrno/errno set in call.
+		return 1;
+	}
 
-// ---------------------------------------------------------------
-// int wad_read_entry_data(wad_t *wad, wadentry_t *entry, void *destination, size_t size, size_t count)
-// See wad.h
-// ---------------------------------------------------------------
-int wad_read_entry_data(wad_t *wad, wadentry_t *entry, void *destination, size_t size, size_t count)
-{
-	// TODO: Finish this.
 	return 0;
 }
 
 // ---------------------------------------------------------------
-// int wad_close(wad_t *wad)
+// int WAD_GetEntryData(wad_t *wad, wadentry_t *entry, void *destination)
 // See wad.h
 // ---------------------------------------------------------------
-int wad_close(wad_t *wad)
+int WAD_GetEntryData(wad_t *wad, wadentry_t *entry, unsigned char *destination)
+{
+	return WAD_ReadEntryData(wad, entry, destination, 1, entry->length);
+}
+
+// ---------------------------------------------------------------
+// int WAD_ReadEntryData(wad_t *wad, wadentry_t *entry, void *destination, size_t size, size_t count)
+// See wad.h
+// ---------------------------------------------------------------
+int WAD_ReadEntryData(wad_t *wad, wadentry_t *entry, void *destination, size_t size, size_t count)
+{
+	// Reset error state.
+	waderrno = WADERROR_NO_ERROR;
+	errno = 0;
+
+	if (wad == NULL)
+	{
+		waderrno = WADERROR_WAD_INVALID;
+		return 1;
+	}
+	
+	if ((WI_FUNC(wad, read_data))(wad, entry, destination, size, count) < 0)
+	{
+		// waderrno/errno set in call.
+		return -1;
+	}
+
+	return 0;
+}
+
+// ---------------------------------------------------------------
+// int WAD_Close(wad_t *wad)
+// See wad.h
+// ---------------------------------------------------------------
+int WAD_Close(wad_t *wad)
 {
 	// Reset error state.
 	waderrno = WADERROR_NO_ERROR;
@@ -1355,7 +1433,7 @@ int wad_close(wad_t *wad)
 		return 1;
 	}
 	
-	wad_free_allocated(wad);
+	WAD_FreeAllocated(wad);
 	
 	return 0;
 }

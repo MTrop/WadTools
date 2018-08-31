@@ -75,9 +75,10 @@ del /q "%BUILDDIR%\obj\%PACKAGENAME%.nfo"
 del /s/q "%BUILDDIR%\obj\%PACKAGENAME%\*.o"
 for %%F in ("%SRCDIR%\%PACKAGENAME%\*.c") do (
 	gcc -c "%%F" -o "%BUILDDIR%\obj\%PACKAGENAME%\%%~nF.o"
-	if not %ERRORLEVEL% == 0 goto _end
+	if not %ERRORLEVEL% == 0 goto :_end
 	echo Built "%%F" to "%BUILDDIR%\obj\%PACKAGENAME%\%%~nF.o"
 )
+if not %ERRORLEVEL% == 0 goto _end
 echo This file is to denote that a package was compiled. > "%BUILDDIR%\obj\%PACKAGENAME%.nfo"
 goto _end
 
