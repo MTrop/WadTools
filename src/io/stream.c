@@ -389,6 +389,7 @@ stream_t* STREAM_OpenBuffer(unsigned char *buffer, size_t length)
 	out->type = STREAMI_BUFFER;
 	out->buffer = buffer;
 	out->buffer_pos = 0;
+	out->buffer_content_length = length;
 	out->buffer_length = length;
 	out->pos = 0;
 	out->length = length;
