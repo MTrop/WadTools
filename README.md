@@ -4,7 +4,7 @@ Copyright (C) 2018 Matt Tropiano
 
 ### NOTICE
 
-This code and utility libraries are really, really not suitable for general consumption yet.
+This code and the utility libraries are really, really not suitable for general consumption yet.
 
 Caveat emptor.
 
@@ -35,11 +35,11 @@ To build a subpackage (directory under `src`), type:
 
 ...Where `[dirname]` is a directory name. They get built to `build\obj\[dirname]`.
 
-To build a all subpackages:
+To build all subpackages:
 
 	build packageall
 
-To build a utility (A C file in `src` directory root), type:
+To build a utility (a C file in `src` directory root), type:
 
 	build [filename]
 
