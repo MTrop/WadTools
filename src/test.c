@@ -60,8 +60,8 @@ void print_error()
 
 int main(int argc, char** argv)
 {
-	wad_t* wad = WAD_Create("TEST.wad");
-//	wad_t* wad = WAD_CreateBuffer();
+	//wad_t* wad = WAD_Create("TEST.wad");
+	wad_t* wad = WAD_CreateBuffer();
 	
 	if (!wad)
 	{
@@ -92,6 +92,12 @@ int main(int argc, char** argv)
 	WAD_AddEntryData(wad, "LUMP06", f1);
 	print_error();
 	WAD_AddEntryDataAt(wad, "LUMP07", 3, f2);
+	print_error();
+
+	WAD_RemoveEntryAt(wad, 3);
+	print_error();
+
+	WAD_RemoveEntryAt(wad, 7);
 	print_error();
 	
 	fclose(f1);

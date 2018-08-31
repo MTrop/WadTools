@@ -59,6 +59,17 @@ static void STREAM_FreeAllocated(stream_t *stream)
 	STREAM_FREE(stream);
 }
 
+static char* STREAM_TypeName(stream_type_t type)
+{
+	switch (type)
+	{
+		case STREAMI_FILE: return "File";
+		case STREAMI_BUFFER: return "Buffer";
+	}
+	
+	return "Unknown";
+}
+
 // ===========================================================================
 // Virtual function table for implementation handling.
 // ===========================================================================
@@ -131,14 +142,17 @@ static int streami_file_get_char(stream_t *stream)
 	if (stream->buffer)
 	{
 		int buf = streami_file_fill_buffer(stream);
-		printf("%d\n", buf);
 		if (buf == EOF)
 			return EOF;
 		out = stream->buffer[stream->buffer_pos++] & 0x0FF;
 	}
 	else
 	{
+		if (stream->pos >= stream->length)
+			return EOF;
 		out = fgetc(stream->file);
+		if (out == EOF)
+			return EOF;
 	}
 		
 	stream->pos++;
@@ -194,7 +208,7 @@ static streamfuncs_t STREAMI_FILE_STREAMFUNCS = {
 
 static int streami_buffer_destroy(stream_t *stream)
 {
-	STREAM_FREE(stream->buffer);
+	// Nothing to destroy. DO NOT FREE THE BUFFER - it was encapsulated.
 	return 0;
 }
 
@@ -360,6 +374,8 @@ stream_t* STREAM_OpenFileSection(FILE *file, size_t length)
 stream_t* STREAM_OpenBufferedFileSection(FILE *file, size_t length, int buffer_size)
 {
 	stream_t *out = STREAM_Init();
+	// make sure valid size.
+	buffer_size = buffer_size < 1 ? 1 : buffer_size;
 	if (STREAM_AllocateBuffer(out, buffer_size))
 	{
 		STREAM_FreeAllocated(out);
@@ -372,7 +388,7 @@ stream_t* STREAM_OpenBufferedFileSection(FILE *file, size_t length, int buffer_s
 	out->pos = 0;
 	out->length = length;
 	
-	out->type = STREAMI_BUFFER;
+	out->type = STREAMI_FILE;
 	return out;	
 }
 
@@ -416,7 +432,7 @@ int STREAM_Reset(stream_t *stream)
 // size_t STREAM_Tell(stream_t *stream)
 // See stream.h
 // ---------------------------------------------------------------
-size_t STREAM_Tell(stream_t *stream)
+inline size_t STREAM_Tell(stream_t *stream)
 {
 	return stream->pos;
 }
@@ -425,7 +441,7 @@ size_t STREAM_Tell(stream_t *stream)
 // size_t STREAM_Length(stream_t *stream)
 // See stream.h
 // ---------------------------------------------------------------
-size_t STREAM_Length(stream_t *stream)
+inline size_t STREAM_Length(stream_t *stream)
 {
 	return stream->length;
 }
@@ -523,4 +539,31 @@ int STREAM_Close(stream_t *stream)
 	STREAM_FreeAllocated(stream);
 	
 	return 0;
+}
+
+// ---------------------------------------------------------------
+// void STREAM_Dump(stream_t *stream)
+// See stream.h
+// ---------------------------------------------------------------
+void STREAM_Dump(stream_t *stream)
+{
+	if (stream == NULL)
+		return;
+
+	printf("STREAM Type: %s\n", STREAM_TypeName(stream->type));
+	printf("\tPos: %d\n", stream->pos);
+	printf("\tLength: %d\n", stream->length);
+	if (stream->type == STREAMI_FILE)
+	{
+		printf("FILE\n", stream->file_origin_pos);
+		printf("\tOrigin Pos: %d\n", stream->file_origin_pos);
+		printf("\tOpened? %s\n", stream->file_opened ? "YES" : "NO");
+	}
+	if (stream->type == STREAMI_BUFFER || stream->buffer)
+	{
+		printf("BUFFER%s\n", stream->type != STREAMI_BUFFER ? " (Backing)" : "");
+		printf("\tTotal length: %d\n", stream->buffer_length);
+		printf("\tContent length: %d\n", stream->buffer_content_length);
+		printf("\tCurrent pos: %d\n", stream->buffer_pos);
+	}
 }

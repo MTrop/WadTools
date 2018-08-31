@@ -63,7 +63,12 @@ static int WAD_SetupOpenFileHandle(FILE *fp, wadheader_t *header)
 {
 	int buf;
 
-	fseek(fp, 0, SEEK_SET);
+	if (fseek(fp, 0, SEEK_SET))
+	{
+		fclose(fp);
+		return 1;
+	}
+	
 	buf = fread(header, 1, WADHEADER_LEN, fp);
 
 	// Check file size. Smaller than header = not a WAD.
@@ -164,11 +169,13 @@ static int WAD_SetupBuildEntrylist(FILE *fp, wad_t *wad)
 		return 1;
 
 	// Seek to entry list.
-	fseek(fp, wad->header.entry_list_offset, SEEK_SET);
+	if (fseek(fp, wad->header.entry_list_offset, SEEK_SET))
+		return 1;
 	
 	for (i = 0; i < count; i++)
 	{
-		fread(wad->entries[i], WADENTRY_LEN, 1, fp);
+		if (!fread(wad->entries[i], WADENTRY_LEN, 1, fp))
+			return 1;
 		wad->entries[i]->name[8] = 0x00; // null-terminate name if 8 chars long.
 	}
 	
@@ -189,7 +196,9 @@ static int WAD_SetupBuildBuffer(FILE *fp, wad_t *wad)
 	unsigned char *bufptr = wad->handle.buffer;
 	
 	// Seek to content.
-	fseek(fp, WADHEADER_LEN, SEEK_SET);
+	if (fseek(fp, WADHEADER_LEN, SEEK_SET))
+		return 1;
+	
 	while (remain)
 	{
 		amount = min(CBUF_LEN, remain);
@@ -268,6 +277,22 @@ static wadentry_t* WAD_AddEntryCommon(wad_t *wad, const char *name, int32_t leng
 	return wad->entries[index];
 }
 
+// Removes an entry. Just the entry - no other data.
+static int WAD_RemoveEntryCommon(wad_t *wad, int index)
+{
+	if (index < 0 || index >= wad->header.entry_count)
+	{
+		waderrno = WADERROR_INDEX_OUT_OF_RANGE;
+		return 1;
+	}
+	
+	memmove(&(wad->entries[index]), &(wad->entries[index+1]), sizeof (wadentry_t*) * (wad->header.entry_count - index - 1));
+
+	wad->header.entry_count--;
+	return 0;
+}
+
+
 // ===========================================================================
 // Virtual function table for implementation handling.
 // ===========================================================================
@@ -280,6 +305,7 @@ typedef struct {
 	wadentry_t* (*add_entry_at)(wad_t*, const char*, int, unsigned char*, size_t);
 	wadentry_t* (*add_entry_data_at)(wad_t*, const char*, int, FILE*);
 	int         (*remove_entry_at)(wad_t*, int);
+	int         (*get_data)(wad_t*, wadentry_t*, unsigned char*);
 	int         (*read_data)(wad_t*, wadentry_t*, void*, size_t, size_t);
 	
 } wadfuncs_t;
@@ -329,6 +355,13 @@ static int wi_map_remove_entry_at(wad_t *wad, int index)
 	return 1;
 }
 
+static int wi_map_get_data(wad_t *wad, wadentry_t *entry, unsigned char *destination)
+{
+	// Not supported.
+	waderrno = WADERROR_NOT_SUPPORTED;
+	return 0;
+}
+
 static int wi_map_read_data(wad_t *wad, wadentry_t *entry, void *destination, size_t size, size_t count)
 {
 	// Not supported.
@@ -343,7 +376,8 @@ static wadfuncs_t WI_MAP_WADFUNCS = {
 	wi_map_add_entry_at,
 	wi_map_add_entry_data_at,
 	wi_map_remove_entry_at,
-	wi_map_read_data
+	wi_map_get_data,
+	wi_map_read_data,
 };
 
 // ===========================================================================
@@ -362,7 +396,8 @@ static int wi_file_commit_header(wad_t *wad)
 {
 	errno = 0;
 	FILE *file = wad->handle.file;
-	fseek(file, 0, SEEK_SET);
+	if (fseek(file, 0, SEEK_SET))
+		return 1;
 	if (!fwrite(&(wad->header), WADHEADER_LEN, 1, file))
 		return 1;
 
@@ -373,7 +408,8 @@ static int wi_file_commit_entry(wad_t *wad, int index)
 {
 	errno = 0;
 	FILE *file = wad->handle.file;
-	fseek(file, wad->header.entry_list_offset + (WADENTRY_LEN * index), SEEK_SET);
+	if (fseek(file, wad->header.entry_list_offset + (WADENTRY_LEN * index), SEEK_SET))
+		return 1;
 	if (!fwrite(wad->entries[index], WADENTRY_LEN, 1, file))
 		return 1;
 	
@@ -432,7 +468,8 @@ static wadentry_t* wi_file_add_entry_at(wad_t *wad, const char *name, int index,
 	}
 	
 	FILE *fp = wad->handle.file;
-	fseek(fp, pos, SEEK_SET);
+	if (fseek(fp, pos, SEEK_SET))
+		return NULL;
 	
 	size_t remain = size;
 	
@@ -461,7 +498,11 @@ static wadentry_t* wi_file_add_entry_data_at(wad_t *wad, const char *name, int i
 	wadentry_t* entry;
 	int pos = wad->header.entry_list_offset;
 	FILE *fp = wad->handle.file;
-	fseek(fp, pos, SEEK_SET);
+	if (fseek(fp, pos, SEEK_SET))
+	{
+		waderrno = WADERROR_FILE_ERROR;
+		return NULL;
+	}
 	
 	int buf = 0;
 	int amount = 0;
@@ -491,14 +532,32 @@ static wadentry_t* wi_file_add_entry_data_at(wad_t *wad, const char *name, int i
 
 static int wi_file_remove_entry_at(wad_t *wad, int index)
 {
-	// TODO: Finish this.
-	return 1;
+	if (WAD_RemoveEntryCommon(wad, index))
+		return 1;
+	wi_file_commit_entries(wad);
+	return 0;
+}
+
+static int wi_file_get_data(wad_t *wad, wadentry_t *entry, unsigned char *destination)
+{
+	if (fseek(wad->handle.file, entry->offset, SEEK_SET))
+	{
+		waderrno = WADERROR_FILE_ERROR;
+		return -1;
+	}
+
+	return fread(destination, 1, entry->length, wad->handle.file);
 }
 
 static int wi_file_read_data(wad_t *wad, wadentry_t *entry, void *destination, size_t size, size_t count)
 {
-	// TODO: Finish this.
-	return 0;
+	if (fseek(wad->handle.file, entry->offset, SEEK_SET))
+	{
+		waderrno = WADERROR_FILE_ERROR;
+		return -1;
+	}
+	
+	return fread(destination, size, count, wad->handle.file);
 }
 
 static wadfuncs_t WI_FILE_WADFUNCS = {
@@ -508,7 +567,8 @@ static wadfuncs_t WI_FILE_WADFUNCS = {
 	wi_file_add_entry_at,
 	wi_file_add_entry_data_at,
 	wi_file_remove_entry_at,
-	wi_file_read_data
+	wi_file_get_data,
+	wi_file_read_data,
 };
 
 // ===========================================================================
@@ -612,14 +672,47 @@ static wadentry_t* wi_buffer_add_entry_data_at(wad_t *wad, const char *name, int
 
 static int wi_buffer_remove_entry_at(wad_t *wad, int index)
 {
-	// TODO: Finish this.
-	return 1;
+	return WAD_RemoveEntryCommon(wad, index);
+}
+
+static int wi_buffer_get_data(wad_t *wad, wadentry_t *entry, unsigned char *destination)
+{
+	unsigned char *dest = destination;
+	unsigned char *src;
+	int32_t len = entry->length;
+	// must offset by header length. Entry content is offset by that much.
+	if (len > 0)
+	{
+		src = wad->handle.buffer + entry->offset - WADHEADER_LEN;
+		memcpy(dest, src, len);
+		return len;
+	}
+	
+	return 0;
 }
 
 static int wi_buffer_read_data(wad_t *wad, wadentry_t *entry, void *destination, size_t size, size_t count)
 {
-	// TODO: Finish this.
-	return 0;
+	int out = 0;
+	unsigned char *dest = destination;
+	unsigned char *src;
+	int32_t len = entry->length;
+	
+	// must offset by header length. Entry content is offset by that much.
+	if (len)
+		src = wad->handle.buffer + entry->offset - WADHEADER_LEN;
+	else
+		src = wad->handle.buffer;
+	
+	while (len >= size && count--)
+	{
+		memcpy(dest, src, size);
+		dest += size;
+		src += size;
+		len -= size;
+		out++;
+	}
+	return out;
 }
 
 static wadfuncs_t WI_BUFFER_WADFUNCS = {
@@ -629,7 +722,8 @@ static wadfuncs_t WI_BUFFER_WADFUNCS = {
 	wi_buffer_add_entry_at,
 	wi_buffer_add_entry_data_at,
 	wi_buffer_remove_entry_at,
-	wi_buffer_read_data
+	wi_buffer_get_data,
+	wi_buffer_read_data,
 };
 
 // ...........................................................................
@@ -1145,7 +1239,7 @@ int WAD_GetEntryCount(wad_t *wad, const char *name)
 // ---------------------------------------------------------------
 int WAD_GetEntryIndex(wad_t *wad, const char *name)
 {
-	return WAD_get_entry_index_offset(wad, name, 0);
+	return WAD_GetEntryIndexOffset(wad, name, 0);
 }
 
 // ---------------------------------------------------------------
@@ -1186,7 +1280,7 @@ int WAD_GetEntryIndexOffset(wad_t *wad, const char *name, int start)
 // ---------------------------------------------------------------
 int WAD_GetEntryIndices(wad_t *wad, const char *name, int *out, int max)
 {
-	return WAD_get_entry_indices_offset(wad, name, 0, out, max);
+	return WAD_GetEntryIndicesOffset(wad, name, 0, out, max);
 }
 
 // ---------------------------------------------------------------
@@ -1384,7 +1478,23 @@ int WAD_RemoveEntryAt(wad_t *wad, int index)
 // ---------------------------------------------------------------
 int WAD_GetEntryData(wad_t *wad, wadentry_t *entry, unsigned char *destination)
 {
-	return WAD_ReadEntryData(wad, entry, destination, 1, entry->length);
+	// Reset error state.
+	waderrno = WADERROR_NO_ERROR;
+	errno = 0;
+
+	if (wad == NULL)
+	{
+		waderrno = WADERROR_WAD_INVALID;
+		return 1;
+	}
+	
+	if ((WI_FUNC(wad, get_data))(wad, entry, destination) < 0)
+	{
+		// waderrno/errno set in call.
+		return -1;
+	}
+
+	return 0;
 }
 
 // ---------------------------------------------------------------

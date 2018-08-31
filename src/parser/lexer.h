@@ -98,11 +98,8 @@ typedef struct {
 
 	/** Stream name. */
 	char *name;
-
-	union {
-		FILE *stream;
-	} so
-	
+	/** Source stream. */
+	stream_t *stream;
 	/** Current line number. */
 	int linenum;
 	/** Current character number (on the line). */
@@ -131,6 +128,9 @@ typedef struct {
  */
 typedef struct {
 
+	/** Stream stack. */
+	stream_t **stream_stack;
+	
 	// TODO: Finish this.
 	
 } lexer_t;

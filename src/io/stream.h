@@ -114,8 +114,8 @@ stream_t* STREAM_OpenBufferedFileSection(FILE *stream, size_t length, int buffer
 
 /**
  * Creates a new stream from a binary char buffer.
- * @param buffer the stream of characters.
- * @param length the amount of characters to read in total.
+ * @param buffer the stream of bytes.
+ * @param length the amount of bytes to read in total.
  * @return a new stream or NULL if it couldn't be opened or allocated.
  */
 stream_t* STREAM_OpenBuffer(unsigned char *buffer, size_t length);
@@ -184,11 +184,19 @@ int STREAM_Read(stream_t *stream, void *destination, size_t size, size_t count);
 /**
  * Closes a stream.
  * If the stream had to open a file to read from it, the file will be closed.
- * If successful, the pointer is invalidated.
+ * If a backing buffer was created, it too will be freed.
+ * If this is a buffer encapsulation (via STREAM_OpenBuffer()), the encapsulated buffer will NOT BE FREED.
+ * If successful, the stream pointer is invalidated.
  * @param stream the stream.
- * @return 0 if successful and the pointer was invalidated, nonzero if not.
+ * @return 0 if successful and the stream pointer was invalidated, nonzero if not.
  */
 int STREAM_Close(stream_t *stream);
+
+/**
+ * Dumps info about a stream to STDOUT.
+ * @param stream the stream.
+ */
+void STREAM_Dump(stream_t *stream);
 
 
 #endif

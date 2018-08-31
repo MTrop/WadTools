@@ -77,10 +77,12 @@ typedef struct {
 	
 	/** Handle union. */
 	union {
+		
 		/** If WI_FILE. */
 		FILE *file;
 		/** If WI_BUFFER. */
 		unsigned char *buffer;
+		
 	} handle;
 	
 	/** WAD header. */
@@ -410,6 +412,7 @@ int WAD_RemoveEntryAt(wad_t *wad, int index);
 /**
  * Gets the content of an entry from a WAD.
  * The destination must be large enough to accomodate the data.
+ * This ensures a single contiguous read of the data.
  * @param wad the pointer to the open WAD.
  * @param entry the entry to use for length and offset.
  * @param destination the destination buffer.
