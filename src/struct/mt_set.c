@@ -62,7 +62,7 @@ static void _swap(void **a, void **b)
 	*b = temp;
 }
 
-static int _expand(set_t *set, int newsize)
+static int _expand(mt_set_t *set, int newsize)
 {
 	void **newr;
 	void **oldr = set->items;
@@ -80,7 +80,7 @@ static int _expand(set_t *set, int newsize)
 	return newsize;
 }
 
-static int _canexpand(set_t *set)
+static int _canexpand(mt_set_t *set)
 {
 	return set->size == set->capacity ? 1 : 0;
 }
@@ -89,9 +89,9 @@ static int _canexpand(set_t *set)
 // Public Functions
 // ===========================================================================
 
-set_t* MT_SetNew(int capacity, int (*comparefunc)(void*, void*))
+mt_set_t* MT_SetNew(int capacity, int (*comparefunc)(void*, void*))
 {
-	set_t *out = (set_t*)MTS_MALLOC(sizeof(set_t));
+	mt_set_t *out = (mt_set_t*)MTS_MALLOC(sizeof(mt_set_t));
 	if (!out)
 	{
 		return NULL;
@@ -110,33 +110,33 @@ set_t* MT_SetNew(int capacity, int (*comparefunc)(void*, void*))
 	return out;
 }
 
-void MT_SetDestroy(set_t *set)
+void MT_SetDestroy(mt_set_t *set)
 {
 	MTS_FREE(set->items);
 	MTS_FREE(set);
 }
 
-void MT_SetClear(set_t *set)
+void MT_SetClear(mt_set_t *set)
 {
 	set->size = 0;
 }
 
-int MT_SetLength(set_t *set)
+int MT_SetLength(mt_set_t *set)
 {
 	return set->size;
 }
 
-int MT_SetCapacity(set_t *set)
+int MT_SetCapacity(mt_set_t *set)
 {
 	return set->capacity;
 }
 
-int MT_SetContains(set_t *set, void *value)
+int MT_SetContains(mt_set_t *set, void *value)
 {
 	return _bsearch(set->items, set->size, set->comparefunc, value) >= 0 ? 1 : 0;
 }
 
-int MT_SetAdd(set_t *set, void *value)
+int MT_SetAdd(mt_set_t *set, void *value)
 {
 	int i;
 	
@@ -161,7 +161,7 @@ int MT_SetAdd(set_t *set, void *value)
 	return 0;
 }
 
-int MT_SetRemove(set_t *set, void *refid)
+int MT_SetRemove(mt_set_t *set, void *refid)
 {
 	int i;
 	
@@ -177,7 +177,7 @@ int MT_SetRemove(set_t *set, void *refid)
 	return 0;
 }
 
-int MT_SetUnion(set_t *out, set_t *first, set_t *second)
+int MT_SetUnion(mt_set_t *out, mt_set_t *first, mt_set_t *second)
 {
 	int i;
 	int cf = first->size;
@@ -194,7 +194,7 @@ int MT_SetUnion(set_t *out, set_t *first, set_t *second)
 	return out->size;
 }
 
-int MT_SetIntersection(set_t *out, set_t *first, set_t *second)
+int MT_SetIntersection(mt_set_t *out, mt_set_t *first, mt_set_t *second)
 {
 	int i;
 	int cf = first->size;
@@ -208,7 +208,7 @@ int MT_SetIntersection(set_t *out, set_t *first, set_t *second)
 	return out->size;
 }
 
-int MT_SetXOr(set_t *out, set_t *first, set_t *second)
+int MT_SetXOr(mt_set_t *out, mt_set_t *first, mt_set_t *second)
 {
 	int i;
 	int cf = first->size;
@@ -227,7 +227,7 @@ int MT_SetXOr(set_t *out, set_t *first, set_t *second)
 	return out->size;
 }
 
-int MT_SetDifference(set_t *out, set_t *first, set_t *second)
+int MT_SetDifference(mt_set_t *out, mt_set_t *first, mt_set_t *second)
 {
 	int i;
 	int cf = first->size;
@@ -241,7 +241,7 @@ int MT_SetDifference(set_t *out, set_t *first, set_t *second)
 	return out->size;
 }
 
-void MT_SetDump(set_t *set, void (*dumpfunc)(void*))
+void MT_SetDump(mt_set_t *set, void (*dumpfunc)(void*))
 {
 	int i;
 	printf("SET CAP %d, CNT %d [ ", set->capacity, set->size);

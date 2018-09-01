@@ -21,14 +21,14 @@
  * Allocates memory for the hashtable.
  * @param capacity the table capacity (slots).
  */
-static htable_t* MT_HTableAlloc(int capacity)
+static mt_htable_t* MT_HTableAlloc(int capacity)
 {
-	htable_t *out = NULL;
+	mt_htable_t *out = NULL;
 	
 	if (capacity <= 0)
 		return NULL;
 	
-	out = (htable_t*)MTS_CALLOC(1, sizeof(htable_t));
+	out = (mt_htable_t*)MTS_CALLOC(1, sizeof(mt_htable_t));
 	
 	if (!out)
 		return NULL;
@@ -51,9 +51,9 @@ static htable_t* MT_HTableAlloc(int capacity)
  * @param ht the target hashtable.
  * @param key the input key.
  */
-static int MT_HTableGetSlot(htable_t *ht, char *key)
+static int MT_HTableGetSlot(mt_htable_t *ht, char *key)
 {
-	hashvalue_t hash = (*ht->hashfunc)(key);
+	mt_hashvalue_t hash = (*ht->hashfunc)(key);
 	int out = (int)(hash % ht->capacity);
 	return out < 0 ? -out : out;
 }
@@ -64,7 +64,7 @@ static int MT_HTableGetSlot(htable_t *ht, char *key)
  * @param key the input key.
  * @return the corresponding hash table node.
  */
-static HTBL_NODE* MT_HTableGetNode(htable_t *ht, char *key)
+static HTBL_NODE* MT_HTableGetNode(mt_htable_t *ht, char *key)
 {
 	HTBL_NODE *node;
 	int slot = MT_HTableGetSlot(ht, key);
@@ -90,9 +90,9 @@ static HTBL_NODE* MT_HTableGetNode(htable_t *ht, char *key)
 // ===========================================================================
 
 // See mt_htable.h
-htable_t* MT_HTableCreate(int capacity, hashvalue_t (*hashfunc)(void*), int (*eqlfunc)(void*, void*))
+mt_htable_t* MT_HTableCreate(int capacity, mt_hashvalue_t (*hashfunc)(void*), int (*eqlfunc)(void*, void*))
 {
-	htable_t *out = MT_HTableAlloc(capacity);
+	mt_htable_t *out = MT_HTableAlloc(capacity);
 	if (!out)
 		return NULL;
 	out->hashfunc = hashfunc;
@@ -101,7 +101,7 @@ htable_t* MT_HTableCreate(int capacity, hashvalue_t (*hashfunc)(void*), int (*eq
 }	
 
 // See mt_htable.h
-void MT_HTableDestroy(htable_t *ht)
+void MT_HTableDestroy(mt_htable_t *ht)
 {
 	HTBL_NODE* current = NULL;
 	HTBL_NODE* next = NULL;
@@ -122,7 +122,7 @@ void MT_HTableDestroy(htable_t *ht)
 }
 
 // See mt_htable.h
-int MT_HTablePut(htable_t *ht, void *key, void *value)
+int MT_HTablePut(mt_htable_t *ht, void *key, void *value)
 {
 	HTBL_NODE *node, *newhead, *prev = NULL;
 	int slot = MT_HTableGetSlot(ht, key);
@@ -168,7 +168,7 @@ int MT_HTablePut(htable_t *ht, void *key, void *value)
 }
 
 // See mt_htable.h
-void* MT_HTableGet(htable_t *ht, void *key)
+void* MT_HTableGet(mt_htable_t *ht, void *key)
 {
 	HTBL_NODE *node = MT_HTableGetNode(ht, key);
 	if (node)
@@ -177,7 +177,7 @@ void* MT_HTableGet(htable_t *ht, void *key)
 }
 
 // See mt_htable.h
-void* MT_HTableRemove(htable_t *ht, void *key)
+void* MT_HTableRemove(mt_htable_t *ht, void *key)
 {
 	void *out;
 	HTBL_NODE *node, *prev = NULL;
@@ -214,7 +214,7 @@ void* MT_HTableRemove(htable_t *ht, void *key)
 }
 
 // See mt_htable.h
-void MT_HTableDump(htable_t *ht)
+void MT_HTableDump(mt_htable_t *ht)
 {
 	int i;
 	HTBL_NODE *current, *next;
@@ -234,19 +234,19 @@ void MT_HTableDump(htable_t *ht)
 }
 
 // See mt_htable.h
-inline int MT_HTableContains(htable_t *ht, void *key)
+inline int MT_HTableContains(mt_htable_t *ht, void *key)
 {
 	return MT_HTableGetNode(ht, key) != NULL ? 1 : 0;
 }
 
 // See mt_htable.h
-inline int MT_HTableEmpty(htable_t *ht)
+inline int MT_HTableEmpty(mt_htable_t *ht)
 {
 	return ht->size > 0 ? 1 : 0;
 }
 
 // See mt_htable.h
-inline int MT_HTableSize(htable_t *ht)
+inline int MT_HTableSize(mt_htable_t *ht)
 {
 	return ht->size;
 }
@@ -258,9 +258,9 @@ int MT_HTableEqlInt(void* a, void* b)
 }
 
 // See mt_htable.h
-hashvalue_t MT_HTableHashInt(void* a)
+mt_hashvalue_t MT_HTableHashInt(void* a)
 {
-	return (hashvalue_t)((int)a);
+	return (mt_hashvalue_t)((int)a);
 }
 
 // See mt_htable.h
@@ -270,10 +270,16 @@ int MT_HTableEqlCharPtr(void* a, void* b)
 }
 
 // See mt_htable.h
-// Adapted from the JDK's implementation of String.
-hashvalue_t MT_HTableHashCharPtr(void* a)
+int MT_HTableEqlCharInsensitivePtr(void* a, void* b)
 {
-	hashvalue_t out = 0;
+	return stricmp((char*)a, (char*)b) == 0;
+}
+
+// See mt_htable.h
+// Adapted from the JDK's implementation of String.
+mt_hashvalue_t MT_HTableHashCharPtr(void* a)
+{
+	mt_hashvalue_t out = 0;
 	char* c = (char*)a;
 	while (*c != '\0')
 	{
@@ -283,4 +289,14 @@ hashvalue_t MT_HTableHashCharPtr(void* a)
 	return out;
 }
 
+// See mt_htable.h
+int MT_HTableEqlChar(void* a, void* b)
+{
+	return (int)a == (int)b;
+}
 
+// See mt_htable.h
+mt_hashvalue_t MT_HTableHashChar(void* a)
+{
+	return (mt_hashvalue_t)a;
+}

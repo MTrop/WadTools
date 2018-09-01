@@ -295,7 +295,7 @@ stream_t* STREAM_Open(char *filename)
 
 	out->file_opened = 1;
 	
-	return ;
+	return out;
 }
 
 // ---------------------------------------------------------------

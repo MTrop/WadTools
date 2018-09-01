@@ -315,18 +315,21 @@ typedef struct {
 // WI_MAP
 // ===========================================================================
 
+// Implementation of wadfuncs_t.destroy(wad_t*)
 static int wi_map_destroy(wad_t *wad)
 {
 	// Do nothing. Entry cleanup done in another function.
 	return 0;
 }
 
+// Implementation of wadfuncs_t.commit_entries(wad_t*)
 static int wi_map_commit_entries(wad_t *wad)
 {
 	// Do nothing. Nothing to write to.
 	return 0;
 }
 
+// Implementation of wadfuncs_t.create_entry_at(wad_t*, const char*, int)
 static wadentry_t* wi_map_create_entry_at(wad_t *wad, const char *name, int index)
 {
 	// Not supported.
@@ -334,6 +337,7 @@ static wadentry_t* wi_map_create_entry_at(wad_t *wad, const char *name, int inde
 	return NULL;
 }
 
+// Implementation of wadfuncs_t.add_entry_at(wad_t*, const char*, int, unsigned char*, size_t)
 static wadentry_t* wi_map_add_entry_at(wad_t *wad, const char *name, int index, unsigned char *buffer, size_t size)
 {
 	// Not supported.
@@ -341,6 +345,7 @@ static wadentry_t* wi_map_add_entry_at(wad_t *wad, const char *name, int index, 
 	return NULL;
 }
 
+// Implementation of wadfuncs_t.wi_map_add_entry_data_at(wad_t*, const char*, int, FILE*)
 static wadentry_t* wi_map_add_entry_data_at(wad_t *wad, const char *name, int index, FILE *stream)
 {
 	// Not supported.
@@ -348,6 +353,7 @@ static wadentry_t* wi_map_add_entry_data_at(wad_t *wad, const char *name, int in
 	return NULL;
 }
 
+// Implementation of wadfuncs_t.remove_entry_at(wad_t*, int)
 static int wi_map_remove_entry_at(wad_t *wad, int index)
 {
 	// Not supported.
@@ -355,6 +361,7 @@ static int wi_map_remove_entry_at(wad_t *wad, int index)
 	return 1;
 }
 
+// Implementation of wadfuncs_t.get_data(wad_t*, wadentry_t*, unsigned char*)
 static int wi_map_get_data(wad_t *wad, wadentry_t *entry, unsigned char *destination)
 {
 	// Not supported.
@@ -362,6 +369,7 @@ static int wi_map_get_data(wad_t *wad, wadentry_t *entry, unsigned char *destina
 	return 0;
 }
 
+// Implementation of wadfuncs_t.read_data(wad_t*, wadentry_t*, void*, size_t, size_t)
 static int wi_map_read_data(wad_t *wad, wadentry_t *entry, void *destination, size_t size, size_t count)
 {
 	// Not supported.
@@ -384,6 +392,7 @@ static wadfuncs_t WI_MAP_WADFUNCS = {
 // WI_FILE
 // ===========================================================================
 
+// Implementation of wadfuncs_t.destroy(wad_t*)
 static int wi_file_destroy(wad_t *wad)
 {
 	// Close file handle.
@@ -391,6 +400,7 @@ static int wi_file_destroy(wad_t *wad)
 	fclose(wad->handle.file);
 	return 0;
 }
+
 
 static int wi_file_commit_header(wad_t *wad)
 {
@@ -416,6 +426,7 @@ static int wi_file_commit_entry(wad_t *wad, int index)
 	return 0;
 }
 
+// Implementation of wadfuncs_t.commit_entries(wad_t*)
 static int wi_file_commit_entries(wad_t *wad)
 {
 	if (wi_file_commit_header(wad))
@@ -443,6 +454,7 @@ static int wi_file_commit_entries(wad_t *wad)
 	return 0;
 }
 
+// Implementation of wadfuncs_t.create_entry_at(wad_t*, const char*, int)
 static wadentry_t* wi_file_create_entry_at(wad_t *wad, const char *name, int index)
 {
 	wadentry_t* entry;
@@ -456,6 +468,7 @@ static wadentry_t* wi_file_create_entry_at(wad_t *wad, const char *name, int ind
 	return entry;
 }
 
+// Implementation of wadfuncs_t.add_entry_at(wad_t*, const char*, int, unsigned char*, size_t)
 static wadentry_t* wi_file_add_entry_at(wad_t *wad, const char *name, int index, unsigned char *buffer, size_t size)
 {
 	int amount;
@@ -493,6 +506,7 @@ static wadentry_t* wi_file_add_entry_at(wad_t *wad, const char *name, int index,
 	return entry;
 }
 
+// Implementation of wadfuncs_t.wi_map_add_entry_data_at(wad_t*, const char*, int, FILE*)
 static wadentry_t* wi_file_add_entry_data_at(wad_t *wad, const char *name, int index, FILE *stream)
 {
 	wadentry_t* entry;
@@ -530,6 +544,7 @@ static wadentry_t* wi_file_add_entry_data_at(wad_t *wad, const char *name, int i
 	return entry;
 }
 
+// Implementation of wadfuncs_t.remove_entry_at(wad_t*, int)
 static int wi_file_remove_entry_at(wad_t *wad, int index)
 {
 	if (WAD_RemoveEntryCommon(wad, index))
@@ -538,6 +553,7 @@ static int wi_file_remove_entry_at(wad_t *wad, int index)
 	return 0;
 }
 
+// Implementation of wadfuncs_t.get_data(wad_t*, wadentry_t*, unsigned char*)
 static int wi_file_get_data(wad_t *wad, wadentry_t *entry, unsigned char *destination)
 {
 	if (fseek(wad->handle.file, entry->offset, SEEK_SET))
@@ -549,6 +565,7 @@ static int wi_file_get_data(wad_t *wad, wadentry_t *entry, unsigned char *destin
 	return fread(destination, 1, entry->length, wad->handle.file);
 }
 
+// Implementation of wadfuncs_t.read_data(wad_t*, wadentry_t*, void*, size_t, size_t)
 static int wi_file_read_data(wad_t *wad, wadentry_t *entry, void *destination, size_t size, size_t count)
 {
 	if (fseek(wad->handle.file, entry->offset, SEEK_SET))
@@ -575,6 +592,7 @@ static wadfuncs_t WI_FILE_WADFUNCS = {
 // WI_BUFFER
 // ===========================================================================
 
+// Implementation of wadfuncs_t.destroy(wad_t*)
 static int wi_buffer_destroy(wad_t *wad)
 {
 	// Free buffer itself.
@@ -584,12 +602,14 @@ static int wi_buffer_destroy(wad_t *wad)
 	return 0;
 }
 
+// Implementation of wadfuncs_t.commit_entries(wad_t*)
 static int wi_buffer_commit_entries(wad_t *wad)
 {
 	// Do nothing. Nothing to write to.
 	return 0;
 }
 
+// Implementation of wadfuncs_t.create_entry_at(wad_t*, const char*, int)
 static wadentry_t* wi_buffer_create_entry_at(wad_t *wad, const char *name, int index)
 {
 	wadentry_t* entry;
@@ -613,6 +633,7 @@ static int wi_buffer_attempt_expand(wad_t *wad, int add)
 	return 0;
 }
 
+// Implementation of wadfuncs_t.add_entry_at(wad_t*, const char*, int, unsigned char*, size_t)
 static wadentry_t* wi_buffer_add_entry_at(wad_t *wad, const char *name, int index, unsigned char *buffer, size_t size)
 {
 	if (wi_buffer_attempt_expand(wad, size))
@@ -637,6 +658,7 @@ static wadentry_t* wi_buffer_add_entry_at(wad_t *wad, const char *name, int inde
 	return entry;
 }
 
+// Implementation of wadfuncs_t.wi_map_add_entry_data_at(wad_t*, const char*, int, FILE*)
 static wadentry_t* wi_buffer_add_entry_data_at(wad_t *wad, const char *name, int index, FILE *stream)
 {
 	int buf = 0;
@@ -670,11 +692,13 @@ static wadentry_t* wi_buffer_add_entry_data_at(wad_t *wad, const char *name, int
 	return entry;
 }
 
+// Implementation of wadfuncs_t.remove_entry_at(wad_t*, int)
 static int wi_buffer_remove_entry_at(wad_t *wad, int index)
 {
 	return WAD_RemoveEntryCommon(wad, index);
 }
 
+// Implementation of wadfuncs_t.get_data(wad_t*, wadentry_t*, unsigned char*)
 static int wi_buffer_get_data(wad_t *wad, wadentry_t *entry, unsigned char *destination)
 {
 	unsigned char *dest = destination;
@@ -691,6 +715,7 @@ static int wi_buffer_get_data(wad_t *wad, wadentry_t *entry, unsigned char *dest
 	return 0;
 }
 
+// Implementation of wadfuncs_t.read_data(wad_t*, wadentry_t*, void*, size_t, size_t)
 static int wi_buffer_read_data(wad_t *wad, wadentry_t *entry, void *destination, size_t size, size_t count)
 {
 	int out = 0;

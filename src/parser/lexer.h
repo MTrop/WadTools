@@ -10,65 +10,53 @@
 #define __LEXER_H__
 
 #include <stdio.h>
-#include "../mt_vector.h"
-#include "../mt_set.h"
-#include "../mt_htable.h"
+#include "lexer_config.h"
+#include "lexer_kernel.h"
+#include "../io/stream.h"
 
 /**
  * Lexeme type.
  */
 typedef enum {
 	
-	/** Reserved token type: End of lexer. */
-	LXT_END_OF_LEXER,
-	/** Reserved token type: End of stream. */
-	LXT_END_OF_STREAM,
-	/** Reserved token type: Number. */
-	LXT_NUMBER,
-	/** Reserved token type: Space. */
-	LXT_DELIM_SPACE,
-	/** Reserved token type: Tab. */
-	LXT_DELIM_TAB,
-	/** Reserved token type: New line character. */
-	LXT_DELIM_NEWLINE,
-	/** Reserved token type: Open comment. */
-	LXT_DELIM_OPEN_COMMENT,
-	/** Reserved token type: Close comment. */
-	LXT_DELIM_CLOSE_COMMENT,
-	/** Reserved token type: Line comment. */
-	LXT_DELIM_LINE_COMMENT,
-	/** Reserved token type: Identifier. */
-	LXT_IDENTIFIER,
-	/** Reserved token type: Unknown token. */
-	LXT_UNKNOWN,
-	/** Reserved token type: Illegal token. */
-	LXT_ILLEGAL,
-	/** Reserved token type: Comment. */
-	LXT_COMMENT,
-	/** Reserved token type: Line Comment. */
-	LXT_LINE_COMMENT,
-	/** Reserved token type: String. */
-	LXT_STRING,
-	/** Reserved token type: Special (never returned). */
-	LXT_SPECIAL,
-	/** Reserved token type: Delimiter (never returned). */
-	LXT_DELIMITER,
-	/** Reserved token type: Point state (never returned). */
-	LXT_POINT,
-	/** Reserved token type: Floating point state (never returned). */
-	LXT_FLOAT,
-	/** Reserved token type: Delimiter Comment (never returned). */
-	LXT_DELIM_COMMENT,
-	/** Reserved token type: hexadecimal integer (never returned). */
-	LXT_HEX_INTEGER0,
-	/** Reserved token type: hexadecimal integer (never returned). */
-	LXT_HEX_INTEGER1,
-	/** Reserved token type: hexadecimal integer (never returned). */
-	LXT_HEX_INTEGER,
-	/** Reserved token type: Exponent state (never returned). */
-	LXT_EXPONENT,
-	/** Reserved token type: Exponent power state (never returned). */
-	LXT_EXPONENT_POWER;
+	/** Token type: End of lexer. */
+	LXR_END_OF_LEXER,
+	/** Token type: End of stream. */
+	LXR_END_OF_STREAM,
+	/** Token type: Unknown token. */
+	LXR_UNKNOWN,
+	/** Token type: Illegal token. */
+	LXR_ILLEGAL,
+	/** Token type: Space. */
+	LXR_SPACE,
+	/** Token type: Tab. */
+	LXR_TAB,
+	/** Token type: New line character. */
+	LXR_NEWLINE,
+	/** Token type: Identifier. */
+	LXR_IDENTIFIER,
+	/** Token type: Delimiter. */
+	LXR_DELIMITER,
+	/** Token type: Number. */
+	LXR_NUMBER,
+	/** Token type: String. */
+	LXR_STRING,
+	/** Token type: Point state (never returned). */
+	LXR_STATE_POINT,
+	/** Token type: Floating point state (never returned). */
+	LXR_STATE_FLOAT,
+	/** Token type: Delimiter Comment (never returned). */
+	LXR_STATE_COMMENT,
+	/** Token type: hexadecimal integer (never returned). */
+	LXR_STATE_HEX_INTEGER0,
+	/** Token type: hexadecimal integer (never returned). */
+	LXR_STATE_HEX_INTEGER1,
+	/** Token type: hexadecimal integer (never returned). */
+	LXR_STATE_HEX_INTEGER,
+	/** Token type: Exponent state (never returned). */
+	LXR_STATE_EXPONENT,
+	/** Token type: Exponent power state (never returned). */
+	LXR_STATE_EXPONENT_POWER;
 	
 } lexeme_type_t;
 
@@ -81,13 +69,11 @@ typedef struct {
 	/** Include spaces? */
 	int include_spaces;
 	/** Include tabs? */
-	int include_spaces;
+	int include_tabs;
 	/** Include newlines? */
 	int include_newlines;
-	/** Include stream break? */
+	/** Include stream break (end of stream)? */
 	int include_stream_break;
-	/** Decimal character. */
-	int decimal_char;
 
 } lexer_options_t;
 
@@ -101,72 +87,118 @@ typedef struct {
 	/** Source stream. */
 	stream_t *stream;
 	/** Current line number. */
-	int linenum;
+	int line_number;
 	/** Current character number (on the line). */
-	int charnum;
+	int character_number;
 
 } lexer_stream_t;
-
 
 /**
  * A scanned lexer token.
  */
 typedef struct {
 	
+	/** Source stream. */
+	lexer_stream_t *stream;
 	/** Lexeme type. */
-	lexeme_type_t *type;
-	/** Token keyword type. */
-	int keyword_type;
+	lexeme_type_t type;
+	/** Token subtype. */
+	int subtype;
 	/** Token lexeme. */
-	char *lexeme;
+	char lexeme[LEXEME_LENGTH_MAX];
+	/** Token lexeme length. */
+	int length;
+	/** Current line number. */
+	int line_number;
+	/** Nonzero if in token break. */
+	int token_break;
+	/** Stored token on token break. */
+	char stored;
 	
 } lexer_token_t;
-
 
 /**
  * Lexer.
  */
 typedef struct {
 
-	/** Stream stack. */
-	stream_t **stream_stack;
+	/** Kernel. */
+	lexer_kernel_t *kernel;
 	
-	// TODO: Finish this.
+	/** Stream stack. */
+	lexer_stream_t **stream_stack;
+	/** Stream stack. */
+	int stream_stack_pos;
+	
+	/** Currently scanned token. */
+	lexer_token_t token;
+	/** Lexer options. */
+	lexer_options_t options;
+	/** Current lexer state. */
+	lexeme_type_t state;
+
+	/** Current string terminal. */
+	char string_end;
+	/** Current comment terminal. */
+	char *comment_end;
 	
 } lexer_t;
 
 /**
- * Creates a new stream that a lexer can read from.
- * The stream name is the file's name.
- * @param filename the name of the file to open.
- * @return a new lexer stream or NULL if it couldn't be opened or allocated.
+ * Creates a new lexer.
+ * @param kernel the kernel to use. Cannot be NULL.
+ * @return a new lexer or NULL if it couldn't be allocated.
  */
-lexer_stream_t* lexer_stream_open_file(char *filename);
+lexer_t* LXR_Create(lexer_kernel_t *kernel);
 
 /**
- * Creates a new stream that a lexer can read from.
- * @param name the stream name.
- * @param file the open stream.
- * @return a new lexer stream or NULL if it couldn't be opened or allocated.
+ * Pushes a new character stream onto the lexer using a file.
+ * The name of the stream is the file name.
+ * NOTE: Be careful - this does not affect the current state!
+ * @param lexer the lexer to use.
+ * @param filename the filename to open.
+ * @return 0 if successful or nonzero if not.
  */
-lexer_stream_t* lexer_stream_create_file(char *name, FILE *stream);
+int LXR_PushStream(lexer_t *lexer, char *filename);
 
 /**
- * Creates a new stream that a lexer can read from.
- * @param name the stream name.
- * @param charstream the stream of characters.
- * @param length the amount of characters.
- * @return a new lexer stream or NULL if it couldn't be opened or allocated.
+ * Pushes a new character stream onto the lexer using an already-opened file.
+ * NOTE: Be careful - this does not affect the current state!
+ * @param lexer the lexer to use.
+ * @param name the name of the stream.
+ * @param file the open file to wrap as a stream.
+ * @return 0 if successful or nonzero if not.
  */
-lexer_stream_t* lexer_stream_create_buffer(char *name, char *charstream, int length);
+int LXR_PushStreamFile(lexer_t *lexer, char *name, FILE *file);
 
 /**
- * Closes a lexer stream.
+ * Pushes a new character stream onto the lexer using a byte buffer.
+ * NOTE: Be careful - this does not affect the current state!
+ * @param lexer the lexer to use.
+ * @param name the name of the stream.
+ * @param buffer the buffer to wrap as a stream.
+ * @param length the length of the buffer in bytes.
+ * @return 0 if successful or nonzero if not.
+ */
+int LXR_PushStreamBuffer(lexer_t *lexer, char *name, unsigned char *buffer, size_t length);
+
+/**
+ * Scans the next lexeme.
+ * NOTE: The lexeme scanned should be copied if the content itself needs to be used elsewhere.
+ * @param lexer the lexer to use.
+ * @return a pointer to the token scanned in.
+ */
+lexer_token_t* LXR_NextToken(lexer_t *lexer);
+
+/**
+ * Closes a lexer.
+ * All pushed streams that are still open are closed and freed.
  * If successful, the pointer is invalidated.
- * @param stream the stream.
+ * The underlying kernel is NOT FREED.
+ * @param lexer the lexer to close.
  * @return 0 if successful and the pointer was invalidated, nonzero if not.
  */
-int lexer_stream_close(lexer_stream_t *stream);
+int LXR_Destroy(lexer_t *lexer);
 
 
 #endif

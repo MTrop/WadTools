@@ -12,7 +12,7 @@
 #include <stdint.h>
 
 /** Calculated hash for string hashtables. */ 
-typedef int32_t hashvalue_t;
+typedef int32_t mt_hashvalue_t;
 
 /** List node type. */
 typedef struct HTBL_NODE
@@ -30,7 +30,7 @@ typedef struct HTBL_NODE
 typedef struct 
 {
 	/** Pointer to hashing function. */
-	hashvalue_t (*hashfunc)(void*);
+	mt_hashvalue_t (*hashfunc)(void*);
 	/** Pointer to key equality function. */
 	int (*eqlfunc)(void*, void*);
 	
@@ -41,7 +41,7 @@ typedef struct
 	/** Current amount of keys. */
 	int size;
 	
-} htable_t;
+} mt_htable_t;
 
 /**
  * Allocates a new hashtable.
@@ -50,7 +50,7 @@ typedef struct
  * @param eqlfunc pointer to the equality function to use.
  * @return a pointer to the table or NULL if not allocated.
  */
-htable_t* MT_HTableCreate(int capacity, hashvalue_t (*hashfunc)(void*), int (*eqlfunc)(void*, void*));
+mt_htable_t* MT_HTableCreate(int capacity, mt_hashvalue_t (*hashfunc)(void*), int (*eqlfunc)(void*, void*));
 
 /**
  * Destroys a hash table.
@@ -58,23 +58,24 @@ htable_t* MT_HTableCreate(int capacity, hashvalue_t (*hashfunc)(void*), int (*eq
  * @param ht the target table.
  * @return a pointer to the table or NULL if not allocated.
  */
-void MT_HTableDestroy(htable_t *ht);
+void MT_HTableDestroy(mt_htable_t *ht);
 
 /**
  * DEBUG: Dumps the table contents.
  * @param ht the target table.
  */
-void MT_HTableDump(htable_t *ht);
+void MT_HTableDump(mt_htable_t *ht);
 
 /**
  * Sets a key-value pair in the table.
+ * The key and value pointer is copied, but not the content.
  * If the key is already in the table, its corresponding value is replaced.
  * @param ht the target table.
  * @param key the key.
  * @param value the value.
  * @return 1 if successful, 0 if not.
  */
-int MT_HTablePut(htable_t *ht, void *key, void *value);
+int MT_HTablePut(mt_htable_t *ht, void *key, void *value);
 
 /**
  * Returns a value in the table at the corresponding key.
@@ -82,7 +83,7 @@ int MT_HTablePut(htable_t *ht, void *key, void *value);
  * @param key the key.
  * @return the value.
  */
-void* MT_HTableGet(htable_t *ht, void *key);
+void* MT_HTableGet(mt_htable_t *ht, void *key);
 
 /**
  * Removes a key-value pair in the table at the corresponding key.
@@ -90,7 +91,7 @@ void* MT_HTableGet(htable_t *ht, void *key);
  * @param key the key.
  * @return the corresponding value.
  */
-void* MT_HTableRemove(htable_t *ht, void *key);
+void* MT_HTableRemove(mt_htable_t *ht, void *key);
 
 /**
  * Checks if a key is in the table.
@@ -98,20 +99,20 @@ void* MT_HTableRemove(htable_t *ht, void *key);
  * @param key the key.
  * @return 1 if successful, 0 if not.
  */
-int MT_HTableContains(htable_t *ht, void *key);
+int MT_HTableContains(mt_htable_t *ht, void *key);
 
 /**
  * Checks if this table has no elements.
  * @param ht the target table.
  * @return 1 if so, 0 if not.
  */
-int MT_HTableEmpty(htable_t *ht);
+int MT_HTableEmpty(mt_htable_t *ht);
 
 /**
  * @param ht the target table.
  * @return the amount of elements in the table.
  */
-int MT_HTableSize(htable_t *ht);
+int MT_HTableSize(mt_htable_t *ht);
 
 
 /********** HELPER FUNCTIONS AND JUNK ************/
@@ -124,7 +125,7 @@ int MT_HTableEqlInt(void* a, void* b);
 /**
  * Hashing function for hashing ints.
  */
-hashvalue_t MT_HTableHashInt(void* a);
+mt_hashvalue_t MT_HTableHashInt(void* a);
 
 /**
  * Equality function for comparing two strings.
@@ -132,9 +133,24 @@ hashvalue_t MT_HTableHashInt(void* a);
 int MT_HTableEqlCharPtr(void* a, void* b);
 
 /**
+ * Equality function for comparing two strings case-insensitively.
+ */
+int MT_HTableEqlCharInsensitivePtr(void* a, void* b);
+
+/**
  * Hashing function for hashing strings.
  */
-hashvalue_t MT_HTableHashCharPtr(void* a);
+mt_hashvalue_t MT_HTableHashCharPtr(void* a);
+
+/**
+ * Equality function for comparing two chars.
+ */
+int MT_HTableEqlChar(void* a, void* b);
+
+/**
+ * Hashing function for hashing chars.
+ */
+mt_hashvalue_t MT_HTableHashChar(void* a);
 
 
 #endif

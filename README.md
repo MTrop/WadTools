@@ -22,7 +22,7 @@ incrementally and the root projects optionally. This has been tested in the foll
 and toolchains:
 
 * Windows 7 x64
-* MinGW (GCC and TR)
+* MinGW (GCC 4.8.1 and Msys 1.0 TR)
 
 Yup, that's it. Who knows what the future holds!
 
