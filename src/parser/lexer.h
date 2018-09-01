@@ -56,7 +56,7 @@ typedef enum {
 	/** Token type: Exponent state (never returned). */
 	LXR_STATE_EXPONENT,
 	/** Token type: Exponent power state (never returned). */
-	LXR_STATE_EXPONENT_POWER;
+	LXR_STATE_EXPONENT_POWER,
 	
 } lexeme_type_t;
 
