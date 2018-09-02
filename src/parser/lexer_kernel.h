@@ -10,7 +10,6 @@
 #define __LEXER_KERNEL_H__
 
 #include "lexer_config.h"
-#include "../struct/mt_htable.h"
 #include "../struct/mt_set.h"
 
 #define LXR_KERNEL_SET_SIZE		32
@@ -21,24 +20,24 @@
  */
 typedef struct {
 
-	/** Map of char* to char*: multi-line comment-starting delimiters to comment-ending delimiters. */
-	mt_htable_t *comment_map;
-	/** Map of char* to int: line-comment delimiters to comment type. */
-	mt_htable_t *comment_line_map;
+	/** Set of pairs: char* to char*: multi-line comment-starting delimiters to comment-ending delimiters. */
+	mt_set_t *comment_map;
+	/** Set of pairs: char* to int: line-comment delimiters to comment type. */
+	mt_set_t *comment_line_map;
 
-	/** Map of char* to int: delimiters to delimiter type. */
-	mt_htable_t *delimiter_map;
+	/** Set of pairs: char* to int: delimiters to delimiter type. */
+	mt_set_t *delimiter_map;
 	
 	/** Set of characters that start delimiters. Delimiters immediately break the current token if encountered. */
 	mt_set_t *delimiter_starts;
 	
-	/** Map of char* to int: identifier to keyword type. */
-	mt_htable_t *keyword_map;
-	/** Map of char* to int: identifier to keyword type. Case-insensitive matching. */
-	mt_htable_t *cikeyword_map;
+	/** Set of pairs: char* to int: identifier to keyword type. */
+	mt_set_t *keyword_map;
+	/** Set of pairs: char* to int: identifier to keyword type. Case-insensitive matching. */
+	mt_set_t *cikeyword_map;
 
-	/** Map of char to char: string start char to string end char. */
-	mt_htable_t *string_map;
+	/** Set of pairs: char to char: string start char to string end char. */
+	mt_set_t *string_map;
 
 	/** Decimal character. */
 	char decimal_char;

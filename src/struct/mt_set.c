@@ -17,7 +17,7 @@
 // Private Functions
 // ===========================================================================
 
-static int _bsearch(void **arr, int count, int (*comparefunc)(void*, void*), void *value)
+static int MT_SetSearch(void **arr, int count, int (*comparefunc)(void*, void*), void *value)
 {
 	int u, l, i, c, prev;
 	
@@ -55,14 +55,14 @@ static int _bsearch(void **arr, int count, int (*comparefunc)(void*, void*), voi
 }
 
 // swaps contents of two addresses
-static void _swap(void **a, void **b)
+static void MT_SetSwap(void **a, void **b)
 {
 	void* temp = *a;
 	*a = *b;
 	*b = temp;
 }
 
-static int _expand(mt_set_t *set, int newsize)
+static int MT_SetExpand(mt_set_t *set, int newsize)
 {
 	void **newr;
 	void **oldr = set->items;
@@ -80,7 +80,7 @@ static int _expand(mt_set_t *set, int newsize)
 	return newsize;
 }
 
-static int _canexpand(mt_set_t *set)
+static int MT_SetCanExpand(mt_set_t *set)
 {
 	return set->size == set->capacity ? 1 : 0;
 }
@@ -89,7 +89,7 @@ static int _canexpand(mt_set_t *set)
 // Public Functions
 // ===========================================================================
 
-mt_set_t* MT_SetNew(int capacity, int (*comparefunc)(void*, void*))
+mt_set_t* MT_SetCreate(int capacity, int (*comparefunc)(void*, void*))
 {
 	mt_set_t *out = (mt_set_t*)MTS_MALLOC(sizeof(mt_set_t));
 	if (!out)
@@ -133,7 +133,7 @@ int MT_SetCapacity(mt_set_t *set)
 
 int MT_SetContains(mt_set_t *set, void *value)
 {
-	return _bsearch(set->items, set->size, set->comparefunc, value) >= 0 ? 1 : 0;
+	return MT_SetSearch(set->items, set->size, set->comparefunc, value) >= 0 ? 1 : 0;
 }
 
 int MT_SetAdd(mt_set_t *set, void *value)
@@ -142,7 +142,7 @@ int MT_SetAdd(mt_set_t *set, void *value)
 	
 	if (!MT_SetContains(set, value))
 	{
-		if (_canexpand(set) && !_expand(set, set->capacity * 2))
+		if (MT_SetCanExpand(set) && !MT_SetExpand(set, set->capacity * 2))
 			return 0;
 		
 		i = set->size;
@@ -152,7 +152,7 @@ int MT_SetAdd(mt_set_t *set, void *value)
 		// insertion sort
 		while (i > 0 && (*set->comparefunc)(set->items[i-1], set->items[i]) > 0)
 		{
-			_swap(&set->items[i-1], &set->items[i]);
+			MT_SetSwap(&set->items[i-1], &set->items[i]);
 			i--;
 		}
 		
@@ -161,20 +161,21 @@ int MT_SetAdd(mt_set_t *set, void *value)
 	return 0;
 }
 
-int MT_SetRemove(mt_set_t *set, void *refid)
+void* MT_SetRemove(mt_set_t *set, void *value)
 {
 	int i;
 	
-	if ((i = _bsearch(set->items, set->size, set->comparefunc, refid)) >= 0)
+	if ((i = MT_SetSearch(set->items, set->size, set->comparefunc, value)) >= 0)
 	{
+		void *out = set->items[i];
 		// only memcpy if necessary
 		if (i <= set->size - 1)
 			memcpy(&set->items[i], &set->items[i+1], sizeof(void*) * (set->size - (i + 1)));
 
 		(set->size)--;
-		return 1;
+		return out;
 	}
-	return 0;
+	return NULL;
 }
 
 int MT_SetUnion(mt_set_t *out, mt_set_t *first, mt_set_t *second)
