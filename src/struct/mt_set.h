@@ -27,6 +27,8 @@ typedef struct
  * Creates a dynamic set object. 
  * This can dynamically grow in size if need be, and memory is avaliable to do so.
  * @param capacity the size in references.
+ *
+ * @return a pointer to the new set, or NULL if not allocated.
  */
 mt_set_t* MT_SetCreate(int capacity, int (*comparefunc)(void*, void*));
 
@@ -67,7 +69,7 @@ int MT_SetAdd(mt_set_t *set, void *value);
 
 /**
  * Removes a ref (if exist).
- * @param set the address of the set object.
+ * @param set the set object.
  * @param value the reference to remove.
  * @return a pointer to the instance actually removed, or NULL if no match.
  */
@@ -75,9 +77,9 @@ void* MT_SetRemove(mt_set_t *set, void *value);
 
 /**
  * Checks if a ref is in the set.
- * @param set the address of the set object.
- * @param value the reference to remove.
- * @return 1 if removed, 0 if not.
+ * @param set the set object.
+ * @param value the value to check for.
+ * @return 1 if so, 1 if not.
  */
 int MT_SetContains(mt_set_t *set, void *value);
 

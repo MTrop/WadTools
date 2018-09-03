@@ -106,7 +106,6 @@ mt_set_t* MT_SetCreate(int capacity, int (*comparefunc)(void*, void*))
 	out->capacity = capacity;
 	out->size = 0;
 	out->comparefunc = comparefunc;
-
 	return out;
 }
 
