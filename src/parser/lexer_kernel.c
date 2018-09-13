@@ -209,6 +209,19 @@ lexer_kernel_t* LXRK_Create()
 }
 
 // ---------------------------------------------------------------
+// int LXRK_Destroy(lexer_kernel_t *kernel)
+// See lexer_kernel.h
+// ---------------------------------------------------------------
+int LXRK_Destroy(lexer_kernel_t *kernel)
+{
+	if (kernel == NULL)
+		return 1;
+	LXRK_FreeSets(kernel);
+	LXR_FREE(kernel);
+	return 0;
+}
+
+// ---------------------------------------------------------------
 // void LXRK_AddCommentDelimiter(lexer_kernel_t *kernel, char *comment_start, char *comment_end)
 // See lexer_kernel.h
 // ---------------------------------------------------------------
@@ -291,17 +304,4 @@ inline void LXRK_SetDecimalSeparator(lexer_kernel_t *kernel, char separator)
 inline void LXRK_SetStringEscapeChar(lexer_kernel_t *kernel, char escape)
 {
 	kernel->escape_char = escape;
-}
-
-// ---------------------------------------------------------------
-// int LXRK_Destroy(lexer_kernel_t *kernel)
-// See lexer_kernel.h
-// ---------------------------------------------------------------
-int LXRK_Destroy(lexer_kernel_t *kernel)
-{
-	if (kernel == NULL)
-		return 1;
-	LXRK_FreeSets(kernel);
-	LXR_FREE(kernel);
-	return 0;
 }
