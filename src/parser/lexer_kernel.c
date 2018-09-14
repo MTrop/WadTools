@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include "lexer_kernel.h"
 
 // ===========================================================================
@@ -193,8 +194,6 @@ static lexer_kernel_t* LXRK_Init()
 	return out;
 }
 
-LXRK_SETPAIR intermediate_pair;
-
 // ===========================================================================
 // Public Functions
 // ===========================================================================
@@ -304,4 +303,137 @@ inline void LXRK_SetDecimalSeparator(lexer_kernel_t *kernel, char separator)
 inline void LXRK_SetStringEscapeChar(lexer_kernel_t *kernel, char escape)
 {
 	kernel->escape_char = escape;
+}
+
+// ---------------------------------------------------------------
+// char* LXRK_GetCommentEnd(lexer_kernel_t *kernel, char *comment_start)
+// See lexer_kernel.h
+// ---------------------------------------------------------------
+char* LXRK_GetCommentEnd(lexer_kernel_t *kernel, char *comment_start)
+{
+	LXRK_SETPAIR pair;
+	pair.key = (void*)comment_start;
+	int idx;
+	if ((idx = MT_SetSearch(kernel->comment_map, &pair)) >= 0)
+		return kernel->comment_map->items[idx];
+	return NULL;
+}
+
+// ---------------------------------------------------------------
+// int LXRK_IsAlphabeticalChar(lexer_kernel_t *kernel, int c)
+// See lexer_kernel.h
+// ---------------------------------------------------------------
+inline int LXRK_IsAlphabeticalChar(lexer_kernel_t *kernel, int c)
+{
+	return isalpha(c);
+}
+
+// ---------------------------------------------------------------
+// int LXRK_IsHexadecimalChar(lexer_kernel_t *kernel, int c)
+// See lexer_kernel.h
+// ---------------------------------------------------------------
+inline int LXRK_IsHexadecimalChar(lexer_kernel_t *kernel, int c)
+{
+	return isxdigit(c);
+}
+
+// ---------------------------------------------------------------
+// int LXRK_IsDecimalChar(lexer_kernel_t *kernel, int c)
+// See lexer_kernel.h
+// ---------------------------------------------------------------
+inline int LXRK_IsDecimalChar(lexer_kernel_t *kernel, int c)
+{
+	return isdigit(c);
+}
+
+// ---------------------------------------------------------------
+// int LXRK_IsUnderscoreChar(lexer_kernel_t *kernel, int c)
+// See lexer_kernel.h
+// ---------------------------------------------------------------
+inline int LXRK_IsUnderscoreChar(lexer_kernel_t *kernel, int c)
+{
+	return c == '_' ? 1 : 0;
+}
+
+// ---------------------------------------------------------------
+// int LXRK_IsNewlineChar(lexer_kernel_t *kernel, int c)
+// See lexer_kernel.h
+// ---------------------------------------------------------------
+inline int LXRK_IsNewlineChar(lexer_kernel_t *kernel, int c)
+{
+	return c == '\n' ? 1 : 0;
+}
+
+// ---------------------------------------------------------------
+// int LXRK_IsSpaceChar(lexer_kernel_t *kernel, int c)
+// See lexer_kernel.h
+// ---------------------------------------------------------------
+inline int LXRK_IsSpaceChar(lexer_kernel_t *kernel, int c)
+{
+	return c == ' ' ? 1 : 0;
+}
+
+// ---------------------------------------------------------------
+// int LXRK_IsTabChar(lexer_kernel_t *kernel, int c)
+// See lexer_kernel.h
+// ---------------------------------------------------------------
+inline int LXRK_IsTabChar(lexer_kernel_t *kernel, int c)
+{
+	return c == '\t' ? 1 : 0;
+}
+
+// ---------------------------------------------------------------
+// int LXRK_IsWhitespaceChar(lexer_kernel_t *kernel, int c)
+// See lexer_kernel.h
+// ---------------------------------------------------------------
+inline int LXRK_IsWhitespaceChar(lexer_kernel_t *kernel, int c)
+{
+	return isspace(c);
+}
+
+// ---------------------------------------------------------------
+// int LXRK_IsExponentSignChar(lexer_kernel_t *kernel, int c)
+// See lexer_kernel.h
+// ---------------------------------------------------------------
+inline int LXRK_IsExponentSignChar(lexer_kernel_t *kernel, int c)
+{
+	return (c == 'e' || c == 'E') ? 1 : 0;
+}
+
+// ---------------------------------------------------------------
+// int LXRK_IsDelimiterChar(lexer_kernel_t *kernel, int c)
+// See lexer_kernel.h
+// ---------------------------------------------------------------
+inline int LXRK_IsDelimiterStartChar(lexer_kernel_t *kernel, int c)
+{
+	return MT_SetContains(kernel->delimiter_starts, (void*)c);
+}
+
+// ---------------------------------------------------------------
+// int LXRK_IsStringStartChar(lexer_kernel_t *kernel, int c)
+// See lexer_kernel.h
+// ---------------------------------------------------------------
+int LXRK_IsStringStartChar(lexer_kernel_t *kernel, int c)
+{
+	LXRK_SETPAIR pair;
+	pair.key = (void*)c;
+	return MT_SetContains(kernel->string_map, &pair);
+}
+
+// ---------------------------------------------------------------
+// int LXRK_IsDecimalSeparatorChar(lexer_kernel_t *kernel, int c)
+// See lexer_kernel.h
+// ---------------------------------------------------------------
+inline int LXRK_IsDecimalSeparatorChar(lexer_kernel_t *kernel, int c)
+{
+	return c == kernel->decimal_char ? 1 : 0;
+}
+
+// ---------------------------------------------------------------
+// int LXRK_IsEscapeChar(lexer_kernel_t *kernel, int c)
+// See lexer_kernel.h
+// ---------------------------------------------------------------
+inline int LXRK_IsEscapeChar(lexer_kernel_t *kernel, int c)
+{
+	return c == kernel->escape_char ? 1 : 0;
 }

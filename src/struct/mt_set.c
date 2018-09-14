@@ -17,7 +17,7 @@
 // Private Functions
 // ===========================================================================
 
-static int MT_SetSearch(void **arr, int count, int (*comparefunc)(void*, void*), void *value)
+static int MT_DoSearch(void **arr, int count, int (*comparefunc)(void*, void*), void *value)
 {
 	int u, l, i, c, prev;
 	
@@ -120,19 +120,24 @@ void MT_SetClear(mt_set_t *set)
 	set->size = 0;
 }
 
-int MT_SetLength(mt_set_t *set)
+inline int MT_SetLength(mt_set_t *set)
 {
 	return set->size;
 }
 
-int MT_SetCapacity(mt_set_t *set)
+inline int MT_SetCapacity(mt_set_t *set)
 {
 	return set->capacity;
 }
 
-int MT_SetContains(mt_set_t *set, void *value)
+inline int MT_SetContains(mt_set_t *set, void *value)
 {
-	return MT_SetSearch(set->items, set->size, set->comparefunc, value) >= 0 ? 1 : 0;
+	return MT_DoSearch(set->items, set->size, set->comparefunc, value) >= 0 ? 1 : 0;
+}
+
+inline int MT_SetSearch(mt_set_t *set, void *value)
+{
+	return MT_DoSearch(set->items, set->size, set->comparefunc, value);
 }
 
 int MT_SetAdd(mt_set_t *set, void *value)
@@ -164,7 +169,7 @@ void* MT_SetRemove(mt_set_t *set, void *value)
 {
 	int i;
 	
-	if ((i = MT_SetSearch(set->items, set->size, set->comparefunc, value)) >= 0)
+	if ((i = MT_DoSearch(set->items, set->size, set->comparefunc, value)) >= 0)
 	{
 		void *out = set->items[i];
 		// only memcpy if necessary

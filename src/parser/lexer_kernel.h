@@ -138,6 +138,14 @@ void LXRK_SetStringEscapeChar(lexer_kernel_t *kernel, char escape);
  */
 char* LXRK_GetCommentEnd(lexer_kernel_t *kernel, char *comment_start);
 
+/**
+ * Gets the associated string ending character.
+ * @param kernel the kernel to add to.
+ * @param string_start the starting character for the string.
+ * @return the string end character or 0 for no associated end.
+ */
+char LXRK_GetStringEnd(lexer_kernel_t *kernel, char string_start);
+
 //............................................................................
 
 /**
@@ -213,12 +221,12 @@ int LXRK_IsWhitespaceChar(lexer_kernel_t *kernel, int c);
 int LXRK_IsExponentSignChar(lexer_kernel_t *kernel, int c);
 
 /**
- * Checks if a character is a delimiter character.
+ * Checks if a character starts a delimiter.
  * @param kernel the kernel to use.
  * @param c the character to test.
  * @return 1 if so, 0 if not.
  */
-int LXRK_IsDelimiterChar(lexer_kernel_t *kernel, int c);
+int LXRK_IsDelimiterStartChar(lexer_kernel_t *kernel, int c);
 
 /**
  * Checks if a character is a string-start character.

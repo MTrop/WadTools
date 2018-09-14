@@ -152,6 +152,16 @@ typedef struct {
 lexer_t* LXR_Create(lexer_kernel_t *kernel);
 
 /**
+ * Closes a lexer.
+ * All pushed streams that are still open are closed and freed.
+ * If successful, the pointer is invalidated.
+ * The underlying kernel is NOT FREED.
+ * @param lexer the lexer to close.
+ * @return 0 if successful and the pointer was invalidated, nonzero if not.
+ */
+int LXR_Destroy(lexer_t *lexer);
+
+/**
  * Pushes a new character stream onto the lexer using a file.
  * The name of the stream is the file name.
  * NOTE: Be careful - this does not affect the current state!
@@ -189,16 +199,5 @@ int LXR_PushStreamBuffer(lexer_t *lexer, char *name, unsigned char *buffer, size
  * @return a pointer to the token scanned in.
  */
 lexer_token_t* LXR_NextToken(lexer_t *lexer);
-
-/**
- * Closes a lexer.
- * All pushed streams that are still open are closed and freed.
- * If successful, the pointer is invalidated.
- * The underlying kernel is NOT FREED.
- * @param lexer the lexer to close.
- * @return 0 if successful and the pointer was invalidated, nonzero if not.
- */
-int LXR_Destroy(lexer_t *lexer);
-
 
 #endif

@@ -79,9 +79,17 @@ void* MT_SetRemove(mt_set_t *set, void *value);
  * Checks if a ref is in the set.
  * @param set the set object.
  * @param value the value to check for.
- * @return 1 if so, 1 if not.
+ * @return 1 if so, 0 if not.
  */
 int MT_SetContains(mt_set_t *set, void *value);
+
+/**
+ * Finds a ref is in the set.
+ * @param set the set object.
+ * @param value the value to look for.
+ * @return the set index (0 or greater) if found, or -1 if not.
+ */
+int MT_SetSearch(mt_set_t *set, void *value);
 
 /**
  * Sets a union between two selectors.
