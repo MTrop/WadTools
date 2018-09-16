@@ -6,13 +6,88 @@
  * http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
  *****************************************************************************/
 
+#include <stdlib.h>
 #include <stdio.h>
+#include "lexer_config.h"
 #include "lexer.h"
+#include "../io/stream.h"
 
 // ===========================================================================
 // Common Private Functions
 // ===========================================================================
 
+// Resets a lexer token.
+static void LXR_ResetToken(lexer_token_t *token)
+{
+	token->stream = NULL;
+	token->type = LXRT_UNKNOWN;
+	token->subtype = -1;
+	token->lexeme[0] = '\0';
+	token->length = 0;
+	token->line_number = 0;
+	token->token_break = 0;
+	token->stored = '\0';
+}
+
+// Resets lexer options.
+static void LXR_ResetOptions(lexer_options_t *options)
+{
+	options->include_spaces = 0;
+	options->include_tabs = 0;
+	options->include_newlines = 0;
+	options->include_stream_break = 0;
+}
+
+// Creates a lexer stream.
+static lexer_stream_t* LXR_CreateStream(char *name, stream_t *stream)
+{
+	lexer_stream_t *out = (lexer_stream_t*)LXR_MALLOC(sizeof(lexer_stream_t));
+	if (!out)
+		return NULL;
+	out->name = name;
+	out->stream = stream;
+	out->line_number = 1;
+	out->character_number = 0;
+	return out;
+}
+
+// Pushes a new lexer stream node onto the stack.
+static int LXR_PushStreamNode(lexer_t *lexer, char *name, stream_t *stream)
+{
+	lexer_stream_stack_t *lxrssnode = (lexer_stream_stack_t*)LXR_MALLOC(sizeof(lexer_stream_stack_t));
+	if (!lxrssnode)
+		return 1;
+	
+	lexer_stream_t *lxrs = LXR_CreateStream(name, stream);
+	if (!lxrs)
+	{
+		LXR_FREE(lxrssnode);
+		return 1;
+	}
+
+	lxrssnode->previous = lexer->stream_stack;
+	lxrssnode->stream = lxrs;
+	
+	return 0;
+}
+
+// Pops and destroys a lexer stream node.
+static stream_t* LXR_PopStreamNode(lexer_t *lexer)
+{
+	// underrun test.
+	if (!lexer->stream_stack)
+		return NULL;
+	
+	lexer_stream_stack_t *node = lexer->stream_stack;
+	lexer_stream_t *lxrs = node->stream;
+	lexer->stream_stack = node->previous;
+	LXR_FREE(node);
+	
+	stream_t *out = lxrs->stream;
+	LXR_FREE(lxrs);
+	
+	return out;
+}
 
 // ===========================================================================
 // Public Functions
@@ -22,36 +97,103 @@
 // lexer_t* LXR_Create(lexer_kernel_t *kernel)
 // See lexer.h
 // ---------------------------------------------------------------
-lexer_t* LXR_Create(lexer_kernel_t *kernel);
+lexer_t* LXR_Create(lexer_kernel_t *kernel)
+{
+	lexer_t *out = (lexer_t*)LXR_MALLOC(sizeof(lexer_t));
+	if (!out)
+		return NULL;
+		
+	out->kernel = kernel;
+	out->stream_stack = NULL;
+	out->state = LXRT_UNKNOWN;
+	out->string_end = '\0';
+	out->comment_end = NULL;
+	
+	LXR_ResetOptions(&(out->options));
+	LXR_ResetToken(&(out->token));
+
+	return out;
+}
 
 // ---------------------------------------------------------------
 // int LXR_Destroy(lexer_t *lexer)
 // See lexer.h
 // ---------------------------------------------------------------
-int LXR_Destroy(lexer_t *lexer);
+int LXR_Destroy(lexer_t *lexer)
+{
+	if (!lexer)
+		return 1;
+	
+	while (lexer->stream_stack)
+		LXR_PopStream(lexer);
+	
+	LXR_FREE(lexer);
+	return 0;
+}
 
 // ---------------------------------------------------------------
 // int LXR_PushStream(lexer_t *lexer, char *filename)
 // See lexer.h
 // ---------------------------------------------------------------
-int LXR_PushStream(lexer_t *lexer, char *filename);
+int LXR_PushStream(lexer_t *lexer, char *filename)
+{
+	stream_t *stream = STREAM_OpenBuffered(filename, LEXER_STREAM_BUFFER_SIZE);
+	if (!stream)
+		return 1;
+	
+	return LXR_PushStreamNode(lexer, filename, stream);
+}
 
 // ---------------------------------------------------------------
 // int LXR_PushStreamFile(lexer_t *lexer, char *name, FILE *file)
 // See lexer.h
 // ---------------------------------------------------------------
-int LXR_PushStreamFile(lexer_t *lexer, char *name, FILE *file);
+int LXR_PushStreamFile(lexer_t *lexer, char *name, FILE *file)
+{
+	stream_t *stream = STREAM_OpenBufferedFile(file, LEXER_STREAM_BUFFER_SIZE);
+	if (!stream)
+		return 1;
+	
+	return LXR_PushStreamNode(lexer, name, stream);	
+}
 
 // ---------------------------------------------------------------
 // int LXR_PushStreamBuffer(lexer_t *lexer, char *name, unsigned char *buffer, size_t length)
 // See lexer.h
 // ---------------------------------------------------------------
-int LXR_PushStreamBuffer(lexer_t *lexer, char *name, unsigned char *buffer, size_t length);
+int LXR_PushStreamBuffer(lexer_t *lexer, char *name, unsigned char *buffer, size_t length)
+{
+	stream_t *stream = STREAM_OpenBuffer(buffer, length);
+	if (!stream)
+		return 1;
+	
+	return LXR_PushStreamNode(lexer, name, stream);	
+}
+
+// ---------------------------------------------------------------
+// int LXR_PopStream(lexer_t *lexer)
+// See lexer.h
+// ---------------------------------------------------------------
+int LXR_PopStream(lexer_t *lexer)
+{
+	stream_t *stream = LXR_PopStreamNode(lexer);
+	if (!stream)
+		return 1;
+	
+	STREAM_Close(stream);
+	return 0;
+}
 
 // ---------------------------------------------------------------
 // lexer_token_t* LXR_NextToken(lexer_t *lexer)
 // See lexer.h
 // ---------------------------------------------------------------
-lexer_token_t* LXR_NextToken(lexer_t *lexer);
-
-// TODO: Finish this.
+lexer_token_t* LXR_NextToken(lexer_t *lexer)
+{
+	lexer_token_t *token = &(lexer->token);
+	LXR_ResetToken(token);
+	
+	// TODO: Finish this.
+	
+	return token;
+}

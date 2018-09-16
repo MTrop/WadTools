@@ -31,4 +31,8 @@
 #define LEXEME_LENGTH_MAX	512
 #endif
 
+#ifndef LEXER_STREAM_BUFFER_SIZE
+#define LEXER_STREAM_BUFFER_SIZE	32768
+#endif
+
 #endif

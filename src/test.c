@@ -42,7 +42,7 @@ void print_wad(wad_t *wad)
 	int i = 0;
 	printf("---- Name     Size     Offset\n");
 	while (entry = WAD_IteratorNext(iter))
-		printf("%04d %-8s %-8d %-9d\n", i++, entry->name, entry->length, entry->offset);
+		printf("%04d %-.8s %-8d %-9d\n", i++, entry->name, entry->length, entry->offset);
 	printf("Count %d\n", wad->header.entry_count);
 	WAD_IteratorClose(iter);
 }

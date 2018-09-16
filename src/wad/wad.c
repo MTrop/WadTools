@@ -69,10 +69,10 @@ static int WAD_SetupOpenFileHandle(FILE *fp, wadheader_t *header)
 		return 1;
 	}
 	
-	buf = fread(header, 1, WADHEADER_LEN, fp);
+	buf = fread(header, 1, sizeof(wadheader_t), fp);
 
 	// Check file size. Smaller than header = not a WAD.
-	if (buf < WADHEADER_LEN)
+	if (buf < sizeof(wadheader_t))
 	{
 		fclose(fp);
 		return 1;
@@ -172,12 +172,9 @@ static int WAD_SetupBuildEntrylist(FILE *fp, wad_t *wad)
 	if (fseek(fp, wad->header.entry_list_offset, SEEK_SET))
 		return 1;
 	
-	for (i = 0; i < count; i++)
-	{
-		if (!fread(wad->entries[i], WADENTRY_LEN, 1, fp))
+	for (int i = 0; i < count; i++)
+		if (!fread(wad->entries[i], sizeof(wadentry_t), 1, fp))
 			return 1;
-		wad->entries[i]->name[8] = 0x00; // null-terminate name if 8 chars long.
-	}
 	
 	return 0;
 }
@@ -186,7 +183,7 @@ static int WAD_SetupBuildEntrylist(FILE *fp, wad_t *wad)
 static int WAD_SetupBuildBuffer(FILE *fp, wad_t *wad)
 {
 	int i;
-	int len = (wad->header.entry_list_offset) - WADHEADER_LEN;
+	int len = (wad->header.entry_list_offset) - sizeof(wadheader_t);
 	int remain = len;
 	int amount;
 	
@@ -196,7 +193,7 @@ static int WAD_SetupBuildBuffer(FILE *fp, wad_t *wad)
 	unsigned char *bufptr = wad->handle.buffer;
 	
 	// Seek to content.
-	if (fseek(fp, WADHEADER_LEN, SEEK_SET))
+	if (fseek(fp, sizeof(wadheader_t), SEEK_SET))
 		return 1;
 	
 	while (remain)
@@ -408,7 +405,7 @@ static int wi_file_commit_header(wad_t *wad)
 	FILE *file = wad->handle.file;
 	if (fseek(file, 0, SEEK_SET))
 		return 1;
-	if (!fwrite(&(wad->header), WADHEADER_LEN, 1, file))
+	if (!fwrite(&(wad->header), sizeof(wadheader_t), 1, file))
 		return 1;
 
 	return 0;
@@ -418,9 +415,9 @@ static int wi_file_commit_entry(wad_t *wad, int index)
 {
 	errno = 0;
 	FILE *file = wad->handle.file;
-	if (fseek(file, wad->header.entry_list_offset + (WADENTRY_LEN * index), SEEK_SET))
+	if (fseek(file, wad->header.entry_list_offset + (sizeof(wadentry_t) * index), SEEK_SET))
 		return 1;
-	if (!fwrite(wad->entries[index], WADENTRY_LEN, 1, file))
+	if (!fwrite(wad->entries[index], sizeof(wadentry_t), 1, file))
 		return 1;
 	
 	return 0;
@@ -653,7 +650,7 @@ static wadentry_t* wi_buffer_add_entry_at(wad_t *wad, const char *name, int inde
 	}
 	
 	wad->buffer_size += size;
-	wad->header.entry_list_offset = wad->buffer_size + WADHEADER_LEN;
+	wad->header.entry_list_offset = wad->buffer_size + sizeof(wadheader_t);
 
 	return entry;
 }
@@ -664,7 +661,7 @@ static wadentry_t* wi_buffer_add_entry_data_at(wad_t *wad, const char *name, int
 	int buf = 0;
 	int amount = 0;
 	unsigned char *dest = NULL;
-	while ((buf = fread(cbuf, 1, CBUF_LEN, stream)))
+	while (buf = fread(cbuf, 1, CBUF_LEN, stream))
 	{
 		if (wi_buffer_attempt_expand(wad, buf))
 		{
@@ -707,7 +704,7 @@ static int wi_buffer_get_data(wad_t *wad, wadentry_t *entry, unsigned char *dest
 	// must offset by header length. Entry content is offset by that much.
 	if (len > 0)
 	{
-		src = wad->handle.buffer + entry->offset - WADHEADER_LEN;
+		src = wad->handle.buffer + entry->offset - sizeof(wadheader_t);
 		memcpy(dest, src, len);
 		return len;
 	}
@@ -725,7 +722,7 @@ static int wi_buffer_read_data(wad_t *wad, wadentry_t *entry, void *destination,
 	
 	// must offset by header length. Entry content is offset by that much.
 	if (len)
-		src = wad->handle.buffer + entry->offset - WADHEADER_LEN;
+		src = wad->handle.buffer + entry->offset - sizeof(wadheader_t);
 	else
 		src = wad->handle.buffer;
 	

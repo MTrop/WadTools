@@ -20,43 +20,43 @@
 typedef enum {
 	
 	/** Token type: End of lexer. */
-	LXR_END_OF_LEXER,
+	LXRT_END_OF_LEXER,
 	/** Token type: End of stream. */
-	LXR_END_OF_STREAM,
+	LXRT_END_OF_STREAM,
 	/** Token type: Unknown token. */
-	LXR_UNKNOWN,
+	LXRT_UNKNOWN,
 	/** Token type: Illegal token. */
-	LXR_ILLEGAL,
+	LXRT_ILLEGAL,
 	/** Token type: Space. */
-	LXR_SPACE,
+	LXRT_SPACE,
 	/** Token type: Tab. */
-	LXR_TAB,
+	LXRT_TAB,
 	/** Token type: New line character. */
-	LXR_NEWLINE,
+	LXRT_NEWLINE,
 	/** Token type: Identifier. */
-	LXR_IDENTIFIER,
+	LXRT_IDENTIFIER,
 	/** Token type: Delimiter. */
-	LXR_DELIMITER,
+	LXRT_DELIMITER,
 	/** Token type: Number. */
-	LXR_NUMBER,
+	LXRT_NUMBER,
 	/** Token type: String. */
-	LXR_STRING,
+	LXRT_STRING,
 	/** Token type: Point state (never returned). */
-	LXR_STATE_POINT,
+	LXRT_STATE_POINT,
 	/** Token type: Floating point state (never returned). */
-	LXR_STATE_FLOAT,
+	LXRT_STATE_FLOAT,
 	/** Token type: Delimiter Comment (never returned). */
-	LXR_STATE_COMMENT,
+	LXRT_STATE_COMMENT,
 	/** Token type: hexadecimal integer (never returned). */
-	LXR_STATE_HEX_INTEGER0,
+	LXRT_STATE_HEX_INTEGER0,
 	/** Token type: hexadecimal integer (never returned). */
-	LXR_STATE_HEX_INTEGER1,
+	LXRT_STATE_HEX_INTEGER1,
 	/** Token type: hexadecimal integer (never returned). */
-	LXR_STATE_HEX_INTEGER,
+	LXRT_STATE_HEX_INTEGER,
 	/** Token type: Exponent state (never returned). */
-	LXR_STATE_EXPONENT,
+	LXRT_STATE_EXPONENT,
 	/** Token type: Exponent power state (never returned). */
-	LXR_STATE_EXPONENT_POWER,
+	LXRT_STATE_EXPONENT_POWER,
 	
 } lexeme_type_t;
 
@@ -118,6 +118,18 @@ typedef struct {
 } lexer_token_t;
 
 /**
+ * Single stack node.
+ */
+typedef struct LEXERSS_NODE {
+	
+	/** Lexer stream. */
+	lexer_stream_t *stream;
+	/** Previous node in the stack. */
+	struct LEXERSS_NODE *previous;
+	
+} lexer_stream_stack_t;
+
+/**
  * Lexer.
  */
 typedef struct {
@@ -126,9 +138,7 @@ typedef struct {
 	lexer_kernel_t *kernel;
 	
 	/** Stream stack. */
-	lexer_stream_t **stream_stack;
-	/** Stream stack. */
-	int stream_stack_pos;
+	lexer_stream_stack_t *stream_stack;
 	
 	/** Currently scanned token. */
 	lexer_token_t token;
@@ -191,6 +201,14 @@ int LXR_PushStreamFile(lexer_t *lexer, char *name, FILE *file);
  * @return 0 if successful or nonzero if not.
  */
 int LXR_PushStreamBuffer(lexer_t *lexer, char *name, unsigned char *buffer, size_t length);
+
+/**
+ * Pops a character stream off of lexer.
+ * NOTE: Be careful - this does not affect the current state!
+ * @param lexer the lexer to use.
+ * @return 0 if successful or nonzero if not.
+ */
+int LXR_PopStream(lexer_t *lexer);
 
 /**
  * Scans the next lexeme.

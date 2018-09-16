@@ -14,8 +14,6 @@
 #include <stdio.h>
 
 // Important defines.
-#define WADHEADER_LEN 12
-#define WADENTRY_LEN 16
 #define WADTYPE_IWAD 0x44415749
 #define WADTYPE_PWAD 0x44415750
 
@@ -46,7 +44,7 @@ typedef struct {
 	/** Entry content length. */
 	int32_t length;
 	/** Entry name. */
-	unsigned char name[9]; // 8 + null - last byte never read nor written.
+	unsigned char name[8]; // 8 + null - last byte never read nor written.
 	
 } wadentry_t;
 
