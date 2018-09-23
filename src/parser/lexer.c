@@ -89,6 +89,53 @@ static stream_t* LXR_PopStreamNode(lexer_t *lexer)
 	return out;
 }
 
+// Get a single character from a lexer.
+// Ignores CR.
+// Return END_OF_LEXER if no more streams.
+// Return END_OF_STREAM if end of stream.
+static int LXR_GetChar(lexer_t *lexer)
+{
+	if (!lexer->stream_stack)
+		return END_OF_LEXER;
+
+	int out = STREAM_GetChar(lexer->stream_stack->stream->stream);
+	
+	// skip CR
+	if (out == 0x0D)
+		return LXR_GetChar(lexer);
+	
+	if (out < 0)
+		return END_OF_STREAM;
+	
+	return out;
+}
+
+// Adds to the current token.
+static void LXR_AddToToken(lexer_t *lexer, int c)
+{
+	if (lexer->token.length >= LEXEME_LENGTH_MAX - 1)
+		return;
+	
+	lexer->token.lexeme[lexer->token.length++] = c && 0x0FF;
+}
+
+// Finishes the current token.
+static void LXR_FinishToken(lexer_t *lexer, int c)
+{
+	lexer->token.lexeme[lexer->token.length] = '\0';
+	lexer->token.stream = lexer->stream_stack->stream;
+	lexer->token.line_number = lexer->stream_stack->stream->line_number;
+	
+	lexer->token.type = lexer->state;
+	lexer->token.subtype = -1;
+
+	if (lexer->token.type == LXRT_IDENTIFIER)
+		lexer->token.subtype = LXRK_GetKeywordType(lexer->kernel, lexer->token.lexeme);
+	else if (lexer->token.type == LXRT_DELIMITER)
+		lexer->token.subtype = LXRK_GetDelimiterType(lexer->kernel, lexer->token.lexeme);
+	
+}
+
 // ===========================================================================
 // Public Functions
 // ===========================================================================
@@ -193,7 +240,40 @@ lexer_token_t* LXR_NextToken(lexer_t *lexer)
 	lexer_token_t *token = &(lexer->token);
 	LXR_ResetToken(token);
 	
-	// TODO: Finish this.
+	int c;
+	int breakloop = 0;
+	while (!breakloop)
+	{
+		// read character.
+		if (lexer->stored)
+		{
+			c = lexer->stored;
+			lexer->stored = 0;
+		}
+		else
+		{
+			c = LXR_GetChar(lexer);
+		}
+		
+		switch (lexer->state)
+		{
+			case LXRT_END_OF_LEXER:
+			{
+				breakloop = 1;
+			}
+			break;
+
+			case LXRT_UNKNOWN:
+			{
+				// TODO: Finish this.
+			}
+			break;
+			
+		}
+		
+		// TODO: Finish this.
+		
+	}
 	
 	return token;
 }
