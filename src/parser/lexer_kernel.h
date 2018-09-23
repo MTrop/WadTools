@@ -132,7 +132,7 @@ void LXRK_SetStringEscapeChar(lexer_kernel_t *kernel, char escape);
 
 /**
  * Gets the associated comment end string.
- * @param kernel the kernel to add to.
+ * @param kernel the kernel to use.
  * @param comment_start the starting token for the comment.
  * @return the comment end or NULL for no associated end.
  */
@@ -140,11 +140,28 @@ char* LXRK_GetCommentEnd(lexer_kernel_t *kernel, char *comment_start);
 
 /**
  * Gets the associated string ending character.
- * @param kernel the kernel to add to.
+ * @param kernel the kernel to use.
  * @param string_start the starting character for the string.
  * @return the string end character or 0 for no associated end.
  */
 char LXRK_GetStringEnd(lexer_kernel_t *kernel, char string_start);
+
+/**
+ * Gets a keyword type.
+ * First searches case-sensitive, then insensitive.
+ * @param kernel the kernel to use.
+ * @param keyword the keyword to look for.
+ * @return the type id or -1 for no associated type.
+ */
+int LXRK_GetKeywordType(lexer_kernel_t *kernel, char* keyword);
+
+/**
+ * Gets the associated string ending character.
+ * @param kernel the kernel to add to.
+ * @param delimiter the delimiter to look for.
+ * @return the type id or -1 for no associated type.
+ */
+int LXRK_GetDelimiterType(lexer_kernel_t *kernel, char* delimiter);
 
 //............................................................................
 

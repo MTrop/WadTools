@@ -12,6 +12,10 @@
 #include "lexer.h"
 #include "../io/stream.h"
 
+#define LXRC_END_OF_LEXER	-1
+#define LXRC_END_OF_STREAM	-2
+
+
 // ===========================================================================
 // Common Private Functions
 // ===========================================================================
@@ -25,8 +29,6 @@ static void LXR_ResetToken(lexer_token_t *token)
 	token->lexeme[0] = '\0';
 	token->length = 0;
 	token->line_number = 0;
-	token->token_break = 0;
-	token->stored = '\0';
 }
 
 // Resets lexer options.
@@ -96,16 +98,17 @@ static stream_t* LXR_PopStreamNode(lexer_t *lexer)
 static int LXR_GetChar(lexer_t *lexer)
 {
 	if (!lexer->stream_stack)
-		return END_OF_LEXER;
+		return LXRC_END_OF_LEXER;
 
-	int out = STREAM_GetChar(lexer->stream_stack->stream->stream);
+	int out;
 	
 	// skip CR
-	if (out == 0x0D)
-		return LXR_GetChar(lexer);
+	do {
+		out = STREAM_GetChar(lexer->stream_stack->stream->stream);
+	} while (out == 0x0D);
 	
 	if (out < 0)
-		return END_OF_STREAM;
+		return LXRC_END_OF_STREAM;
 	
 	return out;
 }
@@ -265,9 +268,54 @@ lexer_token_t* LXR_NextToken(lexer_t *lexer)
 
 			case LXRT_UNKNOWN:
 			{
+				if (c == LXRC_END_OF_LEXER) // Lexer End
+				{
+					lexer->state = LXRT_END_OF_LEXER;
+					breakloop = 1;
+				}
+				else if (c == LXRC_END_OF_STREAM) // Stream End
+				{
+					if (lexer->options.include_stream_break)
+					{
+						lexer->state = LXRT_END_OF_STREAM;
+						breakloop = 1;
+					}
+					LXR_PopStream(lexer);
+				}
+				else if (LXRK_IsNewlineChar(lexer->kernel, c))
+				{
+					if (lexer->options.include_newlines)
+					{
+						lexer->state = LXRT_NEWLINE;
+						breakloop = 1;
+					}
+				}
+				else if (LXRK_IsSpaceChar(lexer->kernel, c))
+				{
+					if (lexer->options.include_spaces)
+					{
+						lexer->state = LXRT_SPACE;
+						breakloop = 1;
+					}
+				}
+				else if (LXRK_IsTabChar(lexer->kernel, c))
+				{
+					if (lexer->options.include_tabs)
+					{
+						lexer->state = LXRT_TAB;
+						breakloop = 1;
+					}
+				}
+				else if (LXRK_IsWhitespaceChar(lexer->kernel, c))
+				{
+					// Do nothing.
+				}
+				
 				// TODO: Finish this.
 			}
 			break;
+			
+			// TODO: Finish this.
 			
 		}
 		

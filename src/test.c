@@ -34,7 +34,7 @@ void print_indices(int *array, int amount)
 void print_wad(wad_t *wad)
 {
 	printf("Type %s\n", wad->header.type == WADTYPE_IWAD ? "IWAD" : "PWAD");
-	printf("Content Size %d bytes\n", wad->header.entry_list_offset - WADHEADER_LEN);
+	printf("Content Size %d bytes\n", wad->header.entry_list_offset - sizeof(wadheader_t));
 	printf("List start at %d\n", wad->header.entry_list_offset);
 	
 	waditerator_t *iter = WAD_IteratorCreate(wad, 0);

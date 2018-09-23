@@ -49,15 +49,16 @@ void MT_SetClear(mt_set_t *set);
 /**
  * Returns amount of refs in the selector.
  * @param set the address of the set object.
+ * @return the amount of refs in the set.
  */
-int MT_SetLength(mt_set_t *set);
+#define MT_SetLength(s) ((s)->size)
 
 /**
- * Returns amount of refs that can be added to the selector 
- * before expansion (or capacity).
+ * Returns amount of refs that can be added to the set before expansion.
  * @param set the address of the set object.
+ * @return the current capacity of the set.
  */
-int MT_SetCapacity(mt_set_t *set);
+#define MT_SetCapacity(s) ((s)->capacity)
 
 /**
  * Adds a ref (if not exist).
@@ -76,20 +77,30 @@ int MT_SetAdd(mt_set_t *set, void *value);
 void* MT_SetRemove(mt_set_t *set, void *value);
 
 /**
- * Checks if a ref is in the set.
- * @param set the set object.
- * @param value the value to check for.
- * @return 1 if so, 0 if not.
- */
-int MT_SetContains(mt_set_t *set, void *value);
-
-/**
  * Finds a ref is in the set.
  * @param set the set object.
  * @param value the value to look for.
  * @return the set index (0 or greater) if found, or -1 if not.
  */
 int MT_SetSearch(mt_set_t *set, void *value);
+
+/**
+ * Checks if a ref is in the set.
+ * @param set the set object.
+ * @param value the value to check for.
+ * @return 1 if so, 0 if not.
+ */
+#define MT_SetContains(s,v) (MT_SetSearch((s), (v)) >= 0 ? 1 : 0)
+
+/**
+ * Gets a ref from an index in the set (and casts it).
+ * You might get warned if the size is not comparable to a void*.
+ * @param s the set object.
+ * @param t the type.
+ * @param i the target index.
+ * @return the corresponding object.
+ */
+#define MT_SetGet(s,t,i) ((t)((s)->items[(i)]))
 
 /**
  * Sets a union between two selectors.

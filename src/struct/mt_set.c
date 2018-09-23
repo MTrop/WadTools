@@ -120,21 +120,6 @@ void MT_SetClear(mt_set_t *set)
 	set->size = 0;
 }
 
-inline int MT_SetLength(mt_set_t *set)
-{
-	return set->size;
-}
-
-inline int MT_SetCapacity(mt_set_t *set)
-{
-	return set->capacity;
-}
-
-inline int MT_SetContains(mt_set_t *set, void *value)
-{
-	return MT_DoSearch(set->items, set->size, set->comparefunc, value) >= 0 ? 1 : 0;
-}
-
 inline int MT_SetSearch(mt_set_t *set, void *value)
 {
 	return MT_DoSearch(set->items, set->size, set->comparefunc, value);

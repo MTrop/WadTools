@@ -315,8 +315,52 @@ char* LXRK_GetCommentEnd(lexer_kernel_t *kernel, char *comment_start)
 	pair.key = (void*)comment_start;
 	int idx;
 	if ((idx = MT_SetSearch(kernel->comment_map, &pair)) >= 0)
-		return kernel->comment_map->items[idx];
+		return (char*)(MT_SetGet(kernel->comment_map, LXRK_SETPAIR*, idx)->value);
 	return NULL;
+}
+
+// ---------------------------------------------------------------
+// char LXRK_GetStringEnd(lexer_kernel_t *kernel, char string_start)
+// See lexer_kernel.h
+// ---------------------------------------------------------------
+char LXRK_GetStringEnd(lexer_kernel_t *kernel, char string_start)
+{
+	LXRK_SETPAIR pair;
+	pair.key = (void*)(int)string_start;
+	int idx;
+	if ((idx = MT_SetSearch(kernel->string_map, &pair)) >= 0)
+		return (char)(int)(MT_SetGet(kernel->string_map, LXRK_SETPAIR*, idx)->value);
+	return 0;
+}
+
+// ---------------------------------------------------------------
+// int LXRK_GetKeywordType(lexer_kernel_t *kernel, char* keyword)
+// See lexer_kernel.h
+// ---------------------------------------------------------------
+int LXRK_GetKeywordType(lexer_kernel_t *kernel, char* keyword)
+{
+	LXRK_SETPAIR pair;
+	pair.key = (void*)keyword;
+	int idx;
+	if ((idx = MT_SetSearch(kernel->keyword_map, &pair)) >= 0)
+		return (int)(MT_SetGet(kernel->keyword_map, LXRK_SETPAIR*, idx)->value);
+	else if ((idx = MT_SetSearch(kernel->cikeyword_map, &pair)) >= 0)
+		return (int)(MT_SetGet(kernel->cikeyword_map, LXRK_SETPAIR*, idx)->value);
+	return -1;
+}
+
+// ---------------------------------------------------------------
+// int LXRK_GetDelimiterType(lexer_kernel_t *kernel, char* delimiter)
+// See lexer_kernel.h
+// ---------------------------------------------------------------
+int LXRK_GetDelimiterType(lexer_kernel_t *kernel, char* delimiter)
+{
+	LXRK_SETPAIR pair;
+	pair.key = (void*)delimiter;
+	int idx;
+	if ((idx = MT_SetSearch(kernel->delimiter_map, &pair)) >= 0)
+		return (int)(MT_SetGet(kernel->delimiter_map, LXRK_SETPAIR*, idx)->value);
+	return -1;
 }
 
 // ---------------------------------------------------------------

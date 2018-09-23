@@ -96,6 +96,25 @@ int MT_VectorAddAt(mt_vector_t *vector, int index, void *value);
 void* MT_VectorRemoveAt(mt_vector_t *vector, int index);
 
 /**
+ * Removes a ref from a position in the vector (and casts it). 
+ * All contents shift to fill the spot.
+ * @param vector the address of the vector object.
+ * @param index the target index.
+ * @return the object if removed, NULL if not.
+ */
+#define MT_VectorRemove(v,t,i) ((t)(MT_VectorRemoveAt((v),(i))))
+
+/**
+ * Gets a ref from a position in the vector (and casts it).
+ * You might get warned if the size is not comparable to a void*.
+ * @param v the address of the vector object.
+ * @param t the type.
+ * @param i the target index.
+ * @return the corresponding object.
+ */
+#define MT_VectorGet(v,t,i) ((t)((v)->items[(i)]))
+
+/**
  * Dump refs to STDOUT.
  */
 void MT_VectorDump(mt_vector_t *vector, void (*dumpfunc)(void*));

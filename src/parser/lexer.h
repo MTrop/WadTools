@@ -110,10 +110,6 @@ typedef struct {
 	int length;
 	/** Current line number. */
 	int line_number;
-	/** Nonzero if in token break. */
-	int token_break;
-	/** Stored token on token break. */
-	char stored;
 	
 } lexer_token_t;
 
@@ -136,22 +132,24 @@ typedef struct {
 
 	/** Kernel. */
 	lexer_kernel_t *kernel;
-	
-	/** Stream stack. */
-	lexer_stream_stack_t *stream_stack;
-	
 	/** Currently scanned token. */
 	lexer_token_t token;
 	/** Lexer options. */
 	lexer_options_t options;
+
+	/** Stream stack. */
+	lexer_stream_stack_t *stream_stack;
 	/** Current lexer state. */
 	lexeme_type_t state;
-
 	/** Current string terminal. */
 	char string_end;
 	/** Current comment terminal. */
 	char *comment_end;
-	
+	/** Nonzero if in token break. */
+	int token_break;
+	/** Stored token on token break. */
+	char stored;
+
 } lexer_t;
 
 /**
