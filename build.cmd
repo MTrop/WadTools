@@ -4,9 +4,9 @@ REM ==============================================================
 REM ===== Detect Tools
 REM ==============================================================
 where /q gcc
-if not %ERRORLEVEL% == 0 goto _nogcc
+if not %ERRORLEVEL% == 0 goto __nogcc
 where /q tr
-if not %ERRORLEVEL% == 0 goto _notr
+if not %ERRORLEVEL% == 0 goto __notr
 goto __gottools
 
 :__nogcc
