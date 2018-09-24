@@ -310,8 +310,103 @@ lexer_token_t* LXR_NextToken(lexer_t *lexer)
 				{
 					// Do nothing.
 				}
-				
-				// TODO: Finish this.
+				else if (LXRK_IsDecimalSeparatorChar(lexer->kernel, c) && LXRK_IsDelimiterStartChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_STATE_POINT;
+					LXR_AddToToken(lexer, c);
+				}
+				else if (LXRK_IsDecimalSeparatorChar(lexer->kernel, c) && !LXRK_IsDelimiterStartChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_STATE_FLOAT;
+					LXR_AddToToken(lexer, c);
+				}
+				else if (LXRK_IsStringStartChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_STRING;
+					lexer->string_end = LXRK_GetStringEnd(lexer->kernel, c);
+				}
+				else if (LXRK_IsDelimiterStartChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_DELIMITER;
+					LXR_AddToToken(lexer, c);
+				}
+				else if (LXRK_IsUnderscoreChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_IDENTIFIER;
+					LXR_AddToToken(lexer, c);
+				}
+				else if (LXRK_IsAlphabeticalChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_IDENTIFIER;
+					LXR_AddToToken(lexer, c);
+				}
+				else if (c == '0')
+				{
+					lexer->state = LXRT_STATE_HEX_INTEGER0;
+					LXR_AddToToken(lexer, c);
+				}
+				else if (LXRK_IsDecimalChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_NUMBER;
+					LXR_AddToToken(lexer, c);
+				}
+				else
+				{
+					lexer->state = LXRT_ILLEGAL;
+					LXR_AddToToken(lexer, c);
+				}
+			}
+			break;
+			
+			case LXRT_ILLEGAL:
+			{
+				if (c == LXRC_END_OF_STREAM) // Stream End
+				{
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsNewlineChar(lexer->kernel, c))
+				{
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsSpaceChar(lexer->kernel, c))
+				{
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsTabChar(lexer->kernel, c))
+				{
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsWhitespaceChar(lexer->kernel, c))
+				{
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsStringStartChar(lexer->kernel, c))
+				{
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsDelimiterStartChar(lexer->kernel, c))
+				{
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsAlphabeticalChar(lexer->kernel, c))
+				{
+					LXR_AddToToken(lexer, c);
+				}
+				else if (LXRK_IsDecimalChar(lexer->kernel, c))
+				{
+					LXR_AddToToken(lexer, c);
+				}
+				else
+				{
+					LXR_AddToToken(lexer, c);
+				}
 			}
 			break;
 			
