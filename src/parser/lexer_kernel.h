@@ -32,6 +32,8 @@ typedef struct {
 	
 	/** Set of characters that start delimiters. Delimiters immediately break the current token if encountered. */
 	mt_set_t *delimiter_starts;
+	/** Set of characters that start end-comment delimiters. Delimiters immediately break the current token if encountered. */
+	mt_set_t *end_comment_starts;
 	
 	/** Set of pairs: char* to int: identifier to keyword type. */
 	mt_set_t *keyword_map;
@@ -252,6 +254,14 @@ int LXRK_IsExponentSignChar(lexer_kernel_t *kernel, int c);
  * @return 1 if so, 0 if not.
  */
 int LXRK_IsDelimiterStartChar(lexer_kernel_t *kernel, int c);
+
+/**
+ * Checks if a character starts a comment-end delimiter.
+ * @param kernel the kernel to use.
+ * @param c the character to test.
+ * @return 1 if so, 0 if not.
+ */
+int LXRK_IsEndCommentStartChar(lexer_kernel_t *kernel, int c);
 
 /**
  * Checks if a character is a string-start character.

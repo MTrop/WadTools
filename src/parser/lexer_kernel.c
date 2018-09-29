@@ -143,6 +143,10 @@ static void LXRK_FreeSets(lexer_kernel_t *kernel)
 	{
 		LXR_FREE(kernel->delimiter_starts);
 	}
+	if (kernel->end_comment_starts) 
+	{
+		LXR_FREE(kernel->end_comment_starts);
+	}
 	if (kernel->keyword_map)
 	{
 		for (i = 0; i < kernel->keyword_map->size; i++)
@@ -178,6 +182,9 @@ static lexer_kernel_t* LXRK_Init()
 		return NULL;
 	out->delimiter_starts = MT_SetCreate(16, &LXRK_CompareChar);
 	if (!out->delimiter_starts)
+		return NULL;
+	out->end_comment_starts = MT_SetCreate(16, &LXRK_CompareChar);
+	if (!out->end_comment_starts)
 		return NULL;
 	out->keyword_map = MT_SetCreate(16, &LXRK_ComparePairCharPtr);
 	if (!out->keyword_map)
@@ -230,6 +237,7 @@ void LXRK_AddCommentDelimiter(lexer_kernel_t *kernel, char *comment_start, char 
 		return;
 	MT_SetAdd(kernel->comment_map, LXRK_CreateCharPtrCharPtrPair(comment_start, comment_end));
 	MT_SetAdd(kernel->delimiter_starts, (void*)(int)comment_start[0]);
+	MT_SetAdd(kernel->end_comment_starts, (void*)(int)comment_end[0]);
 }
 
 // ---------------------------------------------------------------
@@ -460,6 +468,15 @@ inline int LXRK_IsExponentSignChar(lexer_kernel_t *kernel, int c)
 inline int LXRK_IsDelimiterStartChar(lexer_kernel_t *kernel, int c)
 {
 	return MT_SetContains(kernel->delimiter_starts, (void*)c);
+}
+
+// ---------------------------------------------------------------
+// int LXRK_IsEndCommentStartChar(lexer_kernel_t *kernel, int c)
+// See lexer_kernel.h
+// ---------------------------------------------------------------
+inline int LXRK_IsEndCommentStartChar(lexer_kernel_t *kernel, int c)
+{
+	return MT_SetContains(kernel->end_comment_starts, (void*)c);
 }
 
 // ---------------------------------------------------------------

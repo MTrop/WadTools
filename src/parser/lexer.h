@@ -48,6 +48,8 @@ typedef enum {
 	/** Token type: Delimiter Comment (never returned). */
 	LXRT_STATE_COMMENT,
 	/** Token type: Delimiter Comment (never returned). */
+	LXRT_STATE_END_COMMENT,
+	/** Token type: Delimiter Comment (never returned). */
 	LXRT_STATE_LINE_COMMENT,
 	/** Token type: hexadecimal integer (never returned). */
 	LXRT_STATE_HEX_INTEGER0,
@@ -59,6 +61,8 @@ typedef enum {
 	LXRT_STATE_EXPONENT,
 	/** Token type: Exponent power state (never returned). */
 	LXRT_STATE_EXPONENT_POWER,
+	
+	LXRT_COUNT,
 	
 } lexeme_type_t;
 
@@ -215,5 +219,12 @@ int LXR_PopStream(lexer_t *lexer);
  * @return a pointer to the token scanned in.
  */
 lexer_token_t* LXR_NextToken(lexer_t *lexer);
+
+/**
+ * Returns the type name for a token type.
+ * @param type the lexeme type.
+ * @return a new lexer or NULL if it couldn't be allocated.
+ */
+char* LXR_TokenTypeName(lexeme_type_t type);
 
 #endif
