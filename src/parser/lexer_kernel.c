@@ -320,6 +320,15 @@ char* LXRK_GetCommentEnd(lexer_kernel_t *kernel, char *comment_start)
 }
 
 // ---------------------------------------------------------------
+// int LXRK_IsLineComment(lexer_kernel_t *kernel, char *line_comment)
+// See lexer_kernel.h
+// ---------------------------------------------------------------
+int LXRK_IsLineComment(lexer_kernel_t *kernel, char *line_comment)
+{
+	return MT_SetContains(kernel->comment_line_map, line_comment);
+}
+
+// ---------------------------------------------------------------
 // char LXRK_GetStringEnd(lexer_kernel_t *kernel, char string_start)
 // See lexer_kernel.h
 // ---------------------------------------------------------------

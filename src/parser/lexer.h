@@ -47,6 +47,8 @@ typedef enum {
 	LXRT_STATE_FLOAT,
 	/** Token type: Delimiter Comment (never returned). */
 	LXRT_STATE_COMMENT,
+	/** Token type: Delimiter Comment (never returned). */
+	LXRT_STATE_LINE_COMMENT,
 	/** Token type: hexadecimal integer (never returned). */
 	LXRT_STATE_HEX_INTEGER0,
 	/** Token type: hexadecimal integer (never returned). */
@@ -145,9 +147,7 @@ typedef struct {
 	char string_end;
 	/** Current comment terminal. */
 	char *comment_end;
-	/** Nonzero if in token break. */
-	int token_break;
-	/** Stored token on token break. */
+	/** Stored character on token break. */
 	char stored;
 
 } lexer_t;

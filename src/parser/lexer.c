@@ -120,6 +120,17 @@ static void LXR_AddToToken(lexer_t *lexer, int c)
 		return;
 	
 	lexer->token.lexeme[lexer->token.length++] = c && 0x0FF;
+	lexer->token.lexeme[lexer->token.length] = 0x00; // null-terminate
+}
+
+// Adds to the current token, but does not increase length - this for lookup lookahead.
+static void LXR_AddToTokenTemp(lexer_t *lexer, int c)
+{
+	if (lexer->token.length >= LEXEME_LENGTH_MAX - 1)
+		return;
+	
+	lexer->token.lexeme[lexer->token.length] = c && 0x0FF;
+	lexer->token.lexeme[lexer->token.length+1] = 0x00; // null-terminate
 }
 
 // Finishes the current token.
@@ -240,10 +251,9 @@ int LXR_PopStream(lexer_t *lexer)
 // ---------------------------------------------------------------
 lexer_token_t* LXR_NextToken(lexer_t *lexer)
 {
-	lexer_token_t *token = &(lexer->token);
-	LXR_ResetToken(token);
+	LXR_ResetToken(&(lexer->token));
 	
-	int c;
+	int c, i, h;
 	int breakloop = 0;
 	while (!breakloop)
 	{
@@ -356,7 +366,7 @@ lexer_token_t* LXR_NextToken(lexer_t *lexer)
 					LXR_AddToToken(lexer, c);
 				}
 			}
-			break;
+			break; // LXRT_UNKNOWN
 			
 			case LXRT_ILLEGAL:
 			{
@@ -408,8 +418,743 @@ lexer_token_t* LXR_NextToken(lexer_t *lexer)
 					LXR_AddToToken(lexer, c);
 				}
 			}
-			break;
+			break; // LXRT_ILLEGAL
 			
+			case LXRT_STATE_POINT: // decimal point is seen, but it is a delimiter.
+			{
+				if (c == LXRC_END_OF_STREAM) // Stream End
+				{
+					lexer->state = LXRT_DELIMITER;
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsNewlineChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_DELIMITER;
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsSpaceChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_DELIMITER;
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsTabChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_DELIMITER;
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsWhitespaceChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_DELIMITER;
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsStringStartChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_DELIMITER;
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsDecimalChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_STATE_FLOAT;
+					LXR_AddToToken(lexer, c);
+				}
+				else
+				{
+					lexer->state = LXRT_DELIMITER;
+					LXR_AddToTokenTemp(lexer, c);
+					if (LXRK_GetDelimiterType(lexer->kernel, lexer->token.lexeme) >= 0)
+						LXR_AddToToken(lexer, c);
+					else
+					{
+						lexer->stored = c;
+						breakloop = 1;
+					}
+				}
+			}
+			break; // LXRT_STATE_POINT
+
+			case LXRT_STATE_FLOAT:
+			{
+				if (c == LXRC_END_OF_STREAM) // Stream End
+				{
+					lexer->state = LXRT_NUMBER;
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsNewlineChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_NUMBER;
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsSpaceChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_NUMBER;
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsTabChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_NUMBER;
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsWhitespaceChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_NUMBER;
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsExponentSignChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_STATE_EXPONENT_POWER;
+					LXR_AddToToken(lexer, c);
+				}
+				else if (LXRK_IsStringStartChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_NUMBER;
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsDecimalChar(lexer->kernel, c))
+				{
+					LXR_AddToToken(lexer, c);
+				}
+				else if (LXRK_IsDelimiterStartChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_NUMBER;
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else
+				{
+					lexer->state = LXRT_ILLEGAL;
+					LXR_AddToToken(lexer, c);
+				}
+			}
+			break; // LXRT_STATE_FLOAT
+			
+			case LXRT_IDENTIFIER:
+			{
+				if (c == LXRC_END_OF_STREAM) // Stream End
+				{
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsNewlineChar(lexer->kernel, c))
+				{
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsSpaceChar(lexer->kernel, c))
+				{
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsTabChar(lexer->kernel, c))
+				{
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsWhitespaceChar(lexer->kernel, c))
+				{
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsStringStartChar(lexer->kernel, c))
+				{
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsDelimiterStartChar(lexer->kernel, c))
+				{
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsUnderscoreChar(lexer->kernel, c))
+				{
+					LXR_AddToToken(lexer, c);
+				}
+				else if (LXRK_IsAlphabeticalChar(lexer->kernel, c))
+				{
+					LXR_AddToToken(lexer, c);
+				}
+				else if (LXRK_IsDecimalChar(lexer->kernel, c))
+				{
+					LXR_AddToToken(lexer, c);
+				}
+				else
+				{
+					lexer->state = LXRT_ILLEGAL;
+					LXR_AddToToken(lexer, c);
+				}
+			}
+			break; // TYPE_IDENTIFIER
+
+			case LXRT_STATE_HEX_INTEGER0:
+			{
+				if (c == LXRC_END_OF_STREAM) // Stream End
+				{
+					lexer->state = LXRT_NUMBER;
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsNewlineChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_NUMBER;
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsSpaceChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_NUMBER;
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsTabChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_NUMBER;
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsWhitespaceChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_NUMBER;
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsDecimalSeparatorChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_STATE_FLOAT;
+					LXR_AddToToken(lexer, c);
+				}
+				else if (LXRK_IsStringStartChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_NUMBER;
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsDelimiterStartChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_NUMBER;
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (c == 'x' || c == 'X')
+				{
+					lexer->state = LXRT_STATE_HEX_INTEGER1;
+					LXR_AddToToken(lexer, c);
+				}
+				else if (LXRK_IsAlphabeticalChar(lexer->kernel, c))
+				{
+					LXR_AddToToken(lexer, c);
+				}
+				else if (LXRK_IsDecimalChar(lexer->kernel, c))
+				{
+					LXR_AddToToken(lexer, c);
+				}
+				else
+				{
+					lexer->state = LXRT_ILLEGAL;
+					LXR_AddToToken(lexer, c);
+				}
+			}
+			break; // LXRT_STATE_HEX_INTEGER0
+
+			case LXRT_STATE_HEX_INTEGER1:
+			{
+				if (c == LXRC_END_OF_STREAM) // Stream End
+				{
+					lexer->state = LXRT_ILLEGAL;
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsNewlineChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_ILLEGAL;
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsSpaceChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_ILLEGAL;
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsTabChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_ILLEGAL;
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsWhitespaceChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_ILLEGAL;
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsDecimalSeparatorChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_ILLEGAL;
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsStringStartChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_ILLEGAL;
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsDelimiterStartChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_ILLEGAL;
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsHexadecimalChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_STATE_HEX_INTEGER;
+					LXR_AddToToken(lexer, c);
+				}
+				else if (LXRK_IsAlphabeticalChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_ILLEGAL;
+					LXR_AddToToken(lexer, c);
+				}
+				else
+				{
+					lexer->state = LXRT_ILLEGAL;
+					LXR_AddToToken(lexer, c);
+				}
+			}
+			break; // LXRT_STATE_HEX_INTEGER1
+
+			case LXRT_STATE_HEX_INTEGER:
+			{
+				if (c == LXRC_END_OF_STREAM) // Stream End
+				{
+					lexer->state = LXRT_NUMBER;
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsNewlineChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_NUMBER;
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsSpaceChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_NUMBER;
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsTabChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_NUMBER;
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsWhitespaceChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_NUMBER;
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsStringStartChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_NUMBER;
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsDelimiterStartChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_NUMBER;
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsHexadecimalChar(lexer->kernel, c))
+				{
+					LXR_AddToToken(lexer, c);
+				}
+				else if (LXRK_IsAlphabeticalChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_ILLEGAL;
+					LXR_AddToToken(lexer, c);
+				}
+				else
+				{
+					lexer->state = LXRT_ILLEGAL;
+					LXR_AddToToken(lexer, c);
+				}
+			}
+			break; // LXRT_STATE_HEX_INTEGER
+			
+			case LXRT_NUMBER:
+			{
+				if (c == LXRC_END_OF_STREAM) // Stream End
+				{
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsNewlineChar(lexer->kernel, c))
+				{
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsSpaceChar(lexer->kernel, c))
+				{
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsTabChar(lexer->kernel, c))
+				{
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsWhitespaceChar(lexer->kernel, c))
+				{
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsDecimalChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_STATE_FLOAT;
+					LXR_AddToToken(lexer, c);
+				}
+				else if (LXRK_IsExponentSignChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_STATE_EXPONENT;
+					LXR_AddToToken(lexer, c);
+				}
+				else if (LXRK_IsStringStartChar(lexer->kernel, c))
+				{
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsDelimiterStartChar(lexer->kernel, c))
+				{
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsAlphabeticalChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_ILLEGAL;
+					LXR_AddToToken(lexer, c);
+				}
+				else if (LXRK_IsDecimalChar(lexer->kernel, c))
+				{
+					LXR_AddToToken(lexer, c);
+				}
+				else
+				{
+					lexer->state = LXRT_ILLEGAL;
+					LXR_AddToToken(lexer, c);
+				}
+			}
+			break; // LXRT_NUMBER
+			
+			case LXRT_STATE_EXPONENT:
+			{
+				if (c == LXRC_END_OF_STREAM) // Stream End
+				{
+					lexer->state = LXRT_ILLEGAL;
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsNewlineChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_ILLEGAL;
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsSpaceChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_ILLEGAL;
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsTabChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_ILLEGAL;
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsWhitespaceChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_ILLEGAL;
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsExponentSignChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_STATE_EXPONENT_POWER;
+					LXR_AddToToken(lexer, c);
+				}
+				else if (LXRK_IsStringStartChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_ILLEGAL;
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsDelimiterStartChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_ILLEGAL;
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsAlphabeticalChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_ILLEGAL;
+					LXR_AddToToken(lexer, c);
+				}
+				else if (LXRK_IsDecimalChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_STATE_EXPONENT_POWER;
+					LXR_AddToToken(lexer, c);
+				}
+				else
+				{
+					lexer->state = LXRT_ILLEGAL;
+					LXR_AddToToken(lexer, c);
+				}
+			}
+			break; // LXRT_STATE_EXPONENT
+			
+			case LXRT_STATE_EXPONENT_POWER:
+			{
+				if (c == LXRC_END_OF_STREAM) // Stream End
+				{
+					lexer->state = LXRT_NUMBER;
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsNewlineChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_NUMBER;
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsSpaceChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_NUMBER;
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsTabChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_NUMBER;
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsWhitespaceChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_NUMBER;
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsStringStartChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_NUMBER;
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsDecimalChar(lexer->kernel, c))
+				{
+					LXR_AddToToken(lexer, c);
+				}
+				else if (LXRK_IsDelimiterStartChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_NUMBER;
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else
+				{
+					lexer->state = LXRT_ILLEGAL;
+					LXR_AddToToken(lexer, c);
+				}
+			}
+			break; // LXRT_STATE_EXPONENT_POWER
+			
+			case LXRT_STRING:
+			{
+				if (c == LXRC_END_OF_STREAM) // Stream End
+				{
+					lexer->state = LXRT_ILLEGAL;
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsNewlineChar(lexer->kernel, c))
+				{
+					lexer->state = LXRT_ILLEGAL;
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (c == lexer->string_end)
+				{
+					breakloop = 1;
+				}
+				else if (LXRK_IsEscapeChar(lexer->kernel, c))
+				{
+					c = LXR_GetChar(lexer);
+					if (c == lexer->string_end)
+						LXR_AddToToken(lexer, c);
+					else if (LXRK_IsEscapeChar(lexer->kernel, c))
+						LXR_AddToToken(lexer, c);
+					else switch (c)
+					{
+						case '0':
+							LXR_AddToToken(lexer, '\0');
+							break;
+						case 'b':
+							LXR_AddToToken(lexer, '\b');
+							break;
+						case 't':
+							LXR_AddToToken(lexer, '\t');
+							break;
+						case 'n':
+							LXR_AddToToken(lexer, '\n');
+							break;
+						case 'f':
+							LXR_AddToToken(lexer, '\f');
+							break;
+						case 'r':
+							LXR_AddToToken(lexer, '\r');
+							break;
+						case '/':
+							LXR_AddToToken(lexer, '/');
+							break;
+
+						case 'u':
+						{
+							h = 0;
+							for (i = 0; i < 4; i++)
+							{
+								c = LXR_GetChar(lexer);
+								if (!LXRK_IsHexadecimalChar(lexer->kernel, c))
+								{
+									lexer->state = LXRT_ILLEGAL;
+									lexer->stored = c;
+									breakloop = 1;
+								}
+								else
+								{
+									int n;
+									if (c >= '0' && c <= '9')
+										n = c - '0';
+									else if (c >= 'A' && c <= 'F')
+										n = c - 'A' + 10;
+									else if (c >= 'a' && c <= 'f')
+										n = c - 'a' + 10;
+									h |= n << (i * 4);
+								}
+							}
+							LXR_AddToToken(lexer, h);
+						}
+						break;
+							
+						case 'x':
+						{
+							h = 0;
+							for (i = 0; i < 2; i++)
+							{
+								c = LXR_GetChar(lexer);
+								if (!LXRK_IsHexadecimalChar(lexer->kernel, c))
+								{
+									lexer->state = LXRT_ILLEGAL;
+									lexer->stored = c;
+									breakloop = 1;
+								}
+								else
+								{
+									int n;
+									if (c >= '0' && c <= '9')
+										n = c - '0';
+									else if (c >= 'A' && c <= 'F')
+										n = c - 'A' + 10;
+									else if (c >= 'a' && c <= 'f')
+										n = c - 'a' + 10;
+									h |= n << (i * 4);
+								}
+							}
+							LXR_AddToToken(lexer, h);
+						}
+						break;
+					}
+				}
+				else
+				{
+					LXR_AddToToken(lexer, c);
+				}
+			}
+			break; // LXRT_STRING
+			
+			case LXRT_DELIMITER:
+			{
+				if (c == LXRC_END_OF_STREAM) // Stream End
+				{
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsNewlineChar(lexer->kernel, c))
+				{
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsSpaceChar(lexer->kernel, c))
+				{
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsTabChar(lexer->kernel, c))
+				{
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsWhitespaceChar(lexer->kernel, c))
+				{
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else if (LXRK_IsStringStartChar(lexer->kernel, c))
+				{
+					lexer->stored = c;
+					breakloop = 1;
+				}
+				else
+				{
+					LXR_AddToTokenTemp(lexer, c);
+					if ((lexer->comment_end = LXRK_GetCommentEnd(lexer->kernel, lexer->token.lexeme)) != NULL)
+					{
+						lexer->token.lexeme[0] = '\0';
+						lexer->token.length = 0;
+						lexer->state = LXRT_STATE_COMMENT;
+					}
+					else if (LXRK_IsLineComment(lexer->kernel, lexer->token.lexeme))
+					{
+						lexer->token.lexeme[0] = '\0';
+						lexer->token.length = 0;
+						lexer->state = LXRT_STATE_LINE_COMMENT;
+					}
+					else if (LXRK_GetDelimiterType(lexer->kernel, lexer->token.lexeme) >= 0)
+					{
+						LXR_AddToToken(lexer, c);
+					}
+					else
+					{
+						lexer->stored = c;
+						breakloop = 1;
+					}
+				}
+			}
+			break; // LXRT_DELIMITER
+
 			// TODO: Finish this.
 			
 		}
@@ -418,5 +1163,5 @@ lexer_token_t* LXR_NextToken(lexer_t *lexer)
 		
 	}
 	
-	return token;
+	return &(lexer->token);
 }

@@ -84,7 +84,7 @@ void LXRK_AddLineCommentDelimiter(lexer_kernel_t *kernel, char *delimiter);
  * Adds a delimiter type.
  * @param kernel the kernel to add to.
  * @param delimiter the string for the delimiter.
- * @param delimiter_type the token subtype.
+ * @param delimiter_type the token subtype. Must be 0 or greater.
  */
 void LXRK_AddDelimiter(lexer_kernel_t *kernel, char *delimiter, int delimiter_type);
 
@@ -93,7 +93,7 @@ void LXRK_AddDelimiter(lexer_kernel_t *kernel, char *delimiter, int delimiter_ty
  * Must be a subset of an identifier type.
  * @param kernel the kernel to add to.
  * @param keyword the starting character.
- * @param keyword_type the associated subtype.
+ * @param keyword_type the associated subtype. Must be 0 or greater.
  */
 void LXRK_AddKeyword(lexer_kernel_t *kernel, char *keyword, int keyword_type);
 
@@ -102,7 +102,7 @@ void LXRK_AddKeyword(lexer_kernel_t *kernel, char *keyword, int keyword_type);
  * Must be a subset of an identifier type.
  * @param kernel the kernel to add to.
  * @param keyword the starting character.
- * @param keyword_type the associated subtype.
+ * @param keyword_type the associated subtype. Must be 0 or greater.
  */
 void LXRK_AddCaseInsensitiveKeyword(lexer_kernel_t *kernel, char *keyword, int keyword_type);
 
@@ -137,6 +137,14 @@ void LXRK_SetStringEscapeChar(lexer_kernel_t *kernel, char escape);
  * @return the comment end or NULL for no associated end.
  */
 char* LXRK_GetCommentEnd(lexer_kernel_t *kernel, char *comment_start);
+
+/**
+ * Gets if a delimiter starts a line comment.
+ * @param kernel the kernel to use.
+ * @param line_comment the starting token for the comment.
+ * @return 1 if so, 0 if not.
+ */
+int LXRK_IsLineComment(lexer_kernel_t *kernel, char *line_comment);
 
 /**
  * Gets the associated string ending character.
