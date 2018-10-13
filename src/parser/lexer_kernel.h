@@ -24,7 +24,7 @@ typedef struct {
 
 	/** Set of pairs: char* to char*: multi-line comment-starting delimiters to comment-ending delimiters. */
 	mt_set_t *comment_map;
-	/** Set of pairs: char* to int: line-comment delimiters to comment type. */
+	/** Set of line-comment delimiters (char*). */
 	mt_set_t *comment_line_map;
 
 	/** Set of pairs: char* to int: delimiters to delimiter type. */

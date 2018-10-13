@@ -30,28 +30,32 @@ static int LXRK_CompareChar(void *a, void *b)
 
 static int LXRK_CompareCharPtr(void *a, void *b)
 {
-	return strcmp((char*)a, (char*)b);
+	return (char)(int)a - (char)(int)b;
 }
 
 static int LXRK_ComparePairChar(void *a, void *b)
 {
 	LXRK_SETPAIR *pa = (LXRK_SETPAIR*)a;
 	LXRK_SETPAIR *pb = (LXRK_SETPAIR*)b;
-	return strcmp((char*)(pa->key), (char*)(pb->key));
+	return ((char)(int)(pa->key)) - ((char)(int)(pb->key));
 }
 
 static int LXRK_ComparePairCharPtr(void *a, void *b)
 {
 	LXRK_SETPAIR *pa = (LXRK_SETPAIR*)a;
 	LXRK_SETPAIR *pb = (LXRK_SETPAIR*)b;
-	return strcmp((char*)(pa->key), (char*)(pb->key));
+	char *ka = (char*)(pa->key);
+	char *kb = (char*)(pb->key);
+	return strcmp(ka, kb);
 }
 
 static int LXRK_ComparePairCICharPtr(void *a, void *b)
 {
 	LXRK_SETPAIR *pa = (LXRK_SETPAIR*)a;
 	LXRK_SETPAIR *pb = (LXRK_SETPAIR*)b;
-	return stricmp((char*)(pa->key), (char*)(pb->key));
+	char *ka = (char*)(pa->key);
+	char *kb = (char*)(pb->key);
+	return stricmp(ka, kb);
 }
 
 // Creates a new set pair.
@@ -458,7 +462,7 @@ inline int LXRK_IsWhitespaceChar(lexer_kernel_t *kernel, int c)
 // ---------------------------------------------------------------
 inline int LXRK_IsExponentSignChar(lexer_kernel_t *kernel, int c)
 {
-	return (c == 'e' || c == 'E') ? 1 : 0;
+	return (c == '-' || c == '+') ? 1 : 0;
 }
 
 // ---------------------------------------------------------------

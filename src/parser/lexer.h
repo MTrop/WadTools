@@ -66,6 +66,21 @@ typedef enum {
 	
 } lexeme_type_t;
 
+/** Lexer Numeric token subtype. */
+typedef enum {
+
+	/** Integer */
+	LXRTN_INTEGER,
+	/** Floating point */
+	LXRTN_FLOAT,
+	/** Octal Integer */
+	LXRTN_OCTAL,
+	/** Hex Integer */
+	LXRTN_HEX,
+
+	LXRTN_COUNT,
+
+} lexeme_numeric_subtype_t;
 
 /**
  * Lexer options.
@@ -223,8 +238,15 @@ lexer_token_t* LXR_NextToken(lexer_t *lexer);
 /**
  * Returns the type name for a token type.
  * @param type the lexeme type.
- * @return a new lexer or NULL if it couldn't be allocated.
+ * @return a string or NULL if no corresponding name.
  */
 char* LXR_TokenTypeName(lexeme_type_t type);
+
+/**
+ * Returns the subtype name for a numberic token subtype.
+ * @param subtype the subtype.
+ * @return a string or NULL if no corresponding name.
+ */
+char* LXR_TokenNumericSubtypeName(lexeme_numeric_subtype_t subtype);
 
 #endif

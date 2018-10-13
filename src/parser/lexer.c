@@ -146,16 +146,40 @@ static void LXR_AddToTokenTemp(lexer_t *lexer, int c)
 	lexer->token.lexeme[lexer->token.length+1] = 0x00; // null-terminate
 }
 
+// Flatten token back to current length.
+static void LXR_FlattenToken(lexer_t *lexer)
+{
+	lexer->token.lexeme[lexer->token.length] = '\0';
+}
+
 // Finishes the current token.
 static void LXR_FinishToken(lexer_t *lexer, lexeme_type_t state)
 {
-	lexer->token.lexeme[lexer->token.length] = '\0';
+	LXR_FlattenToken(lexer);
 	lexer->token.stream = lexer->stream_stack->stream;
 	
 	lexer->token.type = state;
 	lexer->token.subtype = -1;
 
-	if (lexer->token.type == LXRT_IDENTIFIER)
+	if (lexer->token.type == LXRT_NUMBER)
+	{
+		char *t;
+		if (strchr(lexer->token.lexeme, '.'))
+			lexer->token.subtype = LXRTN_FLOAT;
+		else if ((t = strstr(lexer->token.lexeme, "0x")) && t == lexer->token.lexeme)
+			lexer->token.subtype = LXRTN_HEX;
+		else if ((t = strstr(lexer->token.lexeme, "0X")) && t == lexer->token.lexeme)
+			lexer->token.subtype = LXRTN_HEX;
+		else if ((t = strstr(lexer->token.lexeme, "0")) && t == lexer->token.lexeme)
+			lexer->token.subtype = LXRTN_OCTAL;
+		else if (strchr(lexer->token.lexeme, 'e'))
+			lexer->token.subtype = LXRTN_FLOAT;
+		else if (strchr(lexer->token.lexeme, 'E'))
+			lexer->token.subtype = LXRTN_FLOAT;
+		else
+			lexer->token.subtype = LXRTN_INTEGER;
+	}
+	else if (lexer->token.type == LXRT_IDENTIFIER)
 		lexer->token.subtype = LXRK_GetKeywordType(lexer->kernel, lexer->token.lexeme);
 	else if (lexer->token.type == LXRT_DELIMITER)
 		lexer->token.subtype = LXRK_GetDelimiterType(lexer->kernel, lexer->token.lexeme);
@@ -190,6 +214,12 @@ static char *tokentypename[LXRT_COUNT] = {
 	"STATE_EXPONENT_POWER",
 };
 
+static char *tokennumerictypename[LXRTN_COUNT] = {
+	"INTEGER",
+	"FLOAT",
+	"OCTAL",
+	"HEX",
+};
 
 // ---------------------------------------------------------------
 // char* LXR_TokenTypeName(lexeme_type_t type)
@@ -201,6 +231,18 @@ char* LXR_TokenTypeName(lexeme_type_t type)
 		return NULL;
 	else
 		return tokentypename[type];
+}
+
+// ---------------------------------------------------------------
+// char* LXR_TokenNumericSubtypeName(lexeme_numeric_subtype_t subtype)
+// See lexer.h
+// ---------------------------------------------------------------
+char* LXR_TokenNumericSubtypeName(lexeme_numeric_subtype_t subtype)
+{
+	if (subtype < 0 || subtype >= LXRTN_COUNT)
+		return NULL;
+	else
+		return tokennumerictypename[subtype];
 }
 
 // ---------------------------------------------------------------
@@ -564,9 +606,9 @@ lexer_token_t* LXR_NextToken(lexer_t *lexer)
 					lexer->stored = c;
 					breakloop = 1;
 				}
-				else if (LXRK_IsExponentSignChar(lexer->kernel, c))
+				else if (c == 'E' || c == 'e')
 				{
-					state = LXRT_STATE_EXPONENT_POWER;
+					state = LXRT_STATE_EXPONENT;
 					LXR_AddToToken(lexer, c);
 				}
 				else if (LXRK_IsStringStartChar(lexer->kernel, c))
@@ -876,12 +918,12 @@ lexer_token_t* LXR_NextToken(lexer_t *lexer)
 					lexer->stored = c;
 					breakloop = 1;
 				}
-				else if (LXRK_IsDecimalChar(lexer->kernel, c))
+				else if (LXRK_IsDecimalSeparatorChar(lexer->kernel, c))
 				{
 					state = LXRT_STATE_FLOAT;
 					LXR_AddToToken(lexer, c);
 				}
-				else if (LXRK_IsExponentSignChar(lexer->kernel, c))
+				else if (c == 'E' || c == 'e')
 				{
 					state = LXRT_STATE_EXPONENT;
 					LXR_AddToToken(lexer, c);
@@ -1184,24 +1226,29 @@ lexer_token_t* LXR_NextToken(lexer_t *lexer)
 				else
 				{
 					LXR_AddToTokenTemp(lexer, c);
+					// Could be a special delimiter
 					if ((lexer->comment_end = LXRK_GetCommentEnd(lexer->kernel, lexer->token.lexeme)) != NULL)
 					{
 						lexer->token.lexeme[0] = '\0';
 						lexer->token.length = 0;
 						state = LXRT_STATE_COMMENT;
 					}
+					// Could be a special delimiter
 					else if (LXRK_IsLineComment(lexer->kernel, lexer->token.lexeme))
 					{
 						lexer->token.lexeme[0] = '\0';
 						lexer->token.length = 0;
 						state = LXRT_STATE_LINE_COMMENT;
 					}
+					// Possibly still a delimiter
 					else if (LXRK_GetDelimiterType(lexer->kernel, lexer->token.lexeme) >= 0)
 					{
 						LXR_AddToToken(lexer, c);
 					}
+					// Not a delimiter anymore
 					else
 					{
+						LXR_FlattenToken(lexer);
 						lexer->stored = c;
 						breakloop = 1;
 					}

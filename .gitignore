@@ -11,3 +11,6 @@
 *.ipr
 *.iml
 *.iws
+
+# VS Code
+.vscode

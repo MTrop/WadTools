@@ -85,11 +85,21 @@ goto _end
 
 REM === MAINFILE must be set.
 :__compilefile
+setlocal
+set DEBUGSWITCHES=
+if not "%MAINFILE%" == "debug" goto _notdebug
+set DEBUGSWITCHES=-g
+set MAINFILE=%MAINFILEOPT%
+:_notdebug
+
 for %%F in ("%SRCDIR%\%MAINFILE%.c") do (
 	echo %%F > "%BUILDDIR%\%MAINFILE%.args"
 	echo -o >> "%BUILDDIR%\%MAINFILE%.args"
 	echo "%DISTDIR%\%%~nF.exe" >> "%BUILDDIR%\%MAINFILE%.args"
 )
+if "%DEBUGSWITCHES%" == "" goto _nodbparams
+echo %DEBUGSWITCHES% >> "%BUILDDIR%\%MAINFILE%.args"
+:_nodbparams
 echo "-I%SRCDIR%" >> "%BUILDDIR%\%MAINFILE%.args"
 
 echo Made "%BUILDDIR%\%MAINFILE%.args"
@@ -102,9 +112,11 @@ tr "\\" "/" < .\build\%MAINFILE%.args > .\build\%MAINFILE%.args2
 del "%BUILDDIR%\%MAINFILE%.args"
 ren "%BUILDDIR%\%MAINFILE%.args2" %MAINFILE%.args
 gcc @"%BUILDDIR%\%MAINFILE%.args"
-if not %ERRORLEVEL% == 0 goto _end
+if not %ERRORLEVEL% == 0 goto _restore
 echo Linked to "%DISTDIR%\%MAINFILE%.exe"
 echo Done.
+:_restore
+endlocal
 goto _end
 
 
@@ -126,6 +138,7 @@ goto _end
 :_buildfileincr
 call :__mkdist
 set MAINFILE=%2
+set MAINFILEOPT=%3
 call :__compilefile
 goto _end
 

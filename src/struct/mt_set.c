@@ -20,7 +20,7 @@
 static int MT_DoSearch(void **arr, int count, int (*comparefunc)(void*, void*), void *value)
 {
 	int u, l, i, c, prev;
-	
+
 	u = count;
 	l = 0;
 	i = (u + l) / 2;
@@ -33,20 +33,13 @@ static int MT_DoSearch(void **arr, int count, int (*comparefunc)(void*, void*), 
 		c = (*comparefunc)(arr[i], value);
 
 		if (c == 0)
-		{
 			return i;
-		}
-		
-		c = arr[i] < value ? -1 : 1;
 		
 		if (c < 0)
-		{
 			l = i;
-		}
 		else
-		{
 			u = i;
-		}
+
 		prev = i;
 		i = (u + l) / 2;
 	}
@@ -120,7 +113,7 @@ void MT_SetClear(mt_set_t *set)
 	set->size = 0;
 }
 
-inline int MT_SetSearch(mt_set_t *set, void *value)
+int MT_SetSearch(mt_set_t *set, void *value)
 {
 	return MT_DoSearch(set->items, set->size, set->comparefunc, value);
 }
