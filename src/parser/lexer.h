@@ -35,6 +35,8 @@ typedef enum {
 	LXRT_NEWLINE,
 	/** Token type: Identifier. */
 	LXRT_IDENTIFIER,
+	/** Token type: Keyword. */
+	LXRT_KEYWORD,
 	/** Token type: Delimiter. */
 	LXRT_DELIMITER,
 	/** Token type: Number. */
@@ -119,8 +121,8 @@ typedef struct {
  */
 typedef struct {
 	
-	/** Source stream. */
-	lexer_stream_t *stream;
+	/** Source stream name. */
+	char *stream_name;
 	/** Lexeme type. */
 	lexeme_type_t type;
 	/** Token subtype. */
@@ -228,7 +230,7 @@ int LXR_PushStreamBuffer(lexer_t *lexer, char *name, unsigned char *buffer, size
 int LXR_PopStream(lexer_t *lexer);
 
 /**
- * Scans the next lexeme.
+ * Scans the next lexeme and returns the token.
  * NOTE: The lexeme scanned should be copied if the content itself needs to be used elsewhere.
  * @param lexer the lexer to use.
  * @return a pointer to the token scanned in.

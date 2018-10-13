@@ -30,7 +30,9 @@ static int LXRK_CompareChar(void *a, void *b)
 
 static int LXRK_CompareCharPtr(void *a, void *b)
 {
-	return (char)(int)a - (char)(int)b;
+	char *ka = (char*)(a);
+	char *kb = (char*)(b);
+	return strcmp(ka, kb);
 }
 
 static int LXRK_ComparePairChar(void *a, void *b)

@@ -1,30 +1,19 @@
 #include <stdio.h>
+#include <string.h>
 #include <errno.h>
-#include "parser/lexer.h"
+#include "parser/parser.h"
 
 void dumpToken(lexer_token_t *token)
 {
 	printf(
 		"(%s) Line %-4d Len %-3d %-22s:%-4d  %s\n", 
-		token->stream->name, 
+		token->stream_name, 
 		token->line_number, 
 		token->length, 
 		LXR_TokenTypeName(token->type), 
 		token->subtype, 
 		token->lexeme
 	);
-}
-
-void doParse(lexer_kernel_t *kernel, char* filename)
-{
-	lexer_t *lexer = LXR_Create(kernel);
-	LXR_PushStream(lexer, filename);
-	
-	lexer_token_t *token;
-	while ((token = LXR_NextToken(lexer)) != NULL)
-		dumpToken(token);
-
-	LXR_Destroy(lexer);
 }
 
 typedef struct {
@@ -41,11 +30,23 @@ void delimDumpFunc(void *p)
 	printf("[\"%s\", %d]\n", l->key, l->value);
 }
 
+void delimDumpCharFunc(void *p)
+{
+	printf("\"%s\"", (char*)p);
+}
+
+
 int main(int argc, char** argv)
 {
+	if (argc < 2) 
+		return 1;
+
 	lexer_kernel_t *kernel = LXRK_Create();
+	
 	LXRK_AddCommentDelimiter(kernel, "/*", "*/");
+	
 	LXRK_AddLineCommentDelimiter(kernel, "//");
+
 	LXRK_AddStringDelimiters(kernel, '"', '"');
 	LXRK_AddStringDelimiters(kernel, '\'', '\'');
 
@@ -83,8 +84,17 @@ int main(int argc, char** argv)
 	LXRK_AddDelimiter(kernel, ":", 29);
 	LXRK_AddDelimiter(kernel, "%=", 30);
 
-	doParse(kernel, "src/parsertest.txt");
+	lexer_t *lexer = LXR_Create(kernel);
+	LXR_PushStream(lexer, argv[1]);
 
+	parser_t *parser = PARSER_Create(lexer);
+	PARSER_Next(parser);
+	do {
+		dumpToken(PARSER_Current(parser));
+	} while (PARSER_MatchType(parser, LXRT_NUMBER));
+
+	PARSER_Destroy(parser);
+	LXR_Destroy(lexer);
 	LXRK_Destroy(kernel);
 	return 0;
 }

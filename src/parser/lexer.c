@@ -24,7 +24,7 @@
 // Resets a lexer token.
 static void LXR_ResetToken(lexer_token_t *token)
 {
-	token->stream = NULL;
+	token->stream_name = NULL;
 	token->type = LXRT_UNKNOWN;
 	token->subtype = -1;
 	token->lexeme[0] = '\0';
@@ -134,6 +134,9 @@ static void LXR_AddToToken(lexer_t *lexer, int c)
 	int next = (lexer->token.length)++;
 	lexer->token.lexeme[next] = c & 0x0FF;
 	lexer->token.lexeme[lexer->token.length] = 0x00; // null-terminate
+
+	// save starting line
+	lexer->token.line_number = lexer->stream_stack->stream->line_number;
 }
 
 // Adds to the current token, but does not increase length - this for lookup lookahead.
@@ -156,7 +159,7 @@ static void LXR_FlattenToken(lexer_t *lexer)
 static void LXR_FinishToken(lexer_t *lexer, lexeme_type_t state)
 {
 	LXR_FlattenToken(lexer);
-	lexer->token.stream = lexer->stream_stack->stream;
+	lexer->token.stream_name = lexer->stream_stack->stream->name;
 	
 	lexer->token.type = state;
 	lexer->token.subtype = -1;
@@ -180,7 +183,11 @@ static void LXR_FinishToken(lexer_t *lexer, lexeme_type_t state)
 			lexer->token.subtype = LXRTN_INTEGER;
 	}
 	else if (lexer->token.type == LXRT_IDENTIFIER)
+	{
 		lexer->token.subtype = LXRK_GetKeywordType(lexer->kernel, lexer->token.lexeme);
+		if (lexer->token.subtype >= 0)
+			lexer->token.type = LXRT_KEYWORD;
+	}
 	else if (lexer->token.type == LXRT_DELIMITER)
 		lexer->token.subtype = LXRK_GetDelimiterType(lexer->kernel, lexer->token.lexeme);
 	
@@ -199,6 +206,7 @@ static char *tokentypename[LXRT_COUNT] = {
 	"TAB",
 	"NEWLINE",
 	"IDENTIFIER",
+	"KEYWORD",
 	"DELIMITER",
 	"NUMBER",
 	"STRING",
@@ -345,9 +353,6 @@ lexer_token_t* LXR_NextToken(lexer_t *lexer)
 {
 	LXR_ResetToken(&(lexer->token));
 	lexeme_type_t state = LXRT_UNKNOWN;
-	
-	// save starting line
-	lexer->token.line_number = lexer->stream_stack->stream->line_number;
 	
 	int c, i, h;
 	int breakloop = 0;
@@ -746,12 +751,9 @@ lexer_token_t* LXR_NextToken(lexer_t *lexer)
 					state = LXRT_STATE_HEX_INTEGER1;
 					LXR_AddToToken(lexer, c);
 				}
-				else if (LXRK_IsAlphabeticalChar(lexer->kernel, c))
-				{
-					LXR_AddToToken(lexer, c);
-				}
 				else if (LXRK_IsDecimalChar(lexer->kernel, c))
 				{
+					state = LXRT_NUMBER;
 					LXR_AddToToken(lexer, c);
 				}
 				else

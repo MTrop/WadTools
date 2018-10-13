@@ -27,7 +27,6 @@ static int MT_DoSearch(void **arr, int count, int (*comparefunc)(void*, void*), 
 	prev = u;
 	
 	// binary search
-	
 	while (i != prev)
 	{
 		c = (*comparefunc)(arr[i], value);
