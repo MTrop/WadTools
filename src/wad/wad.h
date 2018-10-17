@@ -193,9 +193,8 @@ void WAD_IteratorReset(waditerator_t *iter, int start);
 wadentry_t* WAD_IteratorNext(waditerator_t *iter);
 
 /**
- * Frees a WAD iterator to the next entry.
+ * Frees a WAD iterator.
  * @param iter pointer to the iterator.
- * @return a pointer to the next entry.
  */
 void WAD_IteratorClose(waditerator_t *iter);
 

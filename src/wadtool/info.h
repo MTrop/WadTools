@@ -6,11 +6,11 @@
  * http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
  *****************************************************************************/
 
-#ifndef __WADTOOL_CREATE_H__
-#define __WADTOOL_CREATE_H__
+#ifndef __WADTOOL_INFO_H__
+#define __WADTOOL_INFO_H__
 
 #include "wadtool.h"
 
-wadtool_t WADTOOL_Create;
+wadtool_t WADTOOL_Info;
 
 #endif

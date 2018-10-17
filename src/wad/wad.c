@@ -322,7 +322,8 @@ static int wi_map_destroy(wad_t *wad)
 // Implementation of wadfuncs_t.commit_entries(wad_t*)
 static int wi_map_commit_entries(wad_t *wad)
 {
-	// Do nothing. Nothing to write to.
+	// Not supported.
+	waderrno = WADERROR_NOT_SUPPORTED;
 	return 0;
 }
 

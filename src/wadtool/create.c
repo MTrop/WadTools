@@ -17,9 +17,9 @@
 extern int errno;
 extern int waderrno;
 
-#define ERRORCREATE_NONE 0
-#define ERRORCREATE_WAD_ERROR 1
-#define ERRORCREATE_NO_FILENAME 2
+#define ERRORCREATE_NONE        0
+#define ERRORCREATE_NO_FILENAME 1
+#define ERRORCREATE_WAD_ERROR   10
 
 static int call(arg_parser_t *argparser)
 {
@@ -38,7 +38,7 @@ static int call(arg_parser_t *argparser)
 			printf("ERROR: %s %s\n", strwaderror(waderrno), strerror(errno));
 		else
 			printf("ERROR: %s\n", strwaderror(waderrno));
-		return ERRORCREATE_WAD_ERROR;
+		return ERRORCREATE_WAD_ERROR + waderrno;
 	}
 	
 	WAD_Close(wad);
