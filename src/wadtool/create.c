@@ -42,7 +42,7 @@ static int call(arg_parser_t *argparser)
 	}
 	
 	WAD_Close(wad);
-    
+
     printf("Created %s\n", filename);
     return ERRORCREATE_NONE;
 }

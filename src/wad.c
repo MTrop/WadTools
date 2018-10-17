@@ -12,6 +12,8 @@
 
 #define WADTOOLS_VERSION "0.1.0"
 
+#define WADTOOLS_SPLASH "WAD Tools v" WADTOOLS_VERSION " (C) 2018 Matt Tropiano"
+
 // ==================== All Tools =====================
 
 #include "wadtool/create.h"
@@ -28,11 +30,6 @@ wadtool_t* WADTOOLS_ALL[WADTOOL_COUNT] = {
 
 // =====================================================
 
-
-static void print_copyright()
-{
-    printf("WAD Tools v" WADTOOLS_VERSION " (C) 2018 Matt Tropiano\n");
-}
 
 static void print_usage()
 {
@@ -52,7 +49,7 @@ static void print_help()
 
 static int print_splash(arg_parser_t *argparser)
 {
-    print_copyright();
+    printf(WADTOOLS_SPLASH "\n");
     print_usage();
     return 0;
 }
@@ -60,7 +57,7 @@ static int print_splash(arg_parser_t *argparser)
 wadtool_t DEFAULT_TOOL =
 {
     "DEFAULT",
-    "You shouldn't see this.",
+    WADTOOLS_SPLASH,
     &print_splash,
     &print_usage,
     &print_help,
@@ -92,6 +89,7 @@ int main(int argc, char **argv)
     if (matcharg(&parser, COMMAND_HELP))
     {
         wadtool_t* tool = parse_tool(&parser);
+        printf("%s\n", tool->description);
         (tool->usage)();
         (tool->help)();
         return 0;
