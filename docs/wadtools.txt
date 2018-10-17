@@ -1,0 +1,75 @@
+wad
+    Print splash and base usage.
+
+wad help
+    Print help on a command.
+
+wad create
+    Make a new empty WAD file.
+wad info
+    Output basic WAD information.
+wad list
+    Outputs WAD entry info to STDOUT.
+wad list maps
+    Outputs only entry info that appear to be header lumps for maps.
+wad search
+    Searches for and outputs entries that have specific criteria.
+wad cat
+    Dump the contents of a WAD entry (or series of entries) to STDOUT.
+
+wad shift
+    Shifts/reorders a set of entries around a WAD file.
+wad rename
+    Renames a WAD entry.
+
+wad add
+    Add an entry (or multiple) to a WAD file.
+wad remove
+    Removes an entry from a WAD file.
+wad clean
+    Garbage-collects abandoned entries in a WAD file, making a new WAD.
+wad delete
+    Shortcut for [remove] plus [clean].
+
+wad import
+    Add the contents of a WAD to a WAD.
+wad import map
+    Helpful extension for [import] - imports one or more maps from a WAD.
+
+wad export
+    Takes a set of entries and copies them out to a new WAD.
+wad export map
+    Helpful extension for [export] - exports one or more whole maps.
+
+wad map info
+    Displays info about a map.
+
+===== DOOM DATA =====
+
+wad map list
+    Displays entry data about a map.
+wad map list things
+    Displays thing data about a map.
+wad map list linedefs
+    Displays linedef data about a map.
+wad map list sidedefs
+    Displays sidedef data about a map.
+wad map list sectors
+    Displays sector data about a map.
+wad map list vertexes
+    Displays vertex data about a map.
+wad map list vertices
+    Displays vertex data about a map (corrected spelling).
+wad map list all
+    Displays all connected data about a map.
+
+wad map list nodes
+    Displays all node data about a map.
+
+wad map search
+    Searches in a map.
+wad map search things
+    Searches thing data in a map.
+wad map search things info
+    Displays the criteria names for searching thing data for a map.
+ 
