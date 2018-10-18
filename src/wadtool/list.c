@@ -19,8 +19,23 @@ extern int waderrno;
 
 #define ERRORLIST_NONE      0
 
+typedef struct 
+{
+    /** The WAD to list. */
+    wad_t *wad;
+    /** Minimal mode? */
+    int minimal;
+
+} wadtool_options_list_t;
+
+static int exec(wadtool_options_list_t *options)
+{
+    return ERRORLIST_NONE;
+}
+
 static int call(arg_parser_t *argparser)
 {
+
     // TODO: Finish this.
     return ERRORLIST_NONE;
 }

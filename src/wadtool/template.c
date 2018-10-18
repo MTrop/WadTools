@@ -21,18 +21,40 @@ extern int waderrno;
 
 #define ERRORTEMPLATE_NONE        0
 
+typedef struct
+{
+
+} wadtool_options_template_t;
+
+
+static int exec(wadtool_options_template_t *options)
+{
+    // TODO: Finish this.
+    return ERRORTEMPLATE_NONE;
+}
+
 static int call(arg_parser_t *argparser)
 {
-    return ERRORTEMPLATE_NONE;
+    wadtool_options_template_t options = {};
+
+    // TODO: Setup.
+    
+    int ret = exec(&options);
+    
+    // TODO: Cleanup.
+    
+    return ret;
 }
 
 static void usage()
 {
-    printf("Usage: asdfasdfasdf\n");
+    // TODO: Finish this.
+    printf("Usage: wad template\n");
 }
 
 static void help()
 {
+    // TODO: Finish this.
 }
 
 wadtool_t WADTOOL_Template = {
