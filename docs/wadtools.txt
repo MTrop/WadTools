@@ -33,18 +33,14 @@ wad delete
 
 wad import
     Add the contents of a WAD to a WAD.
-wad import map
-    Helpful extension for [import] - imports one or more maps from a WAD.
 
 wad export
     Takes a set of entries and copies them out to a new WAD.
-wad export map
-    Helpful extension for [export] - exports one or more whole maps.
+
+===== DOOM DATA =====
 
 wad map info
     Displays info about a map.
-
-===== DOOM DATA =====
 
 wad map list
     Displays entry data about a map.
@@ -62,7 +58,6 @@ wad map list vertices
     Displays vertex data about a map (corrected spelling).
 wad map list all
     Displays all connected data about a map.
-
 wad map list nodes
     Displays all node data about a map.
 
@@ -72,4 +67,3 @@ wad map search things
     Searches thing data in a map.
 wad map search things info
     Displays the criteria names for searching thing data for a map.
- 

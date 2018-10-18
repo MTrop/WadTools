@@ -2,20 +2,33 @@
 
 Copyright (C) 2018 Matt Tropiano
 
-### NOTICE
+## NOTICE
 
 This code and the utility libraries are really, really not suitable for general consumption yet.
 
 Caveat emptor.
 
 
-### Introduction
+## Introduction
 
 This repo contains C code for various tiny utilities around Doom and Doom Engine-related things. 
 It also didn't look like there was one definitive lib, so I took it upon myself to ever-so-slowly make it.
 
 
-### Building this Stuff
+## Why?
+
+There is currently a lack of command-line driven utilities for doing small WAD-related things like
+merging, importing, or searching, and this can also serve as a common point for a C-language library
+for lots of common Doom Engine things (which will probably be separated out into other repos at some point).
+
+This sort of thing also helps with batching together lots of little WAD operations for when larger projects
+need assembly - something sorely lacking on modern platforms in an automatable way.
+
+
+Also, I needed an excuse to re-learn C. Everyone's gotta know C, right?
+
+
+## Building this Stuff
 
 The only build "script" in this so far is a CMD batch that builds the associated packages 
 incrementally and the root projects optionally. This has been tested in the following environments
@@ -27,7 +40,7 @@ and toolchains:
 Yup, that's it. Who knows what the future holds!
 
 
-### To Build
+## To Build
 
 To build a subpackage (directory under `src`), type:
 
@@ -61,7 +74,7 @@ Or clean up the build directories:
 NOTE that you need GCC and TR visible on your PATH or it will not let you continue!
 
 
-### Other
+## Other
 
 This program/library and the accompanying materials
 are made available under the terms of the GNU Lesser Public License v2.1

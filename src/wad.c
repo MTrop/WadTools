@@ -18,11 +18,13 @@
 
 #include "wadtool/create.h"
 #include "wadtool/info.h"
+#include "wadtool/list.h"
 
-#define WADTOOL_COUNT 2
+#define WADTOOL_COUNT 3
 wadtool_t* WADTOOLS_ALL[WADTOOL_COUNT] = {
     &WADTOOL_Create,
     &WADTOOL_Info,
+    &WADTOOL_List,
 };
 
 // ================== Command Names ====================
@@ -30,6 +32,7 @@ wadtool_t* WADTOOLS_ALL[WADTOOL_COUNT] = {
 #define COMMAND_HELP "help"
 #define COMMAND_CREATE "create"
 #define COMMAND_INFO "info"
+#define COMMAND_LIST "list"
 
 // =====================================================
 
@@ -75,6 +78,8 @@ static wadtool_t* parse_tool(arg_parser_t *argparser)
         return &WADTOOL_Create;
     else if (matcharg(argparser, COMMAND_INFO))
         return &WADTOOL_Info;
+    else if (matcharg(argparser, COMMAND_LIST))
+        return &WADTOOL_List;
     else
         return &DEFAULT_TOOL;
 }

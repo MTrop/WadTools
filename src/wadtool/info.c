@@ -27,33 +27,43 @@ extern int waderrno;
 
 typedef struct
 {
+    /** WAD filename. */
+    char *filename;
+    /** The WAD to use. */
+    wad_t *wad;
+    /** If minimal info should be printed. */
     int minimal;
 
-} wadtool_info_options_t;
+} wadtool_options_info_t;
 
-static void print_info(wad_t* wad, wadtool_info_options_t* options, char *filename)
+static int exec(wadtool_options_info_t* options)
 {
     if (options->minimal)
     {
-        printf("%s ", filename);
-        printf("%s ", wad->header.type == WADTYPE_IWAD ? "IWAD" : "PWAD");
-        printf("%d ", wad->header.entry_count);
-        printf("%d ", wad->header.entry_list_offset - sizeof(wadheader_t));
-        printf("%d ", wad->header.entry_list_offset);
-        printf("%d\n", (wad->header.entry_list_offset + (sizeof(wadentry_t) * wad->header.entry_count)));
+        printf("%s ", options->filename);
+        printf("%s ", options->wad->header.type == WADTYPE_IWAD ? "IWAD" : "PWAD");
+        printf("%d ", options->wad->header.entry_count);
+        printf("%d ", options->wad->header.entry_list_offset - sizeof(wadheader_t));
+        printf("%d ", options->wad->header.entry_count * sizeof(wadentry_t));
+        printf("%d ", options->wad->header.entry_list_offset);
+        printf("%d\n", (options->wad->header.entry_list_offset + (sizeof(wadentry_t) * options->wad->header.entry_count)));
     }
     else
     {
-        printf("%s: %s, ", filename, wad->header.type == WADTYPE_IWAD ? "IWAD" : "PWAD");
-        printf("%d entries, ", wad->header.entry_count);
-        printf("%d bytes content, ", wad->header.entry_list_offset - sizeof(wadheader_t));
-        printf("list at byte %d, ", wad->header.entry_list_offset);
-        printf("%d bytes\n", (wad->header.entry_list_offset + (sizeof(wadentry_t) * wad->header.entry_count)));
+        printf("%s: %s\n", options->filename, options->wad->header.type == WADTYPE_IWAD ? "IWAD" : "PWAD");
+        printf("%d entries\n", options->wad->header.entry_count);
+        printf("%d content bytes\n", options->wad->header.entry_list_offset - sizeof(wadheader_t));
+        printf("%d list bytes\n", options->wad->header.entry_count * sizeof(wadentry_t));
+        printf("list at byte %d\n", options->wad->header.entry_list_offset);
+        printf("%d bytes total\n", (options->wad->header.entry_list_offset + (sizeof(wadentry_t) * options->wad->header.entry_count)));
     }
+    return ERRORINFO_NONE;
 }
 
 static int call(arg_parser_t *argparser)
 {
+    wadtool_options_info_t options = {NULL, NULL, 0};
+
     char *filename = currarg(argparser);
     if (!filename)
     {
@@ -62,9 +72,9 @@ static int call(arg_parser_t *argparser)
     }
 
     // Open a shallow mapping.
-	wad_t *wad = WAD_OpenMap(filename);
+	options.wad = WAD_OpenMap(options.filename);
 	
-	if (!wad)
+	if (!options.wad)
 	{
 		if (waderrno == WADERROR_FILE_ERROR)
 			printf("ERROR: %s %s\n", strwaderror(waderrno), strerror(errno));
@@ -73,8 +83,6 @@ static int call(arg_parser_t *argparser)
 		return ERRORINFO_WAD_ERROR + waderrno;
 	}
 	
-    wadtool_info_options_t options = {0};
-
     char *s = nextarg(argparser);
     if (matcharg(argparser, SWITCH_MINIMAL))
         options.minimal = 1;
@@ -83,16 +91,13 @@ static int call(arg_parser_t *argparser)
     else if (s)
     {
         printf("ERROR: Bad switch: %s\n", s);
-        WAD_Close(wad);
+        WAD_Close(options.wad);
         return ERRORINFO_BAD_SWITCH;
     }
 
-
-    print_info(wad, &options, filename);
-
-	WAD_Close(wad);
-
-    return ERRORINFO_NONE;
+    int ret = exec(&options);
+	WAD_Close(options.wad);
+    return ret;
 }
 
 static void usage()
