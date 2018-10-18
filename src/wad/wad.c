@@ -117,7 +117,7 @@ static int WAD_ExpandEntrylist(wad_t *wad, int newsize)
 		WAD_FREE(oldarray);
 	}
 
-	for (i = oldsize; i < newsize; i++)
+	for (i = oldsize; i <= newsize; i++)
 	{
 		wad->entries[i] = (wadentry_t*)WAD_MALLOC(sizeof (wadentry_t));
 		// if OOM
@@ -283,12 +283,75 @@ static int WAD_RemoveEntryCommon(wad_t *wad, int index)
 		return 1;
 	}
 	
+	// shuffle the removed entry to the end.
+	wadentry_t *removed = wad->entries[index];
 	memmove(&(wad->entries[index]), &(wad->entries[index+1]), sizeof (wadentry_t*) * (wad->header.entry_count - index - 1));
+	wad->entries[wad->header.entry_count - 1] = removed;
 
 	wad->header.entry_count--;
 	return 0;
 }
 
+static int entrycmpr(const void *a, const void *b)
+{
+	wadentry_t *x = *(wadentry_t**)a;
+	wadentry_t *y = *(wadentry_t**)b;
+	int i = x->length < 0 ? 1 : 0;
+	int j = y->length < 0 ? 1 : 0;
+	return i - j;
+}
+
+// Removes a set of entries. Just the entries - no other data.
+static int WAD_RemoveEntriesCommon(wad_t *wad, int *indices, int count)
+{
+	int i, index;
+	for (i = 0; i < count; i++)
+	{
+		index = indices[i];
+		if (index < 0 || index >= wad->header.entry_count)
+		{
+			waderrno = WADERROR_INDEX_OUT_OF_RANGE;
+			return 1;
+		}
+		wad->entries[index]->length = -1;
+	}
+
+	qsort(wad->entries, wad->header.entry_count, sizeof(wadentry_t*), entrycmpr);
+	wad->header.entry_count = wad->header.entry_count - count;
+	return 0;
+}
+
+// Removes a range of entries. Just the entries - no other data.
+static int WAD_RemoveEntryRangeCommon(wad_t *wad, int start, int end)
+{
+	if (start < 0 || start >= wad->header.entry_count)
+	{
+		waderrno = WADERROR_INDEX_OUT_OF_RANGE;
+		return 1;
+	}
+
+	if (end < 0 || end >= wad->header.entry_count)
+	{
+		waderrno = WADERROR_INDEX_OUT_OF_RANGE;
+		return 1;
+	}
+
+	int amount = end - start;
+	int endamount = wad->header.entry_count - end;
+
+	wadentry_t **e = (wadentry_t**)WAD_MALLOC(sizeof(wadentry_t*) * amount);
+	if (!e)
+		return 1;
+
+	// Do a bunch of shifting
+	memcpy(e, &(wad->entries[start]), sizeof(wadentry_t*) * amount);
+	memmove(&(wad->entries[start]), &(wad->entries[end]), sizeof(wadentry_t*) * endamount);
+	memcpy(&(wad->entries[start + amount - 1]), e, sizeof(wadentry_t*) * amount);
+
+	wad->header.entry_count = wad->header.entry_count - amount;
+	WAD_FREE(e);
+	return 0;
+}
 
 // ===========================================================================
 // Virtual function table for implementation handling.
@@ -302,6 +365,8 @@ typedef struct {
 	wadentry_t* (*add_entry_at)(wad_t*, const char*, int, unsigned char*, size_t);
 	wadentry_t* (*add_entry_data_at)(wad_t*, const char*, int, FILE*);
 	int         (*remove_entry_at)(wad_t*, int);
+	int         (*remove_entries_at)(wad_t*, int*, int);
+	int         (*remove_entry_range)(wad_t*, int, int);
 	int         (*get_data)(wad_t*, wadentry_t*, unsigned char*);
 	int         (*read_data)(wad_t*, wadentry_t*, void*, size_t, size_t);
 	
@@ -359,6 +424,22 @@ static int wi_map_remove_entry_at(wad_t *wad, int index)
 	return 1;
 }
 
+// Implementation of wadfuncs_t.remove_entries_at(wad_t*, int)
+static int wi_map_remove_entries_at(wad_t *wad, int *indices, int count)
+{
+	// Not supported.
+	waderrno = WADERROR_NOT_SUPPORTED;
+	return 1;
+}
+
+// Implementation of wadfuncs_t.remove_entry_range(wad_t*, int)
+static int wi_map_remove_entry_range(wad_t *wad, int start, int end)
+{
+	// Not supported.
+	waderrno = WADERROR_NOT_SUPPORTED;
+	return 1;
+}
+
 // Implementation of wadfuncs_t.get_data(wad_t*, wadentry_t*, unsigned char*)
 static int wi_map_get_data(wad_t *wad, wadentry_t *entry, unsigned char *destination)
 {
@@ -382,6 +463,8 @@ static wadfuncs_t WI_MAP_WADFUNCS = {
 	wi_map_add_entry_at,
 	wi_map_add_entry_data_at,
 	wi_map_remove_entry_at,
+	wi_map_remove_entries_at,
+	wi_map_remove_entry_range,
 	wi_map_get_data,
 	wi_map_read_data,
 };
@@ -551,6 +634,24 @@ static int wi_file_remove_entry_at(wad_t *wad, int index)
 	return 0;
 }
 
+// Implementation of wadfuncs_t.remove_entries_at(wad_t*, int*, int)
+static int wi_file_remove_entries_at(wad_t *wad, int *indices, int count)
+{
+	if (WAD_RemoveEntriesCommon(wad, indices, count))
+		return 1;
+	wi_file_commit_entries(wad);
+	return 0;
+}
+
+// Implementation of wadfuncs_t.remove_entry_range(wad_t*, int, int)
+static int wi_file_remove_entry_range(wad_t *wad, int start, int end)
+{
+	if (WAD_RemoveEntryRangeCommon(wad, start, end))
+		return 1;
+	wi_file_commit_entries(wad);
+	return 0;
+}
+
 // Implementation of wadfuncs_t.get_data(wad_t*, wadentry_t*, unsigned char*)
 static int wi_file_get_data(wad_t *wad, wadentry_t *entry, unsigned char *destination)
 {
@@ -582,6 +683,8 @@ static wadfuncs_t WI_FILE_WADFUNCS = {
 	wi_file_add_entry_at,
 	wi_file_add_entry_data_at,
 	wi_file_remove_entry_at,
+	wi_file_remove_entries_at,
+	wi_file_remove_entry_range,
 	wi_file_get_data,
 	wi_file_read_data,
 };
@@ -696,6 +799,18 @@ static int wi_buffer_remove_entry_at(wad_t *wad, int index)
 	return WAD_RemoveEntryCommon(wad, index);
 }
 
+// Implementation of wadfuncs_t.remove_entries_at(wad_t*, int*, int)
+static int wi_buffer_remove_entries_at(wad_t *wad, int *indices, int count)
+{
+	return WAD_RemoveEntriesCommon(wad, indices, count);
+}
+
+// Implementation of wadfuncs_t.remove_entry_range(wad_t*, int, int)
+static int wi_buffer_remove_entry_range(wad_t *wad, int start, int end)
+{
+	return WAD_RemoveEntryRangeCommon(wad, start, end);
+}
+
 // Implementation of wadfuncs_t.get_data(wad_t*, wadentry_t*, unsigned char*)
 static int wi_buffer_get_data(wad_t *wad, wadentry_t *entry, unsigned char *destination)
 {
@@ -745,6 +860,8 @@ static wadfuncs_t WI_BUFFER_WADFUNCS = {
 	wi_buffer_add_entry_at,
 	wi_buffer_add_entry_data_at,
 	wi_buffer_remove_entry_at,
+	wi_buffer_remove_entries_at,
+	wi_buffer_remove_entry_range,
 	wi_buffer_get_data,
 	wi_buffer_read_data,
 };
@@ -973,7 +1090,7 @@ wad_t* WAD_CreateBufferInit(int size)
 		waderrno = WADERROR_OUT_OF_MEMORY;
 		return NULL;
 	}
-	if (WAD_ExpandEntrylist(out, 16))
+	if (WAD_ExpandEntrylist(out, WADENTRIES_INITSIZE))
 	{
 		waderrno = WADERROR_OUT_OF_MEMORY;
 		return NULL;
@@ -1487,6 +1604,56 @@ int WAD_RemoveEntryAt(wad_t *wad, int index)
 	}
 	
 	if ((WI_FUNC(wad, remove_entry_at))(wad, index))
+	{
+		// waderrno/errno set in call.
+		return 1;
+	}
+
+	return 0;
+}
+
+// ---------------------------------------------------------------
+// int WAD_RemoveEntriesAt(wad_t *wad, int *indices, int count)
+// See wad.h
+// ---------------------------------------------------------------
+int WAD_RemoveEntriesAt(wad_t *wad, int *indices, int count)
+{
+	// Reset error state.
+	waderrno = WADERROR_NO_ERROR;
+	errno = 0;
+
+	if (wad == NULL)
+	{
+		waderrno = WADERROR_WAD_INVALID;
+		return 1;
+	}
+	
+	if ((WI_FUNC(wad, remove_entries_at))(wad, indices, count))
+	{
+		// waderrno/errno set in call.
+		return 1;
+	}
+
+	return 0;
+}
+
+// ---------------------------------------------------------------
+// int WAD_RemoveEntryRange(wad_t *wad, int start, int end)
+// See wad.h
+// ---------------------------------------------------------------
+int WAD_RemoveEntryRange(wad_t *wad, int start, int end)
+{
+	// Reset error state.
+	waderrno = WADERROR_NO_ERROR;
+	errno = 0;
+
+	if (wad == NULL)
+	{
+		waderrno = WADERROR_WAD_INVALID;
+		return 1;
+	}
+	
+	if ((WI_FUNC(wad, remove_entry_range))(wad, start, end))
 	{
 		// waderrno/errno set in call.
 		return 1;

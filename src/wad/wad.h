@@ -407,6 +407,26 @@ wadentry_t* WAD_AddEntryDataAt(wad_t *wad, const char *name, int index, FILE *st
 int WAD_RemoveEntryAt(wad_t *wad, int index);
 
 /**
+ * Removes an entry from the WAD (but not its content).
+ * The entries remaining are shifted up into their new positions to fill the gaps.
+ * @param wad the pointer to the open WAD.
+ * @param indices the array of indices to remove.
+ * @param count the length of the array.
+ * @return 0 if successful, nonzero if not.
+ */
+int WAD_RemoveEntriesAt(wad_t *wad, int *indices, int count);
+
+/**
+ * Removes an entry from the WAD (but not its content).
+ * The entries remaining are shifted up into their new positions to fill the gaps.
+ * @param wad the pointer to the open WAD.
+ * @param start the starting index (0-based, inclusive) to remove entries from.
+ * @param end the ending index (0-based, exclusive) to remove entries from.
+ * @return 0 if successful, nonzero if not.
+ */
+int WAD_RemoveEntryRange(wad_t *wad, int start, int end);
+
+/**
  * Gets the content of an entry from a WAD.
  * The destination must be large enough to accomodate the data.
  * This ensures a single contiguous read of the data.
