@@ -215,7 +215,9 @@ static void WAD_FreeAllocated(wad_t *wad)
 {
 	int i;
 	for (i = 0; i < wad->entries_capacity; i++)
+	{
 		WAD_FREE(wad->entries[i]);
+	}
 	WAD_FREE(wad->entries);
 	WAD_FREE(wad);
 }
@@ -296,8 +298,8 @@ static int entrycmpr(const void *a, const void *b)
 {
 	wadentry_t *x = *(wadentry_t**)a;
 	wadentry_t *y = *(wadentry_t**)b;
-	int i = x->length < 0 ? 1 : 0;
-	int j = y->length < 0 ? 1 : 0;
+	int i = x->length && !x->name[0] < 0 ? 1 : 0;
+	int j = y->length && !y->name[0] < 0 ? 1 : 0;
 	return i - j;
 }
 
@@ -313,7 +315,9 @@ static int WAD_RemoveEntriesCommon(wad_t *wad, int *indices, int count)
 			waderrno = WADERROR_INDEX_OUT_OF_RANGE;
 			return 1;
 		}
-		wad->entries[index]->length = -1;
+		wadentry_t *entry = wad->entries[index];
+		entry->length = -1;
+		entry->name[0] = '\0';
 	}
 
 	qsort(wad->entries, wad->header.entry_count, sizeof(wadentry_t*), entrycmpr);
@@ -965,11 +969,15 @@ wad_t* WAD_Create(char *filename)
 	if (wi_file_commit_header(out))
 	{
 		waderrno = WADERROR_CANNOT_COMMIT;
+		fclose(fp);
+		WAD_FREE(out);
 		return NULL;
 	}
 	if (WAD_SetupOpenFileHandle(fp, &(out->header)))
 	{
 		waderrno = WADERROR_FILE_NOT_A_WAD;
+		fclose(fp);
+		WAD_FREE(out);
 		return NULL;
 	}
 

@@ -17,7 +17,7 @@ It also didn't look like there was one definitive lib, so I took it upon myself 
 
 ## Why?
 
-There is currently a lack of command-line driven utilities for doing small WAD-related things like
+There are currently a lack of command-line driven utilities for doing small WAD-related things like
 merging, importing, or searching, and this can also serve as a common point for a C-language library
 for lots of common Doom Engine things (which will probably be separated out into other repos at some point).
 

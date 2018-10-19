@@ -21,16 +21,17 @@ extern int waderrno;
 #define ERRORCREATE_NO_FILENAME 1
 #define ERRORCREATE_WAD_ERROR   10
 
-static int call(arg_parser_t *argparser)
+typedef struct
 {
-    char* filename = currarg(argparser);
-    if (!filename)
-    {
-        fprintf(stderr, "ERROR: No filename.\n");
-        return ERRORCREATE_NO_FILENAME;
-    }
+    /** The file to create. */
+    char *filename;
 
-	wad_t* wad = WAD_Create(filename);
+} wadtool_options_create_t;
+
+
+static int exec(wadtool_options_create_t *options)
+{
+	wad_t *wad = WAD_Create(options->filename);
 	
 	if (!wad)
 	{
@@ -41,10 +42,25 @@ static int call(arg_parser_t *argparser)
 		return ERRORCREATE_WAD_ERROR + waderrno;
 	}
 	
+    // FIXME: Sometimes causes a segfault. Don't know why.
 	WAD_Close(wad);
 
-    printf("Created %s\n", filename);
+    printf("Created %s\n", options->filename);
     return ERRORCREATE_NONE;
+}
+
+static int call(arg_parser_t *argparser)
+{
+    wadtool_options_create_t options = {NULL};
+
+    options.filename = currarg(argparser);
+    if (!options.filename)
+    {
+        fprintf(stderr, "ERROR: No filename.\n");
+        return ERRORCREATE_NO_FILENAME;
+    }
+
+    return exec(&options);
 }
 
 static void usage()
@@ -56,6 +72,8 @@ static void help()
 {
     printf("[filename]: \n");
     printf("        The name of the WAD file to create.\n");
+    printf("\n");
+    printf("NOTE: This will overwrite an existing file. Use with caution!\n");
 }
 
 wadtool_t WADTOOL_Create = {
