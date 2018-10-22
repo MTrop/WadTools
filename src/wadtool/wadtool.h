@@ -40,15 +40,6 @@ typedef struct {
 
 } wadtool_t;
 
-
-/**
- * Tests if the argument equals a string (case insensitive), and if it is, advance the parser.
- * @param argparser the parser to use.
- * @param s the string to test.
- * @return 1 if equal and the parser was advanced, false if not.
- */
-int matcharg(arg_parser_t *argparser, char *s);
-
 /**
  * Get the current argument.
  * @param argparser the parser to use.
@@ -57,10 +48,25 @@ int matcharg(arg_parser_t *argparser, char *s);
 char* currarg(arg_parser_t *argparser);
 
 /**
+ * Check if the current argument is a certain string (case insensitive).
+ * @param argparser the parser to use.
+ * @return 1 if equal, 0 if not.
+ */
+int currargis(arg_parser_t *argparser, char *s);
+
+/**
  * Advances the parser and returns the argument.
  * @param argparser the parser to use.
  * @return the next argument, or NULL if no more.
  */
 char* nextarg(arg_parser_t *argparser);
+
+/**
+ * Tests if the argument equals a string (case insensitive), and if it is, advance the parser.
+ * @param argparser the parser to use.
+ * @param s the string to test.
+ * @return 1 if equal and the parser was advanced, 0 if not.
+ */
+int matcharg(arg_parser_t *argparser, char *s);
 
 #endif

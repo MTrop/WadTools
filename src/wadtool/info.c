@@ -64,8 +64,8 @@ static int call(arg_parser_t *argparser)
 {
     wadtool_options_info_t options = {NULL, NULL, 0};
 
-    char *filename = currarg(argparser);
-    if (!filename)
+    options.filename = currarg(argparser);
+    if (!options.filename)
     {
         fprintf(stderr, "ERROR: No WAD file.\n");
         return ERRORINFO_NO_FILENAME;

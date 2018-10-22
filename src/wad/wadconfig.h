@@ -9,6 +9,8 @@
 #ifndef __WADCONFIG_H__
 #define __WADCONFIG_H__
 
+#include <stdlib.h>
+
 // Configuration for memory management in other systems.
 
 #ifndef WAD_MALLOC

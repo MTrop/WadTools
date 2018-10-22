@@ -30,6 +30,7 @@ wadtool_t* WADTOOLS_ALL[WADTOOL_COUNT] = {
 // ================== Command Names ====================
 
 #define COMMAND_HELP "help"
+#define COMMAND_ALL "all"
 #define COMMAND_CREATE "create"
 #define COMMAND_INFO "info"
 #define COMMAND_LIST "list"
@@ -41,6 +42,7 @@ static void print_usage()
 {
     printf("Usage: wad [command] [arguments]\n");
     printf("       wad help [command]\n");
+    printf("       wad help all\n");
 }
 
 static void print_help()
@@ -84,6 +86,14 @@ static wadtool_t* parse_tool(arg_parser_t *argparser)
         return &DEFAULT_TOOL;
 }
 
+void print_tool_help(wadtool_t* tool)
+{
+    printf("%s\n", tool->description);
+    (tool->usage)();
+    (tool->help)();
+    printf("\n");
+}
+
 /**
  * Main entry point.
  */
@@ -98,11 +108,27 @@ int main(int argc, char **argv)
     nextarg(&parser);
     if (matcharg(&parser, COMMAND_HELP))
     {
-        wadtool_t* tool = parse_tool(&parser);
-        printf("%s\n", tool->description);
-        (tool->usage)();
-        (tool->help)();
-        return 0;
+        if (matcharg(&parser, COMMAND_ALL))
+        {
+            print_splash(&parser);
+            print_help();
+            printf("\n");
+            int i;
+            for (i = 0; i < WADTOOL_COUNT; i++)
+            {
+                wadtool_t* tool = WADTOOLS_ALL[i];
+                printf("--------------------------------\n");
+                printf("--- %s\n", tool->name);
+                printf("--------------------------------\n");
+                print_tool_help(tool);
+            }
+            return 0;
+        }
+        else
+        {
+            print_tool_help(parse_tool(&parser));
+            return 0;
+        }
     }
     else
     {

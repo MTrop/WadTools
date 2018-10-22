@@ -12,19 +12,14 @@
 
 #define strieql(s,t) (stricmp((s),(t)) == 0)
 
-int matcharg(arg_parser_t *argparser, char *t)
-{
-    if (strieql(argparser->arg, t))
-    {
-        nextarg(argparser);
-        return 1;
-    }
-    return 0;
-}
-
-char* currarg(arg_parser_t *argparser)
+inline char* currarg(arg_parser_t *argparser)
 {
     return argparser->arg;
+}
+
+inline int currargis(arg_parser_t *argparser, char *s)
+{
+    return strieql(currarg(argparser), s);
 }
 
 char* nextarg(arg_parser_t *argparser)
@@ -39,4 +34,14 @@ char* nextarg(arg_parser_t *argparser)
         argparser->arg = NULL;
     }
     return argparser->arg;
+}
+
+int matcharg(arg_parser_t *argparser, char *s)
+{
+    if (currargis(argparser, s))
+    {
+        nextarg(argparser);
+        return 1;
+    }
+    return 0;
 }

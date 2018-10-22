@@ -117,14 +117,14 @@ static int WAD_ExpandEntrylist(wad_t *wad, int newsize)
 		WAD_FREE(oldarray);
 	}
 
-	for (i = oldsize; i <= newsize; i++)
+	for (i = oldsize; i < newsize; i++)
 	{
 		wad->entries[i] = (wadentry_t*)WAD_MALLOC(sizeof (wadentry_t));
 		// if OOM
 		if (!wad->entries[i])
 			return 1;
-		wad->entries_capacity = i;
 	}
+	wad->entries_capacity = i;
 
 	return 0;
 }
