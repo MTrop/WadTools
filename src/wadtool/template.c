@@ -13,34 +13,55 @@
 #include <string.h>
 #include <errno.h>
 #include "wadtool.h"
-#include "../wad/wad.h"
-#include "../wad/waderrno.h"
+#include "wad/wad.h"
+#include "wad/waderrno.h"
 
 extern int errno;
 extern int waderrno;
 
 #define ERRORTEMPLATE_NONE        0
+#define ERRORTEMPLATE_NO_FILENAME 1
+#define ERRORTEMPLATE_WAD_ERROR   10
 
 typedef struct
 {
+    /** WAD filename. */
+    char *filename;
+    /** The WAD to use. */
+    wad_t *wad;
 
 } wadtool_options_template_t;
 
 
 static int exec(wadtool_options_template_t *options)
 {
-    // TODO: Finish this.
-    return ERRORTEMPLATE_NONE;
+	printf("ERROR: NOT SUPPORTED YET!\n");
+	return -1;
 }
 
 static int call(arg_parser_t *argparser)
 {
     wadtool_options_template_t options = {};
 
+    options.filename = currarg(argparser);
+    if (!options.filename)
+    {
+        fprintf(stderr, "ERROR: No WAD file.\n");
+        return ERRORTEMPLATE_NO_FILENAME;
+    }
+
+    // Open a shallow mapping.
+	options.wad = WAD_OpenMap(options.filename);
+    // Open a file.
+	options.wad = WAD_Open(options.filename);
+    // Open a buffer from a file.
+	options.wad = WAD_OpenBuffer(options.filename);
+
     // TODO: Setup.
     
     int ret = exec(&options);
-    
+    WAD_Close(options.wad);
+
     // TODO: Cleanup.
     
     return ret;

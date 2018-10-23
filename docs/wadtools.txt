@@ -63,5 +63,3 @@ wad map search
     Searches in a map.
 wad map search things
     Searches thing data in a map.
-wad map search things info
-    Displays the criteria names for searching thing data for a map.

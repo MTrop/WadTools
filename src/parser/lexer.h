@@ -12,7 +12,7 @@
 #include <stdio.h>
 #include "lexer_config.h"
 #include "lexer_kernel.h"
-#include "../io/stream.h"
+#include "io/stream.h"
 
 /**
  * Lexeme type.

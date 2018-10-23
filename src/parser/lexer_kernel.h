@@ -12,7 +12,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include "lexer_config.h"
-#include "../struct/mt_set.h"
+#include "struct/mt_set.h"
 
 #define LXR_KERNEL_SET_SIZE		32
 #define LXR_KERNEL_HTABLE_SIZE	8

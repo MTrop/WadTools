@@ -74,7 +74,7 @@ call :__mkbuildpackage
 del /q "%BUILDDIR%\obj\%PACKAGENAME%.nfo"
 del /s/q "%BUILDDIR%\obj\%PACKAGENAME%\*.o"
 for %%F in ("%SRCDIR%\%PACKAGENAME%\*.c") do (
-	gcc -c "%%F" -o "%BUILDDIR%\obj\%PACKAGENAME%\%%~nF.o"
+	gcc "-I./src" -c "%%F" -o "%BUILDDIR%\obj\%PACKAGENAME%\%%~nF.o"
 	if not %ERRORLEVEL% == 0 goto :_end
 	echo Built "%%F" to "%BUILDDIR%\obj\%PACKAGENAME%\%%~nF.o"
 )
