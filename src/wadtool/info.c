@@ -22,8 +22,8 @@ extern int waderrno;
 #define ERRORINFO_BAD_SWITCH    2
 #define ERRORINFO_WAD_ERROR     10
 
-#define SWITCH_MINIMAL          "-m"
-#define SWITCH_MINIMAL2         "--minimal"
+#define SWITCH_CONDENSED        "-c"
+#define SWITCH_CONDENSED2       "--condensed"
 
 typedef struct
 {
@@ -32,13 +32,13 @@ typedef struct
     /** The WAD to use. */
     wad_t *wad;
     /** If minimal info should be printed. */
-    int minimal;
+    int condensed;
 
 } wadtool_options_info_t;
 
 static int exec(wadtool_options_info_t* options)
 {
-    if (options->minimal)
+    if (options->condensed)
     {
         printf("%s ", options->filename);
         printf("%s ", options->wad->header.type == WADTYPE_IWAD ? "IWAD" : "PWAD");
@@ -84,10 +84,10 @@ static int call(arg_parser_t *argparser)
 	}
 	
     char *s = nextarg(argparser);
-    if (matcharg(argparser, SWITCH_MINIMAL))
-        options.minimal = 1;
-    else if (matcharg(argparser, SWITCH_MINIMAL2))
-        options.minimal = 1;
+    if (matcharg(argparser, SWITCH_CONDENSED))
+        options.condensed = 1;
+    else if (matcharg(argparser, SWITCH_CONDENSED2))
+        options.condensed = 1;
     else if (s)
     {
         printf("ERROR: Bad switch: %s\n", s);
@@ -108,11 +108,11 @@ static void usage()
 static void help()
 {
     printf("[filename]: \n");
-    printf("        The name of the WAD file to inspect.\n");
+    printf("    The name of the WAD file to inspect.\n");
     printf("\n");
     printf("[switches]: \n");
-    printf("        --minimal      Print information minimally.\n");
-    printf("        -m\n");
+    printf("    --condensed      Print minimal information (no headers).\n");
+    printf("    -c\n");
 }
 
 wadtool_t WADTOOL_Info = {

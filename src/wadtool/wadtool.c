@@ -11,6 +11,7 @@
 #include "wadtool.h"
 
 #define strieql(s,t) (stricmp((s),(t)) == 0)
+#define stristart(s,t) (strnicmp((s),(t), strlen((s))) == 0)
 
 inline char* currarg(arg_parser_t *argparser)
 {
@@ -20,6 +21,11 @@ inline char* currarg(arg_parser_t *argparser)
 inline int currargis(arg_parser_t *argparser, char *s)
 {
     return strieql(currarg(argparser), s);
+}
+
+inline int currargstart(arg_parser_t *argparser, char *s)
+{
+    return stristart(currarg(argparser), s);
 }
 
 char* nextarg(arg_parser_t *argparser)

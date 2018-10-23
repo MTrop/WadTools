@@ -50,9 +50,18 @@ char* currarg(arg_parser_t *argparser);
 /**
  * Check if the current argument is a certain string (case insensitive).
  * @param argparser the parser to use.
+ * @param s the target string to compare.
  * @return 1 if equal, 0 if not.
  */
 int currargis(arg_parser_t *argparser, char *s);
+
+/**
+ * Check if the current argument starts with a certain string (case insensitive).
+ * @param argparser the parser to use.
+ * @param s the target string to compare.
+ * @return 1 if equal, 0 if not.
+ */
+int currargstart(arg_parser_t *argparser, char *s);
 
 /**
  * Advances the parser and returns the argument.

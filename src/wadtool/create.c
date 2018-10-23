@@ -42,7 +42,6 @@ static int exec(wadtool_options_create_t *options)
 		return ERRORCREATE_WAD_ERROR + waderrno;
 	}
 	
-    // FIXME: Sometimes causes a segfault. Don't know why.
 	WAD_Close(wad);
 
     printf("Created %s\n", options->filename);

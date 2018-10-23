@@ -10,8 +10,6 @@ wad info
     Output basic WAD information.
 wad list
     Outputs WAD entry info to STDOUT.
-wad list maps
-    Outputs only entry info that appear to be header lumps for maps.
 wad search
     Searches for and outputs entries that have specific criteria.
 wad cat
