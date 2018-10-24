@@ -12,31 +12,31 @@
 /** Argument parser. */
 typedef struct {
 
-    /** Arg count. */
-    int argc;
-    /** Arg vector. */
-    char **argv;
+	/** Arg count. */
+	int argc;
+	/** Arg vector. */
+	char **argv;
 
-    /** Arg index. */
-    int index;
-    /** Current argument. */
-    char *arg;
+	/** Arg index. */
+	int index;
+	/** Current argument. */
+	char *arg;
 
 } arg_parser_t;
 
 /** Tool entry point. */
 typedef struct {
 
-    /** Name of command. */
-    char* name;
-    /** Description. */
-    char* description;
-    /** Calls the main bit of the tool (argc, argv are offset - argv[0] is the last token) */
-    int (*call)(arg_parser_t*);
-    /** Prints usage of the command. */
-    void (*usage)();
-    /** Prints help associated with the command. */
-    void (*help)();
+	/** Name of command. */
+	char* name;
+	/** Description. */
+	char* description;
+	/** Calls the main bit of the tool (argc, argv are offset - argv[0] is the last token) */
+	int (*call)(arg_parser_t*);
+	/** Prints usage of the command. */
+	void (*usage)();
+	/** Prints help associated with the command. */
+	void (*help)();
 
 } wadtool_t;
 

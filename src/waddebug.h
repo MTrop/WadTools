@@ -11,29 +11,29 @@
 
 static void* debug_malloc(size_t size)
 {
-    void *ptr = malloc(size);
-    printf("****MALLOC(0x%x) %d bytes\n", ptr, size);
-    return ptr;
+	void *ptr = malloc(size);
+	printf("****MALLOC(0x%x) %d bytes\n", ptr, size);
+	return ptr;
 }
 
 static void* debug_calloc(size_t n, size_t size)
 {
-    void *ptr = calloc(n, size);
-    printf("****CALLOC(0x%x) %d bytes\n", ptr, size);
-    return ptr;
+	void *ptr = calloc(n, size);
+	printf("****CALLOC(0x%x) %d bytes\n", ptr, size);
+	return ptr;
 }
 
 static void* debug_realloc(void *ptr, size_t size)
 {
-    void *out = realloc(ptr, size);
-    printf("****REALLOC(0x%x) %d bytes\n", out, size);
-    return out;
+	void *out = realloc(ptr, size);
+	printf("****REALLOC(0x%x) %d bytes\n", out, size);
+	return out;
 }
 
 static void debug_free(void *ptr)
 {
-    printf("******FREE(0x%x)\n", ptr);
-    free(ptr);
+	printf("******FREE(0x%x)\n", ptr);
+	free(ptr);
 }
 
 #define WAD_MALLOC(s)		debug_malloc((s))

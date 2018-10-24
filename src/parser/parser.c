@@ -20,11 +20,11 @@
 // ---------------------------------------------------------------
 parser_t* PARSER_Create(lexer_t *lexer)
 {
-   	parser_t *out = (parser_t*)LXR_MALLOC(sizeof(parser_t));
-   	if (!out)
+	parser_t *out = (parser_t*)LXR_MALLOC(sizeof(parser_t));
+	if (!out)
 		return NULL;
 	out->lexer = lexer;
-    return out;
+	return out;
 }
 
 // ---------------------------------------------------------------
@@ -33,7 +33,7 @@ parser_t* PARSER_Create(lexer_t *lexer)
 // ---------------------------------------------------------------
 int PARSER_Destroy(parser_t *parser)
 {
-    if (!parser)
+	if (!parser)
 		return 1;
 	
 	LXR_FREE(parser);
@@ -46,7 +46,7 @@ int PARSER_Destroy(parser_t *parser)
 // ---------------------------------------------------------------
 inline int PARSER_IsType(parser_t *parser, lexeme_type_t type)
 {
-    return PARSER_Current(parser)->type == type;
+	return PARSER_Current(parser)->type == type;
 }
 
 // ---------------------------------------------------------------
@@ -55,8 +55,8 @@ inline int PARSER_IsType(parser_t *parser, lexeme_type_t type)
 // ---------------------------------------------------------------
 int PARSER_IsSubtype(parser_t *parser, lexeme_type_t type, int subtype)
 {
-    lexer_token_t *token = PARSER_Current(parser);
-    return token->type == type && token->subtype == subtype;
+	lexer_token_t *token = PARSER_Current(parser);
+	return token->type == type && token->subtype == subtype;
 }
 
 // ---------------------------------------------------------------
@@ -65,12 +65,12 @@ int PARSER_IsSubtype(parser_t *parser, lexeme_type_t type, int subtype)
 // ---------------------------------------------------------------
 int PARSER_MatchType(parser_t *parser, lexeme_type_t type)
 {
-    if (PARSER_IsType(parser, type))
-    {
-        PARSER_Next(parser);
-        return 1;
-    }
-    return 0;
+	if (PARSER_IsType(parser, type))
+	{
+		PARSER_Next(parser);
+		return 1;
+	}
+	return 0;
 }
 
 // ---------------------------------------------------------------
@@ -79,10 +79,10 @@ int PARSER_MatchType(parser_t *parser, lexeme_type_t type)
 // ---------------------------------------------------------------
 int PARSER_MatchSubtype(parser_t *parser, lexeme_type_t type, int subtype)
 {
-    if (PARSER_IsSubtype(parser, type, subtype))
-    {
-        PARSER_Next(parser);
-        return 1;
-    }
-    return 0;
+	if (PARSER_IsSubtype(parser, type, subtype))
+	{
+		PARSER_Next(parser);
+		return 1;
+	}
+	return 0;
 }

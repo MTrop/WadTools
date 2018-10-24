@@ -15,39 +15,39 @@
 
 inline char* currarg(arg_parser_t *argparser)
 {
-    return argparser->arg;
+	return argparser->arg;
 }
 
 inline int currargis(arg_parser_t *argparser, char *s)
 {
-    return strieql(currarg(argparser), s);
+	return strieql(currarg(argparser), s);
 }
 
 inline int currargstart(arg_parser_t *argparser, char *s)
 {
-    return stristart(currarg(argparser), s);
+	return stristart(currarg(argparser), s);
 }
 
 char* nextarg(arg_parser_t *argparser)
 {
-    if (argparser->index < argparser->argc)
-    {
-        argparser->arg = argparser->argv[argparser->index];
-        argparser->index++;
-    }
-    else
-    {
-        argparser->arg = NULL;
-    }
-    return argparser->arg;
+	if (argparser->index < argparser->argc)
+	{
+		argparser->arg = argparser->argv[argparser->index];
+		argparser->index++;
+	}
+	else
+	{
+		argparser->arg = NULL;
+	}
+	return argparser->arg;
 }
 
 int matcharg(arg_parser_t *argparser, char *s)
 {
-    if (currargis(argparser, s))
-    {
-        nextarg(argparser);
-        return 1;
-    }
-    return 0;
+	if (currargis(argparser, s))
+	{
+		nextarg(argparser);
+		return 1;
+	}
+	return 0;
 }

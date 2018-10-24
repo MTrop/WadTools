@@ -25,10 +25,10 @@ extern int waderrno;
 
 typedef struct
 {
-    /** WAD filename. */
-    char *filename;
-    /** The WAD to use. */
-    wad_t *wad;
+	/** WAD filename. */
+	char *filename;
+	/** The WAD to use. */
+	wad_t *wad;
 
 } wadtool_options_template_t;
 
@@ -41,49 +41,49 @@ static int exec(wadtool_options_template_t *options)
 
 static int call(arg_parser_t *argparser)
 {
-    wadtool_options_template_t options = {};
+	wadtool_options_template_t options = {};
 
-    options.filename = currarg(argparser);
-    if (!options.filename)
-    {
-        fprintf(stderr, "ERROR: No WAD file.\n");
-        return ERRORTEMPLATE_NO_FILENAME;
-    }
+	options.filename = currarg(argparser);
+	if (!options.filename)
+	{
+		fprintf(stderr, "ERROR: No WAD file.\n");
+		return ERRORTEMPLATE_NO_FILENAME;
+	}
 
-    // Open a shallow mapping.
+	// Open a shallow mapping.
 	options.wad = WAD_OpenMap(options.filename);
-    // Open a file.
+	// Open a file.
 	options.wad = WAD_Open(options.filename);
-    // Open a buffer from a file.
+	// Open a buffer from a file.
 	options.wad = WAD_OpenBuffer(options.filename);
 
-    // TODO: Setup.
-    
-    int ret = exec(&options);
-    WAD_Close(options.wad);
+	// TODO: Setup.
+	
+	int ret = exec(&options);
+	WAD_Close(options.wad);
 
-    // TODO: Cleanup.
-    
-    return ret;
+	// TODO: Cleanup.
+	
+	return ret;
 }
 
 static void usage()
 {
-    // TODO: Finish this.
-    printf("Usage: wad template\n");
+	// TODO: Finish this.
+	printf("Usage: wad template\n");
 }
 
 static void help()
 {
-    // TODO: Finish this.
+	// TODO: Finish this.
 }
 
 wadtool_t WADTOOL_Template = {
-    "name",
-    "Description",
-    &call,
-    &usage,
-    &help,
+	"name",
+	"Description",
+	&call,
+	&usage,
+	&help,
 };
 
 #endif // Remove this

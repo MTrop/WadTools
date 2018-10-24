@@ -23,8 +23,8 @@ extern int waderrno;
 
 typedef struct
 {
-    /** The file to create. */
-    char *filename;
+	/** The file to create. */
+	char *filename;
 
 } wadtool_options_create_t;
 
@@ -44,41 +44,41 @@ static int exec(wadtool_options_create_t *options)
 	
 	WAD_Close(wad);
 
-    printf("Created %s\n", options->filename);
-    return ERRORCREATE_NONE;
+	printf("Created %s\n", options->filename);
+	return ERRORCREATE_NONE;
 }
 
 static int call(arg_parser_t *argparser)
 {
-    wadtool_options_create_t options = {NULL};
+	wadtool_options_create_t options = {NULL};
 
-    options.filename = currarg(argparser);
-    if (!options.filename)
-    {
-        fprintf(stderr, "ERROR: No filename.\n");
-        return ERRORCREATE_NO_FILENAME;
-    }
+	options.filename = currarg(argparser);
+	if (!options.filename)
+	{
+		fprintf(stderr, "ERROR: No filename.\n");
+		return ERRORCREATE_NO_FILENAME;
+	}
 
-    return exec(&options);
+	return exec(&options);
 }
 
 static void usage()
 {
-    printf("Usage: wad create [filename]\n");
+	printf("Usage: wad create [filename]\n");
 }
 
 static void help()
 {
-    printf("[filename]: \n");
-    printf("        The name of the WAD file to create.\n");
-    printf("\n");
-    printf("NOTE: This will overwrite an existing file. Use with caution!\n");
+	printf("[filename]: \n");
+	printf("        The name of the WAD file to create.\n");
+	printf("\n");
+	printf("NOTE: This will overwrite an existing file. Use with caution!\n");
 }
 
 wadtool_t WADTOOL_Create = {
-    "create",
-    "Creates a new, empty WAD file.",
-    &call,
-    &usage,
-    &help,
+	"create",
+	"Creates a new, empty WAD file.",
+	&call,
+	&usage,
+	&help,
 };

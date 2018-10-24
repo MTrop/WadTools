@@ -22,9 +22,9 @@
 
 #define WADTOOL_COUNT 3
 wadtool_t* WADTOOLS_ALL[WADTOOL_COUNT] = {
-    &WADTOOL_Create,
-    &WADTOOL_Info,
-    &WADTOOL_List,
+	&WADTOOL_Create,
+	&WADTOOL_Info,
+	&WADTOOL_List,
 };
 
 // ================== Command Names ====================
@@ -40,58 +40,58 @@ wadtool_t* WADTOOLS_ALL[WADTOOL_COUNT] = {
 
 static void print_usage()
 {
-    printf("Usage: wad [command] [arguments]\n");
-    printf("       wad help [command]\n");
-    printf("       wad help all\n");
+	printf("Usage: wad [command] [arguments]\n");
+	printf("       wad help [command]\n");
+	printf("       wad help all\n");
 }
 
 static void print_help()
 {
-    int i;
-    printf("\n");
-    printf("Available commands:");
-    printf("\n");
-    for (i = 0; i < WADTOOL_COUNT; i++)
-        printf("    %-16s %s\n", WADTOOLS_ALL[i]->name, WADTOOLS_ALL[i]->description);
+	int i;
+	printf("\n");
+	printf("Available commands:");
+	printf("\n");
+	for (i = 0; i < WADTOOL_COUNT; i++)
+		printf("    %-16s %s\n", WADTOOLS_ALL[i]->name, WADTOOLS_ALL[i]->description);
 }
 
 static int print_splash(arg_parser_t *argparser)
 {
-    printf(WADTOOLS_SPLASH "\n");
-    print_usage();
-    return 0;
+	printf(WADTOOLS_SPLASH "\n");
+	print_usage();
+	return 0;
 }
 
 wadtool_t DEFAULT_TOOL =
 {
-    "DEFAULT",
-    WADTOOLS_SPLASH,
-    &print_splash,
-    &print_usage,
-    &print_help,
+	"DEFAULT",
+	WADTOOLS_SPLASH,
+	&print_splash,
+	&print_usage,
+	&print_help,
 };
 
 // Parses the tool from the arguments.
 static wadtool_t* parse_tool(arg_parser_t *argparser)
 {
-    if (!argparser->arg)
-        return &DEFAULT_TOOL;
-    else if (matcharg(argparser, COMMAND_CREATE))
-        return &WADTOOL_Create;
-    else if (matcharg(argparser, COMMAND_INFO))
-        return &WADTOOL_Info;
-    else if (matcharg(argparser, COMMAND_LIST))
-        return &WADTOOL_List;
-    else
-        return &DEFAULT_TOOL;
+	if (!argparser->arg)
+		return &DEFAULT_TOOL;
+	else if (matcharg(argparser, COMMAND_CREATE))
+		return &WADTOOL_Create;
+	else if (matcharg(argparser, COMMAND_INFO))
+		return &WADTOOL_Info;
+	else if (matcharg(argparser, COMMAND_LIST))
+		return &WADTOOL_List;
+	else
+		return &DEFAULT_TOOL;
 }
 
 void print_tool_help(wadtool_t* tool)
 {
-    printf("%s\n", tool->description);
-    (tool->usage)();
-    (tool->help)();
-    printf("\n");
+	printf("%s\n", tool->description);
+	(tool->usage)();
+	(tool->help)();
+	printf("\n");
 }
 
 /**
@@ -99,40 +99,40 @@ void print_tool_help(wadtool_t* tool)
  */
 int main(int argc, char **argv)
 {
-    arg_parser_t parser = {argc, argv, 0, NULL};
-    
-    // consume the command name.
-    nextarg(&parser);
+	arg_parser_t parser = {argc, argv, 0, NULL};
+	
+	// consume the command name.
+	nextarg(&parser);
 
-    // prime parse
-    nextarg(&parser);
-    if (matcharg(&parser, COMMAND_HELP))
-    {
-        if (matcharg(&parser, COMMAND_ALL))
-        {
-            print_splash(&parser);
-            print_help();
-            printf("\n");
-            int i;
-            for (i = 0; i < WADTOOL_COUNT; i++)
-            {
-                wadtool_t* tool = WADTOOLS_ALL[i];
-                printf("--------------------------------\n");
-                printf("--- %s\n", tool->name);
-                printf("--------------------------------\n");
-                print_tool_help(tool);
-            }
-            return 0;
-        }
-        else
-        {
-            print_tool_help(parse_tool(&parser));
-            return 0;
-        }
-    }
-    else
-    {
-        wadtool_t* tool = parse_tool(&parser);
-        return (tool->call)(&parser);
-    }
+	// prime parse
+	nextarg(&parser);
+	if (matcharg(&parser, COMMAND_HELP))
+	{
+		if (matcharg(&parser, COMMAND_ALL))
+		{
+			print_splash(&parser);
+			print_help();
+			printf("\n");
+			int i;
+			for (i = 0; i < WADTOOL_COUNT; i++)
+			{
+				wadtool_t* tool = WADTOOLS_ALL[i];
+				printf("--------------------------------\n");
+				printf("--- %s\n", tool->name);
+				printf("--------------------------------\n");
+				print_tool_help(tool);
+			}
+			return 0;
+		}
+		else
+		{
+			print_tool_help(parse_tool(&parser));
+			return 0;
+		}
+	}
+	else
+	{
+		wadtool_t* tool = parse_tool(&parser);
+		return (tool->call)(&parser);
+	}
 }

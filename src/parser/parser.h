@@ -17,8 +17,8 @@
  */
 typedef struct {
 
-    /** Current lexer. */
-    lexer_t *lexer;
+	/** Current lexer. */
+	lexer_t *lexer;
 
 } parser_t;
 
