@@ -134,7 +134,7 @@ static int entry_sort_offset(const void *a, const void *b)
 	return COMPARE_INT(x->entry->offset, y->entry->offset);
 }
 
-static void print_entry(wadtool_options_list_t *options, listentry_t *listentry, int i)
+static void print_entry(wadtool_options_list_t *options, listentry_t *listentry)
 {
 	if (!options->listflags || (options->listflags & LISTFLAG_INDICES))
 	{
@@ -180,14 +180,48 @@ static int exec(wadtool_options_list_t *options)
 	int i;
 
 	listentry_t **entries;
+	listentry_t *entrydata;
 	int count = 0;
 	if (options->maps_only)
 	{
-		// TODO: List and sort.
+		for (i = start + 1; i < end; i++)
+		{
+			if (strncmp(wad->entries[i]->name, MAPENTRY_SEARCHNAME, 8) == 0)
+				count++;
+			else if (strncmp(wad->entries[i]->name, MAPENTRY_SEARCHNAME2, 8) == 0)
+				count++;
+		}
+		entrydata = (listentry_t*)WAD_MALLOC(sizeof(listentry_t) * count);
+		count = 0;
+		for (i = start + 1; i < wad->header.entry_count && count < len; i++)
+		{
+			if (strncmp(wad->entries[i]->name, MAPENTRY_SEARCHNAME, 8) == 0)
+			{
+				entrydata[count].index = i;
+				entrydata[count].entry = wad->entries[i];
+				count++;
+			}
+			else if (strncmp(wad->entries[i]->name, MAPENTRY_SEARCHNAME2, 8) == 0)
+			{
+				entrydata[count].index = i;
+				entrydata[count].entry = wad->entries[i];
+				count++;
+			}
+		}
+		entries = MSHADOW(listentry_t, entrydata, count);
+		qsort(entries, count, sizeof(listentry_t*), options->sortfunc);
 	}
 	else
 	{
-		// TODO: List and sort.
+		entrydata = (listentry_t*)WAD_MALLOC(sizeof(listentry_t) * len);
+		for (i = start; i < end; i++)
+		{
+			entrydata[count].index = i;
+			entrydata[count].entry = wad->entries[i];
+			count++;
+		}
+		entries = MSHADOW(listentry_t, entrydata, len);
+		qsort(entries, count, sizeof(listentry_t*), options->sortfunc);
 	}
 
 	if (!options->no_header && !options->inline_header)
@@ -196,12 +230,14 @@ static int exec(wadtool_options_list_t *options)
 		printf("-----------------------------------------\n");
 	}
 
+	// FIXME: Something not right in... somewhere.
 	if (options->reverse) for (i = count - 1; i >= 0; i--)
-		print_entry(options, entries[i], i);
+		print_entry(options, entries[i]);
 	else for (i = 0; i < count; i++)
-		print_entry(options, entries[i], i);
+		print_entry(options, entries[i]);
 
 	WAD_FREE(entries);
+	WAD_FREE(entrydata);
 	return ERRORLIST_NONE;
 }
 

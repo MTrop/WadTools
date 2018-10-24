@@ -9,9 +9,21 @@
 #include <stdlib.h>
 #include <string.h>
 #include "wadtool.h"
+#include "wad/wadconfig.h"
 
 #define strieql(s,t) (stricmp((s),(t)) == 0)
 #define stristart(s,t) (strnicmp((s),(t), strlen((s))) == 0)
+
+void** malloc_shadow(void *v, size_t ptrsize, size_t n)
+{
+	int i = 0;
+	void **out = (void**)WAD_MALLOC(ptrsize * n);
+	if (!out)
+		return NULL;
+	for (i = 0; i < n; i++)
+		out[i] = v + (ptrsize * i);
+	return out;
+}
 
 inline char* currarg(arg_parser_t *argparser)
 {
