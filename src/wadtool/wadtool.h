@@ -9,14 +9,6 @@
 #ifndef __WADTOOL_H__
 #define __WADTOOL_H__
 
-// type, arrayptr, elementcount
-#define MSHADOW(t,a,c) (t**)malloc_shadow(a, sizeof(t*), (c))
-
-/**
- * Allocates a "shadow" of an array - an array of pointers to each member.
- */
-void** malloc_shadow(void *v, size_t ptrsize, size_t n);
-
 /** Argument parser. */
 typedef struct {
 

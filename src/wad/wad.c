@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-#include "wadconfig.h"
+#include "wad_config.h"
 #include "wad.h"
 #include "waderrno.h"
 
@@ -1115,24 +1115,6 @@ wad_t* WAD_CreateBufferInit(int size)
 }
 
 // ---------------------------------------------------------------
-// int WAD_EntryCount(wad_t *wad)
-// See wad.h
-// ---------------------------------------------------------------
-int WAD_EntryCount(wad_t *wad)
-{	
-	// Reset error state.
-	waderrno = WADERROR_NO_ERROR;
-
-	if (wad == NULL)
-	{
-		waderrno = WADERROR_WAD_INVALID;
-		return -1;
-	}
-	
-	return (int)(wad->header.entry_count);
-}
-
-// ---------------------------------------------------------------
 // waditerator_t* WAD_IteratorCreate(wad_t *wad, int start)
 // See wad.h
 // ---------------------------------------------------------------
@@ -1152,7 +1134,7 @@ waditerator_t* WAD_IteratorCreate(wad_t *wad, int start)
 	out->wad = wad;
 	out->entry = NULL;
 	out->next = start;
-	out->count = wad->header.entry_count;
+	out->count = (int)(wad->header.entry_count);
 	
 	return out;
 }

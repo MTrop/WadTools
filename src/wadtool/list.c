@@ -21,6 +21,7 @@ extern int waderrno;
 #define ERRORLIST_NONE          0
 #define ERRORLIST_NO_FILENAME   1
 #define ERRORLIST_BAD_SWITCH    2
+#define ERRORLIST_BAD_SORT    	3
 #define ERRORLIST_WAD_ERROR     10
 
 #define LISTFLAG_INDICES    (1 << 0)
@@ -163,18 +164,32 @@ static void print_entry(wadtool_options_list_t *options, listentry_t *listentry)
 	printf("\n");
 }
 
+listentry_t** listentry_shadow(listentry_t *v, size_t n)
+{
+	int i = 0;
+	listentry_t **out = (listentry_t**)WAD_MALLOC(sizeof(listentry_t*) * n);
+	if (!out)
+		return NULL;
+	for (i = 0; i < n; i++)
+		out[i] = &v[i];
+	return out;
+}
+
 static int exec(wadtool_options_list_t *options)
 {
 	wad_t *wad = options->wad;
 	int start, end, len;
 	start = options->range_start;
-	if (options->range_end <= 0)
-		end = wad->header.entry_count;
+	if (options->range_end <= 0 || options->range_end > WAD_EntryCount(wad))
+		end = WAD_EntryCount(wad);
 	else
 		end = options->range_end;
 	
 	if (end <= start)
-		return 0;
+	{
+		printf("No entries.\n");
+		return ERRORLIST_NONE;
+	}
 
 	len = end - start;
 	int i;
@@ -191,24 +206,31 @@ static int exec(wadtool_options_list_t *options)
 			else if (strncmp(wad->entries[i]->name, MAPENTRY_SEARCHNAME2, 8) == 0)
 				count++;
 		}
+
+		if (!count)
+		{
+			printf("No entries.\n");
+			return ERRORLIST_NONE;
+		}
+
 		entrydata = (listentry_t*)WAD_MALLOC(sizeof(listentry_t) * count);
 		count = 0;
-		for (i = start + 1; i < wad->header.entry_count && count < len; i++)
+		for (i = start + 1; i < end; i++)
 		{
 			if (strncmp(wad->entries[i]->name, MAPENTRY_SEARCHNAME, 8) == 0)
 			{
-				entrydata[count].index = i;
-				entrydata[count].entry = wad->entries[i];
+				entrydata[count].index = i - 1;
+				entrydata[count].entry = wad->entries[i - 1];
 				count++;
 			}
 			else if (strncmp(wad->entries[i]->name, MAPENTRY_SEARCHNAME2, 8) == 0)
 			{
-				entrydata[count].index = i;
-				entrydata[count].entry = wad->entries[i];
+				entrydata[count].index = i - 1;
+				entrydata[count].entry = wad->entries[i - 1];
 				count++;
 			}
 		}
-		entries = MSHADOW(listentry_t, entrydata, count);
+		entries = listentry_shadow(entrydata, count);
 		qsort(entries, count, sizeof(listentry_t*), options->sortfunc);
 	}
 	else
@@ -220,21 +242,28 @@ static int exec(wadtool_options_list_t *options)
 			entrydata[count].entry = wad->entries[i];
 			count++;
 		}
-		entries = MSHADOW(listentry_t, entrydata, len);
-		qsort(entries, count, sizeof(listentry_t*), options->sortfunc);
+		entries = listentry_shadow(entrydata, len);
+		qsort(entries, len, sizeof(listentry_t*), options->sortfunc);
 	}
 
 	if (!options->no_header && !options->inline_header)
 	{
-		printf("Index      Name     Size       Offset\n");
+		printf("Entries in %s, %d to %d\n", options->filename, start, end - 1);
+		if (options->maps_only)
+			printf("Map Markers Only\n");
+		printf("Index      Name     Length     Offset\n");
 		printf("-----------------------------------------\n");
 	}
 
-	// FIXME: Something not right in... somewhere.
 	if (options->reverse) for (i = count - 1; i >= 0; i--)
 		print_entry(options, entries[i]);
 	else for (i = 0; i < count; i++)
 		print_entry(options, entries[i]);
+
+	if (!options->no_header && !options->inline_header)
+	{
+		printf("Count %d\n", count);
+	}
 
 	WAD_FREE(entries);
 	WAD_FREE(entrydata);
@@ -247,7 +276,6 @@ static int switches(arg_parser_t *argparser, wadtool_options_list_t *options)
 	int state = SWITCHSTATE_INIT;
 	while (argparser->arg) switch (state)
 	{
-		// TODO: Finish these.
 		case SWITCHSTATE_INIT:
 		{
 			if (matcharg(argparser, SWITCH_INDICES) || matcharg(argparser, SWITCH_INDICES2))
@@ -283,7 +311,9 @@ static int switches(arg_parser_t *argparser, wadtool_options_list_t *options)
 		case SWITCHSTATE_RANGE:
 		{
 			if (currargstart(argparser, SWITCH_PREFIX))
+			{
 				state = SWITCHSTATE_INIT;
+			}
 			else
 			{
 				int i = atoi(currarg(argparser));
@@ -297,7 +327,9 @@ static int switches(arg_parser_t *argparser, wadtool_options_list_t *options)
 		case SWITCHSTATE_RANGE2:
 		{
 			if (currargstart(argparser, SWITCH_PREFIX))
+			{
 				state = SWITCHSTATE_INIT;
+			}
 			else
 			{
 				int i = atoi(currarg(argparser));
@@ -333,15 +365,21 @@ static int switches(arg_parser_t *argparser, wadtool_options_list_t *options)
 			else
 			{
 				printf("ERROR: Bad sort type: %s\n", currarg(argparser));
-				return ERRORLIST_BAD_SWITCH;
+				return ERRORLIST_BAD_SORT;
 			}
 		}
 		break;
 	}
 
-	if (state != SWITCHSTATE_INIT)
+	if (state == SWITCHSTATE_SORTTYPE)
 	{
-		printf("ERROR: Expected arguments after switch.\n");
+		printf("ERROR: Expected type after sort switch.\n");
+		return ERRORLIST_BAD_SWITCH;
+	}
+
+	if (state == SWITCHSTATE_RANGE)
+	{
+		printf("ERROR: Expected arguments after range switch.\n");
 		return ERRORLIST_BAD_SWITCH;
 	}
 
@@ -416,7 +454,7 @@ static void help()
 	printf("\n");
 	printf("    Filters:\n");
 	printf("\n");
-	printf("        --no-header         Do not print the output header.\n");
+	printf("        --no-header         Do not print the output header (and footer).\n");
 	printf("        -nh\n");
 	printf("\n");
 	printf("        --inline-header     Print the header names on the output line.\n");
@@ -425,7 +463,7 @@ static void help()
 	printf("        --maps              Only prints the entries that are considered map\n");
 	printf("        -m                  header entries (guessed).\n");
 	printf("\n");
-	printf("        --range=x,y         Only prints the entries from index x to y,\n");
+	printf("        --range x y         Only selects from the entries from index x to y,\n");
 	printf("        -r x y              inclusive-exclusive (for example, `--range=0,20`\n");
 	printf("                            means index 0 up to 19). If `y` is not specified,\n");
 	printf("                            assumes end of entry list.\n");

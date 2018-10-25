@@ -165,7 +165,7 @@ wad_t* WAD_CreateBufferInit(int size);
  * @param wad the pointer to the open WAD.
  * @return the amount of entries or -1 on error.
  */
-int WAD_EntryCount(wad_t *wad);
+#define WAD_EntryCount(w) ((int)((w)->header.entry_count))
 
 /**
  * Creates a WAD iterator.
