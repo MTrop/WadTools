@@ -99,7 +99,7 @@ static int exec(wadtool_options_list_t *options)
 #define SWITCHSTATE_SORTTYPE	3
 
 // If nonzero, bad parse.
-static int switches(arg_parser_t *argparser, wadtool_options_list_t *options)
+static int parse_switches(arg_parser_t *argparser, wadtool_options_list_t *options)
 {
 	int state = SWITCHSTATE_INIT;
 	while (argparser->arg) switch (state)
@@ -237,7 +237,7 @@ static int call(arg_parser_t *argparser)
 
 	int err;
 	nextarg(argparser);
-	if (err = switches(argparser, &options)) // the single equals is intentional.
+	if (err = parse_switches(argparser, &options)) // the single equals is intentional.
 	{
 		WAD_Close(options.wad);
 		return err;

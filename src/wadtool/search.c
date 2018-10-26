@@ -19,15 +19,18 @@
 extern int errno;
 extern int waderrno;
 
-#define ERRORSEARCH_NONE			0
-#define ERRORSEARCH_NO_FILENAME		1
-#define ERRORSEARCH_BAD_SWITCH		2
-#define ERRORSEARCH_BAD_SORT		3
-#define ERRORSEARCH_WAD_ERROR		10
+#define ERRORSEARCH_NONE				0
+#define ERRORSEARCH_NO_FILENAME			1
+#define ERRORSEARCH_BAD_SWITCH			2
+#define ERRORSEARCH_BAD_MODE			3
+#define ERRORSEARCH_MISSING_PARAMETER	4
+#define ERRORSEARCH_BAD_SORT			5
+#define ERRORSEARCH_WAD_ERROR			10
 
-#define MODE_MAPS			    	"maps"
-#define MAPENTRY_SEARCHNAME			"THINGS"
-#define MAPENTRY_SEARCHNAME2		"TEXTMAP"
+#define MODE_MAPS			    		"maps"
+
+#define MAPENTRY_SEARCHNAME				"THINGS"
+#define MAPENTRY_SEARCHNAME2			"TEXTMAP"
 
 /**
  * Search types.
@@ -59,6 +62,9 @@ typedef struct
 
 	/** Search type. */
 	searchtype_t searchtype;
+	/** Search criteria. */
+	char *criterion0;
+	char *criterion1;
 	/** Print limit. */
 	size_t limit;
 
@@ -133,11 +139,51 @@ static int exec(wadtool_options_search_t *options)
 	return ERRORSEARCH_NONE;
 }
 
+// If nonzero, bad parse.
+static int parse_mode(arg_parser_t *argparser, wadtool_options_search_t *options)
+{
+	if (matcharg(argparser, MODE_MAPS))
+	{
+		options->searchtype = ST_MAPS;
+		return 0;
+	}
+	else
+	{
+		printf("ERROR: Bad mode: %s\n", currarg(argparser));
+		return ERRORSEARCH_BAD_MODE;
+	}
+}
+
+// If nonzero, bad parse.
+static int parse_file(arg_parser_t *argparser, wadtool_options_search_t *options)
+{
+	options->filename = currarg(argparser);
+	if (!options->filename)
+	{
+		fprintf(stderr, "ERROR: No WAD file.\n");
+		return ERRORSEARCH_NO_FILENAME;
+	}
+
+	// Open a shallow mapping.
+	options->wad = WAD_OpenMap(options->filename);
+
+	if (!options->wad)
+	{
+		if (waderrno == WADERROR_FILE_ERROR)
+			printf("ERROR: %s %s\n", strwaderror(waderrno), strerror(errno));
+		else
+			printf("ERROR: %s\n", strwaderror(waderrno));
+		return ERRORSEARCH_WAD_ERROR + waderrno;
+	}
+	nextarg(argparser);
+	return 0;
+}
+
 #define SWITCHSTATE_INIT		0
 #define SWITCHSTATE_SORTTYPE	1
 
 // If nonzero, bad parse.
-static int switches(arg_parser_t *argparser, wadtool_options_search_t *options)
+static int parse_switches(arg_parser_t *argparser, wadtool_options_search_t *options)
 {
 	int state = SWITCHSTATE_INIT;
 	while (argparser->arg) switch (state)
@@ -210,32 +256,38 @@ static int switches(arg_parser_t *argparser, wadtool_options_search_t *options)
 	return 0;
 }
 
+// If nonzero, bad parse.
+static int parse_criteria(arg_parser_t *argparser, wadtool_options_search_t *options)
+{
+	switch(options->searchtype)
+	{
+		// TODO: Finish this.
+		default:
+			printf("NOT IMPLEMENTED!!!\n");
+			return 666;
+	}
+	return 0;
+}
+
 static int call(arg_parser_t *argparser)
 {
-	wadtool_options_search_t options = {NULL, NULL, 0, 0, 0, 0, 0, ST_NONE, 0};
-
-	options.filename = currarg(argparser);
-	if (!options.filename)
-	{
-		fprintf(stderr, "ERROR: No WAD file.\n");
-		return ERRORSEARCH_NO_FILENAME;
-	}
-
-	// Open a shallow mapping.
-	options.wad = WAD_OpenMap(options.filename);
-
-	if (!options.wad)
-	{
-		if (waderrno == WADERROR_FILE_ERROR)
-			printf("ERROR: %s %s\n", strwaderror(waderrno), strerror(errno));
-		else
-			printf("ERROR: %s\n", strwaderror(waderrno));
-		return ERRORSEARCH_WAD_ERROR + waderrno;
-	}
+	wadtool_options_search_t options = {NULL, NULL, 0, 0, 0, 0, 0, ST_NONE, NULL, NULL, 0};
 
 	int err;
-	nextarg(argparser);
-	if (err = switches(argparser, &options)) // the single equals is intentional.
+	if (err = parse_mode(argparser, &options)) // the single equals is intentional.
+	{
+		return err;
+	}
+	if (err = parse_file(argparser, &options)) // the single equals is intentional.
+	{
+		return err;
+	}
+	if (err = parse_criteria(argparser, &options)) // the single equals is intentional.
+	{
+		WAD_Close(options.wad);
+		return err;
+	}
+	if (err = parse_switches(argparser, &options)) // the single equals is intentional.
 	{
 		WAD_Close(options.wad);
 		return err;
@@ -248,12 +300,16 @@ static int call(arg_parser_t *argparser)
 
 static void usage()
 {
-	printf("Usage: wad search [mode] [filename] [switches]\n");
+	printf("Usage: wad search [mode] [filename] ...\n");
+	printf("\n");
+	printf("       wad search map [filename] [headername] [switches]\n");
+	printf("       wad search maps [filename] [switches]\n");
+	printf("       wad search name [filename] [string] [switches]\n");
+	printf("       wad search namespace [filename] [prefix] [switches]\n");
 }
 
 static void help()
 {
-	// TODO: Finish this.
 	printf("[mode]: \n");
 	printf("    The entry search mode.\n");
 	printf("\n");
