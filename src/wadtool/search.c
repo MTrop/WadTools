@@ -34,6 +34,7 @@ extern int waderrno;
  */
 typedef enum 
 {
+	ST_NONE,
 	ST_MAPS,
 
 } searchtype_t;
@@ -58,6 +59,8 @@ typedef struct
 
 	/** Search type. */
 	searchtype_t searchtype;
+	/** Print limit. */
+	size_t limit;
 
 } wadtool_options_search_t;
 
@@ -116,11 +119,14 @@ static int exec(wadtool_options_search_t *options)
 		printf("Entries in %s\n", options->filename);
 		switch (options->searchtype)
 		{
+			case ST_NONE: printf("[NO SEARCH TYPE]\n"); break; // Should not be seen.
 			case ST_MAPS: printf("Listing MAPS.\n"); break;
 		}
 	}
 
-	listentries_print(entries, count, options->listflags, options->no_header, options->inline_header, options->reverse);
+	options->limit = options->limit == 0 ? count : options->limit;
+
+	listentries_print(entries, count, options->limit, options->listflags, options->no_header, options->inline_header, options->reverse);
 
 	WAD_FREE(entries);
 	WAD_FREE(entrydata);
@@ -206,7 +212,7 @@ static int switches(arg_parser_t *argparser, wadtool_options_search_t *options)
 
 static int call(arg_parser_t *argparser)
 {
-	wadtool_options_search_t options = {};
+	wadtool_options_search_t options = {NULL, NULL, 0, 0, 0, 0, 0, ST_NONE, 0};
 
 	options.filename = currarg(argparser);
 	if (!options.filename)
@@ -249,7 +255,9 @@ static void help()
 {
 	// TODO: Finish this.
 	printf("[mode]: \n");
-	printf("    *****FINISH ME*********.\n");
+	printf("    The entry search mode.\n");
+	printf("\n");
+	printf("        maps                Finds map header entries.\n");
 	printf("\n");
 	printf("[filename]: \n");
 	printf("    The name of the WAD file to search the entries of.\n");
@@ -294,6 +302,9 @@ static void help()
 	printf("\n");
 	printf("        --reverse-sort      Reverses sort order.\n");
 	printf("        -rs\n");
+	printf("\n");
+	printf("        --limit x           Limits the amount of entries returned to `x`\n");
+	printf("                            entries (after sorting).\n");
 }
 
 wadtool_t WADTOOL_Search = {

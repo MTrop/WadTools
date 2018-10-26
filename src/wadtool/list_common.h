@@ -84,12 +84,13 @@ int listentry_sort_offset(const void *a, const void *b);
  * Prints a list of list entries to STDOUT.
  * @param entries the list of pointers to pointers to entries.
  * @param count the amount of pointers in the list.
+ * @param limit the amount of entries to print.
  * @param listflags the LISTFLAG_* bits that describe what to print.
  * @param no_header if nonzero, do not print headers.
  * @param inline_header if nonzero, print headers inline (nothing printed if no_headers).
  * @param reverse if nonzero, print in reverse order.
  */
-void listentries_print(listentry_t **entries, size_t count, int listflags, int no_header, int inline_header, int reverse);
+void listentries_print(listentry_t **entries, size_t count, size_t limit, int listflags, int no_header, int inline_header, int reverse);
 
 /**
  * Sort function for an array of listentry_t*.

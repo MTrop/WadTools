@@ -86,7 +86,7 @@ static int exec(wadtool_options_list_t *options)
 	if (!options->no_header && !options->inline_header)
 		printf("Entries in %s, %d to %d\n", options->filename, start, end - 1);
 
-	listentries_print(entries, count, options->listflags, options->no_header, options->inline_header, options->reverse);
+	listentries_print(entries, count, count, options->listflags, options->no_header, options->inline_header, options->reverse);
 
 	WAD_FREE(entries);
 	WAD_FREE(entrydata);

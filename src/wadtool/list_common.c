@@ -73,7 +73,7 @@ static void listentry_print(listentry_t *listentry, int listflags, int no_header
 	printf("\n");
 }
 
-void listentries_print(listentry_t **entries, size_t count, int listflags, int no_header, int inline_header, int reverse)
+void listentries_print(listentry_t **entries, size_t count, size_t limit, int listflags, int no_header, int inline_header, int reverse)
 {
 	if (!no_header && !inline_header)
 	{
@@ -98,10 +98,10 @@ void listentries_print(listentry_t **entries, size_t count, int listflags, int n
 		printf("\n");
 	}
 
-	int i;
-	if (reverse) for (i = count - 1; i >= 0; i--)
+	int i, x = 0;
+	if (reverse) for (i = count - 1; i >= 0 && x < limit; i--, x++)
 		listentry_print(entries[i], listflags, no_header, inline_header);
-	else for (i = 0; i < count; i++)
+	else for (i = 0; i < count && x < limit; i++, x++)
 		listentry_print(entries[i], listflags, no_header, inline_header);
 
 	if (!no_header && !inline_header)
