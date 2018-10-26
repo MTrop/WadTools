@@ -11,8 +11,9 @@
 #include <string.h>
 #include <errno.h>
 #include "wadtool.h"
+#include "list_common.h"
 #include "wad/wad.h"
-#include "wad/wadconfig.h"
+#include "wad/wad_config.h"
 #include "wad/waderrno.h"
 
 extern int errno;
@@ -23,12 +24,6 @@ extern int waderrno;
 #define ERRORLIST_BAD_SWITCH    2
 #define ERRORLIST_BAD_SORT    	3
 #define ERRORLIST_WAD_ERROR     10
-
-#define LISTFLAG_INDICES    (1 << 0)
-#define LISTFLAG_NAMES      (1 << 1)
-#define LISTFLAG_LENGTHS    (1 << 2)
-#define LISTFLAG_OFFSETS    (1 << 3)
-#define LISTFLAG_ALL        ( LISTFLAG_INDICES | LISTFLAG_NAMES | LISTFLAG_LENGTHS | LISTFLAG_OFFSETS )
 
 #define COMPARE_INT(x,y)	((x) == (y) ? 0 : ((x) < (y) ? -1 : 1))
 
@@ -53,20 +48,13 @@ extern int waderrno;
 #define SWITCH_NOHEADER2	    "-nh"
 #define SWITCH_INLINEHEADER	    "--inline-header"
 #define SWITCH_INLINEHEADER2    "-ih"
-#define SWITCH_MAPS			    "--maps"
-#define SWITCH_MAPS2		    "-m"
 #define SWITCH_REVERSESORT		"--reverse-sort"
 #define SWITCH_REVERSESORT2	    "-rs"
 #define SWITCH_RANGE			"--range"
 #define SWITCH_RANGE2		    "-r"
-#define SWITCH_SORT				"--sort"
-#define SWITCH_SORT2		    "-s"
 
-#define SORT_INDEX				"index"
-#define SORT_NAME				"name"
-#define SORT_LENGTH				"length"
-#define SORT_OFFSET				"offset"
-
+#define SWITCH_MAPS			    "--maps"
+#define SWITCH_MAPS2		    "-m"
 #define MAPENTRY_SEARCHNAME		"THINGS"
 #define MAPENTRY_SEARCHNAME2	"TEXTMAP"
 
@@ -95,85 +83,6 @@ typedef struct
 	int (*sortfunc)(const void*, const void*);
 
 } wadtool_options_list_t;
-
-typedef struct 
-{	
-	int index;
-	wadentry_t *entry;
-
-} listentry_t;
-
-// Sort entries by index.
-static int entry_sort_index(const void *a, const void *b)
-{
-	listentry_t *x = *(listentry_t**)a;
-	listentry_t *y = *(listentry_t**)b;
-	return COMPARE_INT(x->index, y->index);
-}
-
-// Sort wadentries by name.
-static int entry_sort_name(const void *a, const void *b)
-{
-	listentry_t *x = *(listentry_t**)a;
-	listentry_t *y = *(listentry_t**)b;
-	return strncmp(x->entry->name, y->entry->name, 8);
-}
-
-// Sort wadentries by length.
-static int entry_sort_length(const void *a, const void *b)
-{
-	listentry_t *x = *(listentry_t**)a;
-	listentry_t *y = *(listentry_t**)b;
-	return COMPARE_INT(x->entry->length, y->entry->length);
-}
-
-// Sort wadentries by starting offset.
-static int entry_sort_offset(const void *a, const void *b)
-{
-	listentry_t *x = *(listentry_t**)a;
-	listentry_t *y = *(listentry_t**)b;
-	return COMPARE_INT(x->entry->offset, y->entry->offset);
-}
-
-static void print_entry(wadtool_options_list_t *options, listentry_t *listentry)
-{
-	if (!options->listflags || (options->listflags & LISTFLAG_INDICES))
-	{
-		if (!options->no_header && options->inline_header)
-			printf("Index ");
-		printf("%-10d ", listentry->index);
-	}
-	if (!options->listflags || (options->listflags & LISTFLAG_NAMES))
-	{
-		if (!options->no_header && options->inline_header)
-			printf("Name ");
-		printf("%-8.8s ", listentry->entry->name);
-	}
-	if (!options->listflags || (options->listflags & LISTFLAG_LENGTHS))
-	{
-		if (!options->no_header && options->inline_header)
-			printf("Length ");
-		printf("%-10d ", listentry->entry->length);
-	}
-	if (!options->listflags || (options->listflags & LISTFLAG_OFFSETS))
-	{
-		if (!options->no_header && options->inline_header)
-			printf("Offset ");
-		printf("%-10d ", listentry->entry->offset);
-	}
-	printf("\n");
-}
-
-listentry_t** listentry_shadow(listentry_t *v, size_t n)
-{
-	int i = 0;
-	listentry_t **out = (listentry_t**)WAD_MALLOC(sizeof(listentry_t*) * n);
-	if (!out)
-		return NULL;
-	for (i = 0; i < n; i++)
-		out[i] = &v[i];
-	return out;
-}
 
 static int exec(wadtool_options_list_t *options)
 {
@@ -251,19 +160,9 @@ static int exec(wadtool_options_list_t *options)
 		printf("Entries in %s, %d to %d\n", options->filename, start, end - 1);
 		if (options->maps_only)
 			printf("Map Markers Only\n");
-		printf("Index      Name     Length     Offset\n");
-		printf("-----------------------------------------\n");
 	}
 
-	if (options->reverse) for (i = count - 1; i >= 0; i--)
-		print_entry(options, entries[i]);
-	else for (i = 0; i < count; i++)
-		print_entry(options, entries[i]);
-
-	if (!options->no_header && !options->inline_header)
-	{
-		printf("Count %d\n", count);
-	}
+	listentries_print(entries, count, options->listflags, options->no_header, options->inline_header, options->reverse);
 
 	WAD_FREE(entries);
 	WAD_FREE(entrydata);
@@ -344,22 +243,22 @@ static int switches(arg_parser_t *argparser, wadtool_options_list_t *options)
 		{
 			if (matcharg(argparser, SORT_INDEX))
 			{
-				options->sortfunc = &entry_sort_index;
+				options->sortfunc = &listentry_sort_index;
 				state = SWITCHSTATE_INIT;
 			}
 			else if (matcharg(argparser, SORT_NAME))
 			{
-				options->sortfunc = &entry_sort_name;
+				options->sortfunc = &listentry_sort_name;
 				state = SWITCHSTATE_INIT;
 			}
 			else if (matcharg(argparser, SORT_LENGTH))
 			{
-				options->sortfunc = &entry_sort_length;
+				options->sortfunc = &listentry_sort_length;
 				state = SWITCHSTATE_INIT;
 			}
 			else if (matcharg(argparser, SORT_OFFSET))
 			{
-				options->sortfunc = &entry_sort_offset;
+				options->sortfunc = &listentry_sort_offset;
 				state = SWITCHSTATE_INIT;
 			}
 			else
@@ -388,7 +287,7 @@ static int switches(arg_parser_t *argparser, wadtool_options_list_t *options)
 
 static int call(arg_parser_t *argparser)
 {
-	wadtool_options_list_t options = {NULL, NULL, 0, 0, 0, 0, 0, 0, 0, &entry_sort_index};
+	wadtool_options_list_t options = {NULL, NULL, 0, 0, 0, 0, 0, 0, 0, &listentry_sort_index};
 
 	options.filename = currarg(argparser);
 	if (!options.filename)
