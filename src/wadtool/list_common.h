@@ -11,14 +11,33 @@
 
 #include "wad/wad.h"
 
-#define LISTFLAG_INDICES    (1 << 0)
-#define LISTFLAG_NAMES      (1 << 1)
-#define LISTFLAG_LENGTHS    (1 << 2)
-#define LISTFLAG_OFFSETS    (1 << 3)
-#define LISTFLAG_ALL        ( LISTFLAG_INDICES | LISTFLAG_NAMES | LISTFLAG_LENGTHS | LISTFLAG_OFFSETS )
+#define LISTFLAG_INDICES    	(1 << 0)
+#define LISTFLAG_NAMES     		(1 << 1)
+#define LISTFLAG_LENGTHS    	(1 << 2)
+#define LISTFLAG_OFFSETS    	(1 << 3)
+#define LISTFLAG_ALL        	( LISTFLAG_INDICES | LISTFLAG_NAMES | LISTFLAG_LENGTHS | LISTFLAG_OFFSETS )
+
+#define SWITCH_PREFIX			"-"
+
+#define SWITCH_INDICES			"--indices"
+#define SWITCH_INDICES2			"-i"
+#define SWITCH_NAMES			"--names"
+#define SWITCH_NAMES2			"-n"
+#define SWITCH_LENGTHS			"--lengths"
+#define SWITCH_LENGTHS2			"-l"
+#define SWITCH_OFFSETS			"--offsets"
+#define SWITCH_OFFSETS2			"-o"
+#define SWITCH_ALL			    "--all"
+
+#define SWITCH_NOHEADER		    "--no-header"
+#define SWITCH_NOHEADER2	    "-nh"
+#define SWITCH_INLINEHEADER	    "--inline-header"
+#define SWITCH_INLINEHEADER2    "-ih"
 
 #define SWITCH_SORT				"--sort"
 #define SWITCH_SORT2		    "-s"
+#define SWITCH_REVERSESORT		"--reverse-sort"
+#define SWITCH_REVERSESORT2	    "-rs"
 
 #define SORT_INDEX				"index"
 #define SORT_NAME				"name"

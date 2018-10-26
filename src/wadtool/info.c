@@ -111,8 +111,11 @@ static void help()
 	printf("    The name of the WAD file to inspect.\n");
 	printf("\n");
 	printf("[switches]: \n");
-	printf("    --condensed      Print minimal information (no headers).\n");
-	printf("    -c\n");
+	printf("\n");
+	printf("    Print options: \n");
+	printf("\n");
+	printf("        --condensed      Print minimal information (no headers).\n");
+	printf("        -c\n");
 }
 
 wadtool_t WADTOOL_Info = {

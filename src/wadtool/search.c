@@ -19,14 +19,24 @@
 extern int errno;
 extern int waderrno;
 
-#define ERRORLIST_NONE          0
-#define ERRORLIST_NO_FILENAME   1
-#define ERRORLIST_BAD_SWITCH    2
-#define ERRORLIST_BAD_SORT    	3
-#define ERRORLIST_WAD_ERROR     10
+#define ERRORSEARCH_NONE			0
+#define ERRORSEARCH_NO_FILENAME		1
+#define ERRORSEARCH_BAD_SWITCH		2
+#define ERRORSEARCH_BAD_SORT		3
+#define ERRORSEARCH_WAD_ERROR		10
 
-#define SWITCH_RANGE			"--range"
-#define SWITCH_RANGE2		    "-r"
+#define MODE_MAPS			    	"maps"
+#define MAPENTRY_SEARCHNAME			"THINGS"
+#define MAPENTRY_SEARCHNAME2		"TEXTMAP"
+
+/**
+ * Search types.
+ */
+typedef enum 
+{
+	ST_MAPS,
+
+} searchtype_t;
 
 typedef struct 
 {
@@ -41,65 +51,87 @@ typedef struct
 	/** If nonzero, print inline header. */
 	int inline_header;
 
-	/** Range start. */
-	int range_start;
-	/** Range end. */
-	int range_end;
-
 	/** Reverse output. */
 	int reverse;
 	/** Sort function. */
 	int (*sortfunc)(const void*, const void*);
 
-} wadtool_options_list_t;
+	/** Search type. */
+	searchtype_t searchtype;
 
-static int exec(wadtool_options_list_t *options)
+} wadtool_options_search_t;
+
+
+static int exec(wadtool_options_search_t *options)
 {
 	wad_t *wad = options->wad;
-	int start, end, len;
-	start = options->range_start;
-	if (options->range_end <= 0 || options->range_end > WAD_EntryCount(wad))
-		end = WAD_EntryCount(wad);
-	else
-		end = options->range_end;
-	
-	if (end <= start)
-	{
-		printf("No entries.\n");
-		return ERRORLIST_NONE;
-	}
 
-	len = end - start;
-	int i;
-
+	int i, len = WAD_EntryCount(wad);
+	listentry_t **entries;
+	listentry_t *entrydata;
 	int count = 0;
-	listentry_t *entrydata = (listentry_t*)WAD_MALLOC(sizeof(listentry_t) * len);
-	for (i = start; i < end; i++)
+
+	switch (options->searchtype)
 	{
-		entrydata[count].index = i;
-		entrydata[count].entry = wad->entries[i];
-		count++;
+		case ST_MAPS:
+		{
+			for (i = 1; i < len; i++)
+			{
+				if (strncmp(wad->entries[i]->name, MAPENTRY_SEARCHNAME, 8) == 0)
+					count++;
+				else if (strncmp(wad->entries[i]->name, MAPENTRY_SEARCHNAME2, 8) == 0)
+					count++;
+			}
+
+			if (!count)
+			{
+				printf("No entries.\n");
+				return ERRORSEARCH_NONE;
+			}
+
+			entrydata = (listentry_t*)WAD_MALLOC(sizeof(listentry_t) * count);
+			count = 0;
+			for (i = 1; i < len; i++)
+			{
+				if (strncmp(wad->entries[i]->name, MAPENTRY_SEARCHNAME, 8) == 0)
+				{
+					entrydata[count].index = i - 1;
+					entrydata[count].entry = wad->entries[i - 1];
+					count++;
+				}
+				else if (strncmp(wad->entries[i]->name, MAPENTRY_SEARCHNAME2, 8) == 0)
+				{
+					entrydata[count].index = i - 1;
+					entrydata[count].entry = wad->entries[i - 1];
+					count++;
+				}
+			}
+			entries = listentry_shadow(entrydata, count);
+			qsort(entries, count, sizeof(listentry_t*), options->sortfunc);
+		}
 	}
-	listentry_t **entries = listentry_shadow(entrydata, len);
-	qsort(entries, len, sizeof(listentry_t*), options->sortfunc);
 
 	if (!options->no_header && !options->inline_header)
-		printf("Entries in %s, %d to %d\n", options->filename, start, end - 1);
+	{
+		printf("Entries in %s\n", options->filename);
+		switch (options->searchtype)
+		{
+			case ST_MAPS: printf("Listing MAPS.\n"); break;
+		}
+	}
 
 	listentries_print(entries, count, options->listflags, options->no_header, options->inline_header, options->reverse);
 
 	WAD_FREE(entries);
 	WAD_FREE(entrydata);
-	return ERRORLIST_NONE;
+	return ERRORSEARCH_NONE;
 }
 
 #define SWITCHSTATE_INIT		0
-#define SWITCHSTATE_RANGE		1
-#define SWITCHSTATE_RANGE2		2
-#define SWITCHSTATE_SORTTYPE	3
+#define SWITCHSTATE_SORTTYPE	1
 
 // If nonzero, bad parse.
-static int switches(arg_parser_t *argparser, wadtool_options_list_t *options)
+static int switches(arg_parser_t *argparser, wadtool_options_search_t *options)
 {
 	int state = SWITCHSTATE_INIT;
 	while (argparser->arg) switch (state)
@@ -122,50 +154,16 @@ static int switches(arg_parser_t *argparser, wadtool_options_list_t *options)
 				options->inline_header = 1;
 			else if (matcharg(argparser, SWITCH_REVERSESORT) || matcharg(argparser, SWITCH_REVERSESORT2))
 				options->reverse = 1;
-			else if (matcharg(argparser, SWITCH_RANGE) || matcharg(argparser, SWITCH_RANGE2))
-				state = SWITCHSTATE_RANGE;
 			else if (matcharg(argparser, SWITCH_SORT) || matcharg(argparser, SWITCH_SORT2))
 				state = SWITCHSTATE_SORTTYPE;
 			else
 			{
 				printf("ERROR: Bad switch: %s\n", currarg(argparser));
-				return ERRORLIST_BAD_SWITCH;
+				return ERRORSEARCH_BAD_SWITCH;
 			}
 		}
 		break;
 		
-		case SWITCHSTATE_RANGE:
-		{
-			if (currargstart(argparser, SWITCH_PREFIX))
-			{
-				state = SWITCHSTATE_INIT;
-			}
-			else
-			{
-				int i = atoi(currarg(argparser));
-				nextarg(argparser);
-				options->range_start = i;
-				state = SWITCHSTATE_RANGE2;
-			}
-		}
-		break;
-		
-		case SWITCHSTATE_RANGE2:
-		{
-			if (currargstart(argparser, SWITCH_PREFIX))
-			{
-				state = SWITCHSTATE_INIT;
-			}
-			else
-			{
-				int i = atoi(currarg(argparser));
-				nextarg(argparser);
-				options->range_end = i;
-				state = SWITCHSTATE_INIT;
-			}
-		}
-		break;
-
 		case SWITCHSTATE_SORTTYPE:
 		{
 			if (matcharg(argparser, SORT_INDEX))
@@ -191,7 +189,7 @@ static int switches(arg_parser_t *argparser, wadtool_options_list_t *options)
 			else
 			{
 				printf("ERROR: Bad sort type: %s\n", currarg(argparser));
-				return ERRORLIST_BAD_SORT;
+				return ERRORSEARCH_BAD_SORT;
 			}
 		}
 		break;
@@ -200,13 +198,7 @@ static int switches(arg_parser_t *argparser, wadtool_options_list_t *options)
 	if (state == SWITCHSTATE_SORTTYPE)
 	{
 		printf("ERROR: Expected type after sort switch.\n");
-		return ERRORLIST_BAD_SWITCH;
-	}
-
-	if (state == SWITCHSTATE_RANGE)
-	{
-		printf("ERROR: Expected arguments after range switch.\n");
-		return ERRORLIST_BAD_SWITCH;
+		return ERRORSEARCH_BAD_SWITCH;
 	}
 
 	return 0;
@@ -214,25 +206,25 @@ static int switches(arg_parser_t *argparser, wadtool_options_list_t *options)
 
 static int call(arg_parser_t *argparser)
 {
-	wadtool_options_list_t options = {NULL, NULL, 0, 0, 0, 0, 0, 0, &listentry_sort_index};
+	wadtool_options_search_t options = {};
 
 	options.filename = currarg(argparser);
 	if (!options.filename)
 	{
 		fprintf(stderr, "ERROR: No WAD file.\n");
-		return ERRORLIST_NO_FILENAME;
+		return ERRORSEARCH_NO_FILENAME;
 	}
 
 	// Open a shallow mapping.
 	options.wad = WAD_OpenMap(options.filename);
-	
+
 	if (!options.wad)
 	{
 		if (waderrno == WADERROR_FILE_ERROR)
 			printf("ERROR: %s %s\n", strwaderror(waderrno), strerror(errno));
 		else
 			printf("ERROR: %s\n", strwaderror(waderrno));
-		return ERRORLIST_WAD_ERROR + waderrno;
+		return ERRORSEARCH_WAD_ERROR + waderrno;
 	}
 
 	int err;
@@ -242,7 +234,7 @@ static int call(arg_parser_t *argparser)
 		WAD_Close(options.wad);
 		return err;
 	}
-
+	
 	int ret = exec(&options);
 	WAD_Close(options.wad);
 	return ret;
@@ -250,13 +242,17 @@ static int call(arg_parser_t *argparser)
 
 static void usage()
 {
-	printf("Usage: wad list [filename] [switches]\n");
+	printf("Usage: wad search [mode] [filename] [switches]\n");
 }
 
 static void help()
 {
+	// TODO: Finish this.
+	printf("[mode]: \n");
+	printf("    *****FINISH ME*********.\n");
+	printf("\n");
 	printf("[filename]: \n");
-	printf("    The name of the WAD file to list the entries of.\n");
+	printf("    The name of the WAD file to search the entries of.\n");
 	printf("\n");
 	printf("[switches]: \n");
 	printf("\n");
@@ -286,13 +282,6 @@ static void help()
 	printf("\n");
 	printf("    If none of the previous options are specified, `--all` is implied.\n");
 	printf("\n");
-	printf("    Filters:\n");
-	printf("\n");
-	printf("        --range x y         Only selects from the entries from index x to y,\n");
-	printf("        -r x y              inclusive-exclusive (for example, `--range 0 20`\n");
-	printf("                            means index 0 up to 19). If `y` is not specified,\n");
-	printf("                            assumes end of entry list.\n");
-	printf("\n");
 	printf("    Other:\n");
 	printf("\n");
 	printf("        --sort [type]       Sorts output by entry values.\n");
@@ -307,9 +296,9 @@ static void help()
 	printf("        -rs\n");
 }
 
-wadtool_t WADTOOL_List = {
-	"list",
-	"Lists the entries in a WAD.",
+wadtool_t WADTOOL_Search = {
+	"search",
+	"Search a WAD for entries that fit certain criteria.",
 	&call,
 	&usage,
 	&help,
