@@ -13,6 +13,7 @@
 #include "wad/wad.h"
 #include "wad/wad_config.h"
 
+// to avoid the overflow in an arithmetic method
 #define COMPARE_INT(x,y)	((x) == (y) ? 0 : ((x) < (y) ? -1 : 1))
 
 int listentry_sort_index(const void *a, const void *b)
@@ -106,7 +107,7 @@ void listentries_print(listentry_t **entries, size_t count, size_t limit, int li
 
 	if (!no_header && !inline_header)
 	{
-		printf("Count %d\n", count);
+		printf("Count %d\n", x);
 	}
 }
 

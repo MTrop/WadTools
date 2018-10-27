@@ -43,6 +43,13 @@ char* nextarg(arg_parser_t *argparser)
 	return argparser->arg;
 }
 
+char* takearg(arg_parser_t *argparser)
+{
+	char* out = currarg(argparser);
+	nextarg(argparser);
+	return out;
+}
+
 int matcharg(arg_parser_t *argparser, char *s)
 {
 	if (currargis(argparser, s))

@@ -1258,7 +1258,7 @@ wadentry_t* WAD_GetEntryByNameOffset(wad_t *wad, const char *name, int start)
 	while (start < wad->header.entry_count)
 	{
 		// if equal
-		if (!strcmp(name, wad->entries[start]->name))
+		if (!strncmp(name, wad->entries[start]->name, 8))
 			return wad->entries[start];
 		start++;
 	}
@@ -1299,7 +1299,7 @@ wadentry_t* WAD_GetEntryByNameOffsetNth(wad_t *wad, const char *name, int start,
 	while (start < wad->header.entry_count)
 	{
 		// if equal
-		if (!strcmp(name, wad->entries[start]->name))
+		if (!strncmp(name, wad->entries[start]->name, 8))
 			if (--nth <= 0)
 				return wad->entries[start];
 		start++;
@@ -1327,7 +1327,7 @@ wadentry_t* WAD_GetLastEntryByName(wad_t *wad, const char *name)
 	while (i >= 0)
 	{
 		// if equal
-		if (!strcmp(name, wad->entries[i]->name))
+		if (!strncmp(name, wad->entries[i]->name, 8))
 			return wad->entries[i];
 		i--;
 	}
@@ -1355,7 +1355,7 @@ int WAD_GetEntryCount(wad_t *wad, const char *name)
 	while (i < wad->header.entry_count)
 	{
 		// if equal
-		if (!strcmp(name, wad->entries[i]->name))
+		if (!strncmp(name, wad->entries[i]->name, 8))
 			out++;
 		i++;
 	}
@@ -1396,7 +1396,7 @@ int WAD_GetEntryIndexOffset(wad_t *wad, const char *name, int start)
 	while (start < wad->header.entry_count)
 	{
 		// if equal
-		if (!strcmp(name, wad->entries[start]->name))
+		if (!strncmp(name, wad->entries[start]->name, 8))
 			return start;
 		start++;
 	}
@@ -1464,7 +1464,7 @@ int WAD_GetEntryLastIndex(wad_t *wad, const char *name)
 	while (i >= 0)
 	{
 		// if equal
-		if (!strcmp(name, wad->entries[i]->name))
+		if (!strncmp(name, wad->entries[i]->name, 8))
 			return i;
 		i--;
 	}

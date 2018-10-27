@@ -19,12 +19,14 @@
 #include "wadtool/create.h"
 #include "wadtool/info.h"
 #include "wadtool/list.h"
+#include "wadtool/search.h"
 
-#define WADTOOL_COUNT 3
+#define WADTOOL_COUNT 4
 wadtool_t* WADTOOLS_ALL[WADTOOL_COUNT] = {
 	&WADTOOL_Create,
 	&WADTOOL_Info,
 	&WADTOOL_List,
+	&WADTOOL_Search,
 };
 
 // ================== Command Names ====================
@@ -34,6 +36,7 @@ wadtool_t* WADTOOLS_ALL[WADTOOL_COUNT] = {
 #define COMMAND_CREATE "create"
 #define COMMAND_INFO "info"
 #define COMMAND_LIST "list"
+#define COMMAND_SEARCH "search"
 
 // =====================================================
 
@@ -82,6 +85,8 @@ static wadtool_t* parse_tool(arg_parser_t *argparser)
 		return &WADTOOL_Info;
 	else if (matcharg(argparser, COMMAND_LIST))
 		return &WADTOOL_List;
+	else if (matcharg(argparser, COMMAND_SEARCH))
+		return &WADTOOL_Search;
 	else
 		return &DEFAULT_TOOL;
 }
@@ -90,6 +95,7 @@ void print_tool_help(wadtool_t* tool)
 {
 	printf("%s\n", tool->description);
 	(tool->usage)();
+	printf("\n");
 	(tool->help)();
 	printf("\n");
 }

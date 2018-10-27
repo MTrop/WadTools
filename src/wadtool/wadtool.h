@@ -71,6 +71,13 @@ int currargstart(arg_parser_t *argparser, char *s);
 char* nextarg(arg_parser_t *argparser);
 
 /**
+ * Returns the current argument, and then advances the parser (like nextarg(), but return is first).
+ * @param argparser the parser to use.
+ * @return the current argument (not the next one).
+ */
+char* takearg(arg_parser_t *argparser);
+
+/**
  * Tests if the argument equals a string (case insensitive), and if it is, advance the parser.
  * @param argparser the parser to use.
  * @param s the string to test.

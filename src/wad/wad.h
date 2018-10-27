@@ -216,7 +216,7 @@ wadentry_t* WAD_GetEntry(wad_t *wad, int index);
 
 /**
  * Gets the first WAD entry by a particular name.
- * Names are case-sensitive.
+ * Names are case-sensitive, and only the first 8 characters are compared.
  * @param wad the pointer to the open WAD.
  * @param name the entry name.
  * @return a valid pointer, or NULL if no corresponding entry.
@@ -225,7 +225,7 @@ wadentry_t* WAD_GetEntryByName(wad_t *wad, const char *name);
 
 /**
  * Gets the first WAD entry by a particular name, from a starting index.
- * Names are case-sensitive.
+ * Names are case-sensitive, and only the first 8 characters are compared.
  * @param wad the pointer to the open WAD.
  * @param name the entry name.
  * @param start the index to start from.
@@ -235,7 +235,7 @@ wadentry_t* WAD_GetEntryByNameOffset(wad_t *wad, const char *name, int start);
 
 /**
  * Gets the first WAD entry by a particular name, nth instance.
- * Names are case-sensitive.
+ * Names are case-sensitive, and only the first 8 characters are compared.
  * @param wad the pointer to the open WAD.
  * @param name the entry name.
  * @param nth the nth entry to retrieve (0 or 1 is the first, 2 is second, etc.).
@@ -245,7 +245,7 @@ wadentry_t* WAD_GetEntryByNameNth(wad_t *wad, const char *name, int nth);
 
 /**
  * Gets the first WAD entry by a particular name, nth instance.
- * Names are case-sensitive.
+ * Names are case-sensitive, and only the first 8 characters are compared.
  * @param wad the pointer to the open WAD.
  * @param name the entry name.
  * @param start the index to start from.
@@ -256,7 +256,7 @@ wadentry_t* WAD_GetEntryByNameOffsetNth(wad_t *wad, const char *name, int start,
 
 /**
  * Gets the last WAD entry by a particular name (backwards search).
- * Names are case-sensitive.
+ * Names are case-sensitive, and only the first 8 characters are compared.
  * @param wad the pointer to the open WAD.
  * @param name the entry name.
  * @return a valid pointer, or NULL if no corresponding entry.
@@ -265,7 +265,7 @@ wadentry_t* WAD_GetLastEntryByName(wad_t *wad, const char *name);
 
 /**
  * Counts how many entries have this name.
- * Names are case-sensitive.
+ * Names are case-sensitive, and only the first 8 characters are compared.
  * @param wad the pointer to the open WAD.
  * @param name the entry name.
  * @return the amount of entries.
@@ -274,7 +274,7 @@ int WAD_GetEntryCount(wad_t *wad, const char *name);
 
 /**
  * Gets the index of a particular entry.
- * Names are case-sensitive.
+ * Names are case-sensitive, and only the first 8 characters are compared.
  * @param wad the pointer to the open WAD.
  * @param name the entry name.
  * @return the matching index or -1 if not found.
@@ -283,7 +283,7 @@ int WAD_GetEntryIndex(wad_t *wad, const char *name);
 
 /**
  * Gets the index of a particular entry, from a starting index.
- * Names are case-sensitive.
+ * Names are case-sensitive, and only the first 8 characters are compared.
  * @param wad the pointer to the open WAD.
  * @param name the entry name.
  * @param start the index to start from.
@@ -293,7 +293,7 @@ int WAD_GetEntryIndexOffset(wad_t *wad, const char *name, int start);
 
 /**
  * Gets the indices of all matching lumps by name.
- * Names are case-sensitive.
+ * Names are case-sensitive, and only the first 8 characters are compared.
  * @param wad the pointer to the open WAD.
  * @param name the entry name.
  * @param out the output array for the indices.
@@ -304,7 +304,7 @@ int WAD_GetEntryIndices(wad_t *wad, const char *name, int *out, int max);
 
 /**
  * Gets the indices of all matching lumps by name.
- * Names are case-sensitive.
+ * Names are case-sensitive, and only the first 8 characters are compared.
  * @param wad the pointer to the open WAD.
  * @param name the entry name.
  * @param start the index to start from.
@@ -316,7 +316,7 @@ int WAD_GetEntryIndicesOffset(wad_t *wad, const char *name, int start, int *out,
 
 /**
  * Gets the last index of a particular entry.
- * Names are case-sensitive.
+ * Names are case-sensitive, and only the first 8 characters are compared.
  * @param wad the pointer to the open WAD.
  * @param name the entry name.
  * @return the matching index or -1 if not found.

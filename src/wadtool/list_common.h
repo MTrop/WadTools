@@ -38,6 +38,7 @@
 #define SWITCH_SORT2		    "-s"
 #define SWITCH_REVERSESORT		"--reverse-sort"
 #define SWITCH_REVERSESORT2	    "-rs"
+#define SWITCH_LIMIT			"--limit"
 
 #define SORT_INDEX				"index"
 #define SORT_NAME				"name"
