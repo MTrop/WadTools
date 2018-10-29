@@ -12,7 +12,7 @@ wad list
     Outputs WAD entry info to STDOUT.
 wad search
     Searches for and outputs entries that have specific criteria.
-wad cat
+wad dump
     Dump the contents of a WAD entry (or series of entries) to STDOUT.
 
 wad shift
