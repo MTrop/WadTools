@@ -93,6 +93,31 @@ static int exec(wadtool_options_list_t *options)
 	return ERRORLIST_NONE;
 }
 
+// If nonzero, bad parse.
+static int parse_file(arg_parser_t *argparser, wadtool_options_list_t *options)
+{
+	options->filename = currarg(argparser);
+	if (!options->filename)
+	{
+		fprintf(stderr, "ERROR: No WAD file.\n");
+		return ERRORLIST_NO_FILENAME;
+	}
+
+	// Open a shallow mapping.
+	options->wad = WAD_OpenMap(options->filename);
+
+	if (!options->wad)
+	{
+		if (waderrno == WADERROR_FILE_ERROR)
+			fprintf(stderr, "ERROR: %s %s\n", strwaderror(waderrno), strerror(errno));
+		else
+			fprintf(stderr, "ERROR: %s\n", strwaderror(waderrno));
+		return ERRORLIST_WAD_ERROR + waderrno;
+	}
+	nextarg(argparser);
+	return 0;
+}
+
 #define SWITCHSTATE_INIT		0
 #define SWITCHSTATE_RANGE		1
 #define SWITCHSTATE_RANGE2		2
@@ -216,27 +241,11 @@ static int call(arg_parser_t *argparser)
 {
 	wadtool_options_list_t options = {NULL, NULL, 0, 0, 0, 0, 0, 0, &listentry_sort_index};
 
-	options.filename = currarg(argparser);
-	if (!options.filename)
-	{
-		fprintf(stderr, "ERROR: No WAD file.\n");
-		return ERRORLIST_NO_FILENAME;
-	}
-
-	// Open a shallow mapping.
-	options.wad = WAD_OpenMap(options.filename);
-	
-	if (!options.wad)
-	{
-		if (waderrno == WADERROR_FILE_ERROR)
-			printf("ERROR: %s %s\n", strwaderror(waderrno), strerror(errno));
-		else
-			printf("ERROR: %s\n", strwaderror(waderrno));
-		return ERRORLIST_WAD_ERROR + waderrno;
-	}
-
 	int err;
-	nextarg(argparser);
+	if (err = parse_file(argparser, &options)) // the single equals is intentional.
+	{
+		return err;
+	}
 	if (err = parse_switches(argparser, &options)) // the single equals is intentional.
 	{
 		WAD_Close(options.wad);

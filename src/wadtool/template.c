@@ -39,31 +39,61 @@ static int exec(wadtool_options_template_t *options)
 	return -1;
 }
 
-static int call(arg_parser_t *argparser)
+// If nonzero, bad parse.
+static int parse_file(arg_parser_t *argparser, wadtool_options_template_t *options)
 {
-	wadtool_options_template_t options = {};
-
-	options.filename = currarg(argparser);
-	if (!options.filename)
+	options->filename = currarg(argparser);
+	if (!options->filename)
 	{
 		fprintf(stderr, "ERROR: No WAD file.\n");
 		return ERRORTEMPLATE_NO_FILENAME;
 	}
 
 	// Open a shallow mapping.
-	options.wad = WAD_OpenMap(options.filename);
+	options->wad = WAD_OpenMap(options->filename);
 	// Open a file.
 	options.wad = WAD_Open(options.filename);
 	// Open a buffer from a file.
 	options.wad = WAD_OpenBuffer(options.filename);
 
-	// TODO: Setup.
+	if (!options->wad)
+	{
+		if (waderrno == WADERROR_FILE_ERROR)
+			fprintf(stderr, "ERROR: %s %s\n", strwaderror(waderrno), strerror(errno));
+		else
+			fprintf(stderr, "ERROR: %s\n", strwaderror(waderrno));
+		return ERRORTEMPLATE_WAD_ERROR + waderrno;
+	}
+	nextarg(argparser);
+	return 0;
+}
+
+#define SWITCHSTATE_INIT		0
+
+// If nonzero, bad parse.
+static int parse_switches(arg_parser_t *argparser, wadtool_options_template_t *options)
+{
+	int state = SWITCHSTATE_INIT;
+	return 0;
+}
+
+static int call(arg_parser_t *argparser)
+{
+	wadtool_options_template_t options = {NULL, NULL};
+
+	int err;
+	if (err = parse_file(argparser, &options)) // the single equals is intentional.
+	{
+		return err;
+	}
+	if (err = parse_switches(argparser, &options)) // the single equals is intentional.
+	{
+		WAD_Close(options.wad);
+		return err;
+	}
 	
 	int ret = exec(&options);
 	WAD_Close(options.wad);
-
-	// TODO: Cleanup.
-	
 	return ret;
 }
 

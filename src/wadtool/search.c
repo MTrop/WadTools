@@ -191,7 +191,7 @@ static int exec(wadtool_options_search_t *options)
 			int offset = WAD_GetEntryIndex(wad, options->criterion0);
 			if (offset < 0)
 			{
-				printf("ERROR: Map name %s not found!\n");
+				fprintf(stderr, "ERROR: Map name %s not found!\n");
 				return ERRORSEARCH_MAP_NOT_FOUND;
 			}
 
@@ -389,9 +389,9 @@ static int parse_file(arg_parser_t *argparser, wadtool_options_search_t *options
 	if (!options->wad)
 	{
 		if (waderrno == WADERROR_FILE_ERROR)
-			printf("ERROR: %s %s\n", strwaderror(waderrno), strerror(errno));
+			fprintf(stderr, "ERROR: %s %s\n", strwaderror(waderrno), strerror(errno));
 		else
-			printf("ERROR: %s\n", strwaderror(waderrno));
+			fprintf(stderr, "ERROR: %s\n", strwaderror(waderrno));
 		return ERRORSEARCH_WAD_ERROR + waderrno;
 	}
 	nextarg(argparser);
@@ -432,7 +432,7 @@ static int parse_switches(arg_parser_t *argparser, wadtool_options_search_t *opt
 				state = SWITCHSTATE_LIMIT;
 			else
 			{
-				printf("ERROR: Bad switch: %s\n", currarg(argparser));
+				fprintf(stderr, "ERROR: Bad switch: %s\n", currarg(argparser));
 				return ERRORSEARCH_BAD_SWITCH;
 			}
 		}
@@ -462,7 +462,7 @@ static int parse_switches(arg_parser_t *argparser, wadtool_options_search_t *opt
 			}
 			else
 			{
-				printf("ERROR: Bad sort type: %s\n", currarg(argparser));
+				fprintf(stderr, "ERROR: Bad sort type: %s\n", currarg(argparser));
 				return ERRORSEARCH_BAD_SORT;
 			}
 		}
@@ -478,12 +478,12 @@ static int parse_switches(arg_parser_t *argparser, wadtool_options_search_t *opt
 
 	if (state == SWITCHSTATE_SORTTYPE)
 	{
-		printf("ERROR: Expected type after `sort` switch.\n");
+		fprintf(stderr, "ERROR: Expected type after `sort` switch.\n");
 		return ERRORSEARCH_MISSING_PARAMETER;
 	}
 	else if (state == SWITCHSTATE_LIMIT)
 	{
-		printf("ERROR: Expected amount after `limit` switch.\n");
+		fprintf(stderr, "ERROR: Expected amount after `limit` switch.\n");
 		return ERRORSEARCH_MISSING_PARAMETER;
 	}
 
@@ -500,7 +500,7 @@ static int parse_criteria(arg_parser_t *argparser, wadtool_options_search_t *opt
 			options->criterion0 = takearg(argparser);
 			if (!options->criterion0)
 			{
-				printf("ERROR: Expected map header entry name.\n");
+				fprintf(stderr, "ERROR: Expected map header entry name.\n");
 				return ERRORSEARCH_MISSING_PARAMETER;
 			}
 			strupper(options->criterion0);
@@ -512,7 +512,7 @@ static int parse_criteria(arg_parser_t *argparser, wadtool_options_search_t *opt
 			options->criterion0 = takearg(argparser);
 			if (!options->criterion0)
 			{
-				printf("ERROR: Expected name.\n");
+				fprintf(stderr, "ERROR: Expected name.\n");
 				return ERRORSEARCH_MISSING_PARAMETER;
 			}
 			strupper(options->criterion0);
@@ -524,7 +524,7 @@ static int parse_criteria(arg_parser_t *argparser, wadtool_options_search_t *opt
 			options->criterion0 = takearg(argparser);
 			if (!options->criterion0)
 			{
-				printf("ERROR: Expected namespace.\n");
+				fprintf(stderr, "ERROR: Expected namespace.\n");
 				return ERRORSEARCH_MISSING_PARAMETER;
 			}
 			strupper(options->criterion0);

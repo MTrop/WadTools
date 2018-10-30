@@ -60,39 +60,61 @@ static int exec(wadtool_options_info_t* options)
 	return ERRORINFO_NONE;
 }
 
-static int call(arg_parser_t *argparser)
+// If nonzero, bad parse.
+static int parse_file(arg_parser_t *argparser, wadtool_options_info_t *options)
 {
-	wadtool_options_info_t options = {NULL, NULL, 0};
-
-	options.filename = currarg(argparser);
-	if (!options.filename)
+	options->filename = currarg(argparser);
+	if (!options->filename)
 	{
 		fprintf(stderr, "ERROR: No WAD file.\n");
 		return ERRORINFO_NO_FILENAME;
 	}
 
 	// Open a shallow mapping.
-	options.wad = WAD_OpenMap(options.filename);
-	
-	if (!options.wad)
+	options->wad = WAD_OpenMap(options->filename);
+
+	if (!options->wad)
 	{
 		if (waderrno == WADERROR_FILE_ERROR)
-			printf("ERROR: %s %s\n", strwaderror(waderrno), strerror(errno));
+			fprintf(stderr, "ERROR: %s %s\n", strwaderror(waderrno), strerror(errno));
 		else
-			printf("ERROR: %s\n", strwaderror(waderrno));
+			fprintf(stderr, "ERROR: %s\n", strwaderror(waderrno));
 		return ERRORINFO_WAD_ERROR + waderrno;
 	}
-	
-	char *s = nextarg(argparser);
+	nextarg(argparser);
+	return 0;
+}
+
+#define SWITCHSTATE_INIT		0
+#define SWITCHSTATE_STARTFROM	1
+
+// If nonzero, bad parse.
+static int parse_switches(arg_parser_t *argparser, wadtool_options_info_t *options)
+{
 	if (matcharg(argparser, SWITCH_CONDENSED))
-		options.condensed = 1;
+		options->condensed = 1;
 	else if (matcharg(argparser, SWITCH_CONDENSED2))
-		options.condensed = 1;
-	else if (s)
+		options->condensed = 1;
+	else if (currarg(argparser))
 	{
-		printf("ERROR: Bad switch: %s\n", s);
-		WAD_Close(options.wad);
+		fprintf(stderr, "ERROR: Bad switch: %s\n", currarg(argparser));
 		return ERRORINFO_BAD_SWITCH;
+	}
+}
+
+static int call(arg_parser_t *argparser)
+{
+	wadtool_options_info_t options = {NULL, NULL, 0};
+
+	int err;
+	if (err = parse_file(argparser, &options)) // the single equals is intentional.
+	{
+		return err;
+	}
+	if (err = parse_switches(argparser, &options)) // the single equals is intentional.
+	{
+		WAD_Close(options.wad);
+		return err;
 	}
 
 	int ret = exec(&options);
