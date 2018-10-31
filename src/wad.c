@@ -25,10 +25,10 @@
 #define WADTOOL_COUNT 5
 wadtool_t* WADTOOLS_ALL[WADTOOL_COUNT] = {
 	&WADTOOL_Create,
+	&WADTOOL_Dump,
 	&WADTOOL_Info,
 	&WADTOOL_List,
 	&WADTOOL_Search,
-	&WADTOOL_Dump,
 };
 
 // ================== Command Names ====================
