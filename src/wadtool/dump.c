@@ -6,6 +6,11 @@
  * http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
  *****************************************************************************/
 
+#ifdef _WIN32
+#include <fcntl.h>
+#include <io.h>
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -140,17 +145,22 @@ static int exec(wadtool_options_dump_t *options)
 		return ERRORDUMP_STREAM_ERROR;
 	}
 
-	// FIXME: Not quite right. Off by a few bytes for some reason.
+#ifdef _WIN32
+	_setmode(_fileno(stdout), _O_BINARY);
+#endif
 
 	int b;
 	unsigned char buf[8192];
-	while (b = STREAM_Read(stream, buf, 1, 8192))
+	while ((b = STREAM_Read(stream, buf, 1, 8192)) > 0)
+	{
 		if (fwrite(buf, 1, b, stdout) != b)
 		{
 			STREAM_Close(stream);
 			fprintf(stderr, "ERROR: Could not write to STDOUT.\n");
 			return ERRORDUMP_STREAM_ERROR;
 		}
+		fflush(stdout);
+	}
 
 	return ERRORDUMP_NONE;
 }
