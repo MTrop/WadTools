@@ -17,6 +17,8 @@ wad dump
 
 wad shift
     Shifts/reorders a set of entries around a WAD file.
+wad swap
+    Swaps the position of two entries in a WAD file.
 wad rename
     Renames a WAD entry.
 

@@ -21,14 +21,16 @@
 #include "wadtool/list.h"
 #include "wadtool/search.h"
 #include "wadtool/dump.h"
+#include "wadtool/shift.h"
 
-#define WADTOOL_COUNT 5
+#define WADTOOL_COUNT 6
 wadtool_t* WADTOOLS_ALL[WADTOOL_COUNT] = {
 	&WADTOOL_Create,
 	&WADTOOL_Dump,
 	&WADTOOL_Info,
 	&WADTOOL_List,
 	&WADTOOL_Search,
+	&WADTOOL_Shift,
 };
 
 // ================== Command Names ====================
@@ -40,6 +42,7 @@ wadtool_t* WADTOOLS_ALL[WADTOOL_COUNT] = {
 #define COMMAND_LIST "list"
 #define COMMAND_SEARCH "search"
 #define COMMAND_DUMP "dump"
+#define COMMAND_SHIFT "shift"
 
 // =====================================================
 
@@ -54,7 +57,6 @@ static void print_usage()
 static void print_help()
 {
 	int i;
-	printf("\n");
 	printf("Available commands:");
 	printf("\n");
 	for (i = 0; i < WADTOOL_COUNT; i++)
@@ -92,6 +94,8 @@ static wadtool_t* parse_tool(arg_parser_t *argparser)
 		return &WADTOOL_Search;
 	else if (matcharg(argparser, COMMAND_DUMP))
 		return &WADTOOL_Dump;
+	else if (matcharg(argparser, COMMAND_SHIFT))
+		return &WADTOOL_Shift;
 	else
 		return &DEFAULT_TOOL;
 }
