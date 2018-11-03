@@ -42,7 +42,7 @@ void print_wad(wad_t *wad)
 	int i = 0;
 	printf("---- Name     Size     Offset\n");
 	while (entry = WAD_IteratorNext(iter))
-		printf("%04d %-.8s %-8d %-9d\n", i++, entry->name, entry->length, entry->offset);
+		printf("%04d %-8.8s %-8d %-9d\n", i++, entry->name, entry->length, entry->offset);
 	printf("Count %d\n", wad->header.entry_count);
 	printf("Capacity %d\n", wad->entries_capacity);
 	WAD_IteratorClose(iter);
@@ -61,7 +61,7 @@ void print_wad2(wad_t *wad)
 	for (i = 0; i < wad->entries_capacity; i++)
 	{
 		entry = wad->entries[i];
-		printf("%04d %08x %-.8s %-8d %-9d\n", i, entry, entry->name, entry->length, entry->offset);
+		printf("%04d %08x %-8.8s %-8d %-9d\n", i, entry, entry->name, entry->length, entry->offset);
 	}
 	printf("Count %d\n", wad->header.entry_count);
 	printf("Capacity %d\n", wad->entries_capacity);
@@ -119,11 +119,11 @@ int main(int argc, char** argv)
 
 	WAD_RemoveEntryAt(wad, 3);
 	print_error();
-	print_wad2(wad);
+	print_wad(wad);
 
 	WAD_RemoveEntryAt(wad, 7);
 	print_error();
-	print_wad2(wad);
+	print_wad(wad);
 	
 	fclose(f1);
 	fclose(f2);
@@ -131,11 +131,11 @@ int main(int argc, char** argv)
 	int x[3] = {0, 3, 4};
 	WAD_RemoveEntriesAt(wad, x, 3);
 	print_error();
-	print_wad2(wad);
+	print_wad(wad);
 
 	WAD_RemoveEntryRange(wad, 1, 3);
 	print_error();
-	print_wad2(wad);
+	print_wad(wad);
 	
 	WAD_Close(wad);
 	return 0;

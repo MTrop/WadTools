@@ -24,6 +24,7 @@ REM ==============================================================
 set BUILDDIR=.\build
 set DISTDIR=.\dist
 set SRCDIR=.\src
+set TESTSRCDIR=.\testsrc
 REM ==============================================================
 
 
@@ -31,17 +32,26 @@ REM ==============================================================
 REM ===== Check Args
 REM ==============================================================
 
+:__checkargs
 if "%1"=="clean" goto _clean
 if "%1"=="packageall" goto _buildpackageall
 if "%1"=="package" goto _buildpackage
+if "%1"=="test" goto __checktest
 if "%1"=="incr" goto _buildfileincr
 if "%1"=="all" goto _buildall
 if exist "%SRCDIR%\%1.c" goto _buildfile
+goto __helpme
+
+:__checktest
+if "%2"=="incr" goto _buildtestincr
+if exist "%TESTSRCDIR%\%2.c" goto _buildtest
 
 :__helpme
 echo build clean 
 echo build packageall 
 echo build package [packagename] 
+echo build test incr [filename] 
+echo build test [filename]
 echo build incr [filename] 
 echo build [filename]
 goto _end
@@ -92,7 +102,7 @@ set DEBUGSWITCHES=-g
 set MAINFILE=%MAINFILEOPT%
 :_notdebug
 
-for %%F in ("%SRCDIR%\%MAINFILE%.c") do (
+for %%F in ("%MAINFILEDIR%\%MAINFILE%.c") do (
 	echo %%F > "%BUILDDIR%\%MAINFILE%.args"
 	echo -o >> "%BUILDDIR%\%MAINFILE%.args"
 	echo "%DISTDIR%\%%~nF.exe" >> "%BUILDDIR%\%MAINFILE%.args"
@@ -137,6 +147,7 @@ goto _end
 
 :_buildfileincr
 call :__mkdist
+set MAINFILEDIR=%SRCDIR%
 set MAINFILE=%2
 set MAINFILEOPT=%3
 call :__compilefile
@@ -146,7 +157,27 @@ goto _end
 :_buildfile
 call :_buildpackageall
 call :__mkdist
+set MAINFILEDIR=%SRCDIR%
 set MAINFILE=%1
+set MAINFILEOPT=%2
+call :__compilefile
+goto _end
+
+:_buildtestincr
+call :__mkdist
+set MAINFILEDIR=%TESTSRCDIR%
+set MAINFILE=%3
+set MAINFILEOPT=%4
+call :__compilefile
+goto _end
+
+
+:_buildtest
+call :_buildpackageall
+call :__mkdist
+set MAINFILEDIR=%TESTSRCDIR%
+set MAINFILE=%2
+set MAINFILEOPT=%3
 call :__compilefile
 goto _end
 

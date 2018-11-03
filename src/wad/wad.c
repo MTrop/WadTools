@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include <errno.h>
 #include "wad_config.h"
 #include "wad.h"
@@ -232,14 +233,9 @@ static int WAD_EntryNameCopy(const char *src, char *dest)
 		if (!c)
 			break;
 		
+		// upper-case the letter.
 		if (c > 0x20 && c < 0x7F)
-		{
-			// upper-case the letter.
-			if (c >= 'a' && c <= 'z')
-				dest[i] = c & (~0x20);
-			else
-				dest[i] = c;
-		}
+			dest[i] = toupper(c);
 		else
 			dest[i] = '_';
 		
@@ -250,7 +246,7 @@ static int WAD_EntryNameCopy(const char *src, char *dest)
 }
 
 // Adds an entry.
-static wadentry_t* WAD_AddEntryCommon(wad_t *wad, const char *name, int32_t length, uint32_t offset, int index)
+static wadentry_t* WAD_AddEntryCommon(wad_t *wad, const char *name, int32_t length, int32_t offset, int index)
 {
 	index = min(wad->header.entry_count, index);
 	
@@ -267,7 +263,10 @@ static wadentry_t* WAD_AddEntryCommon(wad_t *wad, const char *name, int32_t leng
 		i--;
 	}
 
-	swap->name[WAD_EntryNameCopy(name, swap->name)] = 0;
+	int x = WAD_EntryNameCopy(name, swap->name);
+	// null-terminate if not filled (important!)
+	if (x < 8)
+		swap->name[x] = '\0';
 	swap->length = length;
 	swap->offset = offset;
 
@@ -298,8 +297,8 @@ static int entrycmpr(const void *a, const void *b)
 {
 	wadentry_t *x = *(wadentry_t**)a;
 	wadentry_t *y = *(wadentry_t**)b;
-	int i = x->length && !x->name[0] < 0 ? 1 : 0;
-	int j = y->length && !y->name[0] < 0 ? 1 : 0;
+	int i = x->length < 0 && !x->name[0] ? 1 : 0;
+	int j = y->length < 0 && !y->name[0] ? 1 : 0;
 	return i - j;
 }
 
@@ -1575,6 +1574,65 @@ wadentry_t* WAD_AddEntryDataAt(wad_t *wad, const char *name, int index, FILE *st
 	}
 
 	return out;
+}
+
+// ---------------------------------------------------------------
+// wadentry_t* WAD_AddExplicitEntry(wad_t *wad, const char *name, size_t length, int offset)
+// See wad.h
+// ---------------------------------------------------------------
+wadentry_t* WAD_AddExplicitEntry(wad_t *wad, const char *name, size_t length, int offset)
+{
+	return WAD_AddExplicitEntryAt(wad, name, wad->header.entry_count, length, offset);
+}
+
+// ---------------------------------------------------------------
+// wadentry_t* WAD_AddExplicitEntryAt(wad_t *wad, const char *name, int index, size_t length, int offset)
+// See wad.h
+// ---------------------------------------------------------------
+wadentry_t* WAD_AddExplicitEntryAt(wad_t *wad, const char *name, int index, size_t length, int offset)
+{
+	// Reset error state.
+	waderrno = WADERROR_NO_ERROR;
+	errno = 0;
+
+	if (wad == NULL)
+	{
+		waderrno = WADERROR_WAD_INVALID;
+		return NULL;
+	}
+
+	wadentry_t *entry;
+	if (!(entry = WAD_AddEntryCommon(wad, name, length, offset, index)))
+	{
+		waderrno = WADERROR_OUT_OF_MEMORY;
+		return NULL;
+	}
+	
+	if ((WI_FUNC(wad, commit_entries))(wad))
+	{
+		waderrno = WADERROR_CANNOT_COMMIT;
+		return NULL;
+	}
+
+	return entry;
+}
+
+// ---------------------------------------------------------------
+// wadentry_t* WAD_AddMarkerEntry(wad_t *wad, const char *name)
+// See wad.h
+// ---------------------------------------------------------------
+wadentry_t* WAD_AddMarkerEntry(wad_t *wad, const char *name)
+{
+	return WAD_AddExplicitEntry(wad, name, 0, 0);
+}
+
+// ---------------------------------------------------------------
+// wadentry_t* WAD_AddMarkerEntryAt(wad_t *wad, const char *name, int index)
+// See wad.h
+// ---------------------------------------------------------------
+wadentry_t* WAD_AddMarkerEntryAt(wad_t *wad, const char *name, int index)
+{
+	return WAD_AddExplicitEntryAt(wad, name, index, 0, 0);
 }
 
 // ---------------------------------------------------------------
