@@ -168,37 +168,6 @@ wad_t* WAD_CreateBufferInit(int size);
 #define WAD_EntryCount(w) ((int)((w)->header.entry_count))
 
 /**
- * Creates a WAD iterator.
- * NOTE: Must have WAD_IteratorNext called on it to get the first entry!
- * @param wad the pointer to the open WAD.
- * @param start the starting index into the entry list.
- * @return the amount of entries or -1 on error.
- */
-waditerator_t* WAD_IteratorCreate(wad_t *wad, int start);
-
-/**
- * Resets a WAD iterator.
- * NOTE: Must have WAD_IteratorNext called on it to get the first entry!
- * @param iter pointer to the iterator.
- * @param start the starting index into the entry list.
- * @return the amount of entries or -1 on error.
- */
-void WAD_IteratorReset(waditerator_t *iter, int start);
-
-/**
- * Advances a WAD iterator to the next entry.
- * @param iter pointer to the iterator.
- * @return a pointer to the next entry.
- */
-wadentry_t* WAD_IteratorNext(waditerator_t *iter);
-
-/**
- * Frees a WAD iterator.
- * @param iter pointer to the iterator.
- */
-void WAD_IteratorClose(waditerator_t *iter);
-
-/**
  * Commits changes to WAD entries that would not ordinarily be
  * detected by other functions that manipulate entries.
  * Most WAD_* functions call this - you only need to call this
@@ -454,7 +423,7 @@ int WAD_RemoveEntryAt(wad_t *wad, int index);
 
 /**
  * Removes an entry from the WAD (but not its content).
- * The entries remaining are shifted up into their new positions to fill the gaps.
+ * The remaining entries are shifted up into their new positions to fill the gaps.
  * @param wad the pointer to the open WAD.
  * @param indices the array of indices to remove.
  * @param count the length of the array.
@@ -464,13 +433,43 @@ int WAD_RemoveEntriesAt(wad_t *wad, int *indices, int count);
 
 /**
  * Removes a set of entries from the WAD (but not their contents).
- * The entries remaining are shifted up into their new positions to fill the gaps.
+ * The remaining entries are shifted up into their new positions to fill the gaps.
  * @param wad the pointer to the open WAD.
  * @param start the starting index (0-based, inclusive) to remove entries from.
- * @param end the ending index (0-based, exclusive) to remove entries from.
+ * @param count the amount of entries to remove from the start.
  * @return 0 if successful, nonzero if not.
  */
-int WAD_RemoveEntryRange(wad_t *wad, int start, int end);
+int WAD_RemoveEntryRange(wad_t *wad, int start, int count);
+
+/**
+ * Swaps the index of an entry with an entry at another index.
+ * @param wad the pointer to the open WAD.
+ * @param a the first index (0-based, inclusive).
+ * @param b the second index (0-based, inclusive).
+ * @return 0 if successful, nonzero if not (indexes are out of bounds).
+ */
+int WAD_SwapEntry(wad_t *wad, int a, int b);
+
+/**
+ * Moves an entry to another index.
+ * The entry that would be overwritten at the destination is instead displaced to after the destination.
+ * @param wad the pointer to the open WAD.
+ * @param start the starting index (0-based, inclusive) to remove entries from.
+ * @param destination the destination index (0-based, inclusive).
+ * @return 0 if successful, nonzero if not (indexes are out of bounds).
+ */
+int WAD_ShiftEntry(wad_t *wad, int start, int destination);
+
+/**
+ * Moves a set of entries to another index.
+ * The entries that would be overwritten at the destination are instead displaced later in the WAD right after the moved entries.
+ * @param wad the pointer to the open WAD.
+ * @param start the starting index (0-based, inclusive) to remove entries from.
+ * @param count the amount of entries to move from the start.
+ * @param destination the destination index (0-based, inclusive).
+ * @return 0 if successful, nonzero if not (indexes are out of bounds).
+ */
+int WAD_ShiftEntries(wad_t *wad, int start, int count, int destination);
 
 /**
  * Gets the content of an entry from a WAD.
@@ -502,5 +501,36 @@ int WAD_ReadEntryData(wad_t *wad, wadentry_t *entry, void *destination, size_t s
  * @return 0 if closed properly and wad was freed, nonzero on error.
  */
 int WAD_Close(wad_t *wad);
+
+/**
+ * Creates a WAD iterator.
+ * NOTE: Must have WAD_IteratorNext called on it to get the first entry!
+ * @param wad the pointer to the open WAD.
+ * @param start the starting index into the entry list.
+ * @return the amount of entries or -1 on error.
+ */
+waditerator_t* WAD_IteratorCreate(wad_t *wad, int start);
+
+/**
+ * Resets a WAD iterator.
+ * NOTE: Must have WAD_IteratorNext called on it to get the first entry!
+ * @param iter pointer to the iterator.
+ * @param start the starting index into the entry list.
+ * @return the amount of entries or -1 on error.
+ */
+void WAD_IteratorReset(waditerator_t *iter, int start);
+
+/**
+ * Advances a WAD iterator to the next entry.
+ * @param iter pointer to the iterator.
+ * @return a pointer to the next entry.
+ */
+wadentry_t* WAD_IteratorNext(waditerator_t *iter);
+
+/**
+ * Frees a WAD iterator.
+ * @param iter pointer to the iterator.
+ */
+void WAD_IteratorClose(waditerator_t *iter);
 
 #endif

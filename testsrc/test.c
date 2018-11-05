@@ -83,7 +83,7 @@ void print_error()
 int main(int argc, char** argv)
 {
 	//wad_t* wad = WAD_Create("TEST.wad");
-	wad_t* wad = WAD_CreateBuffer();
+	wad_t* wad = WAD_Create("butt.wad");
 	
 	if (!wad)
 	{
@@ -133,10 +133,27 @@ int main(int argc, char** argv)
 	print_error();
 	print_wad(wad);
 
-	WAD_RemoveEntryRange(wad, 1, 3);
+	WAD_RemoveEntryRange(wad, 1, 2);
 	print_error();
 	print_wad(wad);
-	
+
+	WAD_AddExplicitEntry(wad, "ADD1", 20, 12);
+	print_error();
+	print_wad(wad);
+
+	WAD_AddExplicitEntryAt(wad, "ADD2", 2, 20, 32);
+	print_error();
+	print_wad(wad);
+
+	WAD_AddMarkerEntryAt(wad, "F_START", 0);
+	print_error();
+	print_wad(wad);
+
+	WAD_AddMarkerEntry(wad, "F_END");
+	print_error();
+	print_wad(wad);
+
+
 	WAD_Close(wad);
 	return 0;
 }
