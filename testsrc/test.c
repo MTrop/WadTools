@@ -153,6 +153,31 @@ int main(int argc, char** argv)
 	print_error();
 	print_wad(wad);
 
+	WAD_SwapEntry(wad, 0, 1);
+	print_error();
+	print_wad(wad);
+
+	WAD_ShiftEntry(wad, 2, 1);
+	print_error();
+	print_wad(wad);
+
+	WAD_ShiftEntry(wad, 1, 2);
+	print_error();
+	print_wad(wad);
+
+	WAD_ShiftEntries(wad, 1, 3, 3);
+	print_error();
+	print_wad(wad);
+
+	WAD_ShiftEntries(wad, 4, 2, 0);
+	print_error();
+	print_wad(wad);
+
+	WAD_SwapEntry(wad, 5, 4);
+	print_error();
+	print_wad(wad);
+
+	printf("asdfasdf\n");
 
 	WAD_Close(wad);
 	return 0;

@@ -355,6 +355,9 @@ static int WAD_SwapEntryCommon(wad_t *wad, int a, int b)
 		return 1;
 	}
 
+	if (a == b)
+		return 0;
+
 	wadentry_t *temp = wad->entries[a];
 	wad->entries[a] = wad->entries[b];
 	wad->entries[b] = temp;
@@ -376,21 +379,38 @@ static int WAD_ShiftEntryCommon(wad_t *wad, int source, int count, int destinati
 		return 1;
 	}
 
+	if (source == destination)
+		return 0;
+
 	// Adjust count from source, if necessary.
-	if (source + count >= wad->header.entry_count)
+	if (source + count > wad->header.entry_count)
 		count = wad->header.entry_count - source;
 
-	if (destination + count < 0 || destination + count >= wad->header.entry_count)
+	if (destination + count < 0 || destination + count > wad->header.entry_count)
 	{
 		waderrno = WADERROR_INDEX_OUT_OF_RANGE;
 		return 1;
 	}
 
-	int start = min(source, destination);
-	int end = max(source + count, destination + count);
 	size_t size = sizeof(wadentry_t*) * count;
-	size_t totalsize = sizeof(wadentry_t*) * (end - start);
-	// TODO: Finish this.
+	wadentry_t **copy = (wadentry_t**)WAD_MALLOC(size);
+	memcpy(copy, &(wad->entries[source]), size);
+
+	if (destination < source)
+	{
+		int destcount = source - destination;
+		size_t destsize = sizeof(wadentry_t*) * destcount;
+		memmove(&(wad->entries[destination + count]), &(wad->entries[destination]), destsize);
+	}
+	else // destination > source
+	{
+		int destcount = (destination + count) - (source + count);
+		size_t destsize = sizeof(wadentry_t*) * destcount;
+		memmove(&(wad->entries[source]), &(wad->entries[source + count]), destsize);
+	}
+
+	memcpy(&(wad->entries[destination]), copy, size);
+	WAD_FREE(copy);
 	return 0;
 }
 

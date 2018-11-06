@@ -109,7 +109,7 @@ static void help()
 	// TODO: Finish this.
 }
 
-wadtool_t WADTOOL_Template = {
+wadtool_t WADTOOL_Shift = {
 	"shift",
 	"Shifts the order of one or more entries.",
 	&call,
