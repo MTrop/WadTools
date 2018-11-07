@@ -17,6 +17,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include "wadtool.h"
+#include "common.h"
 #include "wad/wad.h"
 #include "wad/waderrno.h"
 #include "wadio/wadstream.h"
@@ -36,18 +37,12 @@ extern int waderrno;
 #define SWITCH_INDEX2				"--index"
 #define SWITCH_NAME					"-n"
 #define SWITCH_NAME2				"--name"
+#define SWITCH_STARTFROM			"-s"
+#define SWITCH_STARTFROM2			"--start"
 #define SWITCH_STARTFROMINDEX		"-si"
-#define SWITCH_STARTFROMINDEX2		"--start-from-index"
+#define SWITCH_STARTFROMINDEX2		"--start-index"
 #define SWITCH_STARTFROMNAME		"-sn"
-#define SWITCH_STARTFROMNAME2		"--start-from-name"
-
-typedef enum
-{
-	ET_DETECT,
-	ET_INDEX,
-	ET_NAME,
-
-} entrytype_t;
+#define SWITCH_STARTFROMNAME2		"--start-name"
 
 typedef struct
 {
@@ -86,7 +81,7 @@ static int exec(wadtool_options_dump_t *options)
 		default:
 		case ET_DETECT:
 		{
-			if (!(start = atoi(options->startfrom)) && (start = WAD_GetEntryIndex(options->wad, options->startfrom)) < 0)
+			if (!(start = atoi(options->startfrom)) && strcmp(options->criteria, "0") != 0 && (start = WAD_GetEntryIndex(options->wad, options->startfrom)) < 0)
 				start = 0;
 		}
 		break;
@@ -114,7 +109,7 @@ static int exec(wadtool_options_dump_t *options)
 		default:
 		case ET_DETECT:
 		{
-			if (!(index = atoi(options->criteria)) && (index = WAD_GetEntryIndexOffset(options->wad, options->criteria, start)) < 0)
+			if (!(index = atoi(options->criteria)) && strcmp(options->criteria, "0") != 0 && (index = WAD_GetEntryIndexOffset(options->wad, options->criteria, start)) < 0)
 				index = -1;
 		}
 		break;
@@ -180,6 +175,11 @@ static int parse_switches(arg_parser_t *argparser, wadtool_options_dump_t *optio
 				options->criteria_entrytype = ET_INDEX;
 			else if (matcharg(argparser, SWITCH_NAME) || matcharg(argparser, SWITCH_NAME2))
 				options->criteria_entrytype = ET_NAME;
+			else if (matcharg(argparser, SWITCH_STARTFROM) || matcharg(argparser, SWITCH_STARTFROM))
+			{
+				options->startfrom_entrytype = ET_DETECT;
+				state = SWITCHSTATE_STARTFROM;
+			}
 			else if (matcharg(argparser, SWITCH_STARTFROMINDEX) || matcharg(argparser, SWITCH_STARTFROMINDEX2))
 			{
 				options->startfrom_entrytype = ET_INDEX;
@@ -294,11 +294,14 @@ static void help()
 	printf("\n");
 	printf("    Search:\n");
 	printf("\n");
+	printf("        --start x           Starts the lookup from entry or index `x`.\n");
+	printf("        -s x\n");
+	printf("\n");
 	printf("        --start-index x     Starts the lookup from index `x`.\n");
-	printf("        -si\n");
+	printf("        -si x\n");
 	printf("\n");
 	printf("        --start-name x      Starts the lookup from the first entry called `x`.\n");
-	printf("        -sn\n");
+	printf("        -sn x\n");
 }
 
 wadtool_t WADTOOL_Dump = {

@@ -22,8 +22,9 @@
 #include "wadtool/search.h"
 #include "wadtool/dump.h"
 #include "wadtool/shift.h"
+#include "wadtool/swap.h"
 
-#define WADTOOL_COUNT 6
+#define WADTOOL_COUNT 7
 wadtool_t* WADTOOLS_ALL[WADTOOL_COUNT] = {
 	&WADTOOL_Create,
 	&WADTOOL_Dump,
@@ -31,18 +32,20 @@ wadtool_t* WADTOOLS_ALL[WADTOOL_COUNT] = {
 	&WADTOOL_List,
 	&WADTOOL_Search,
 	&WADTOOL_Shift,
+	&WADTOOL_Swap,
 };
 
 // ================== Command Names ====================
 
-#define COMMAND_HELP "help"
-#define COMMAND_ALL "all"
-#define COMMAND_CREATE "create"
-#define COMMAND_INFO "info"
-#define COMMAND_LIST "list"
-#define COMMAND_SEARCH "search"
-#define COMMAND_DUMP "dump"
-#define COMMAND_SHIFT "shift"
+#define COMMAND_HELP 	"help"
+#define COMMAND_ALL 	"all"
+#define COMMAND_CREATE	"create"
+#define COMMAND_INFO 	"info"
+#define COMMAND_LIST 	"list"
+#define COMMAND_SEARCH 	"search"
+#define COMMAND_DUMP 	"dump"
+#define COMMAND_SHIFT 	"shift"
+#define COMMAND_SWAP 	"swap"
 
 // =====================================================
 
@@ -96,6 +99,8 @@ static wadtool_t* parse_tool(arg_parser_t *argparser)
 		return &WADTOOL_Dump;
 	else if (matcharg(argparser, COMMAND_SHIFT))
 		return &WADTOOL_Shift;
+	else if (matcharg(argparser, COMMAND_SWAP))
+		return &WADTOOL_Swap;
 	else
 		return &DEFAULT_TOOL;
 }

@@ -6,8 +6,6 @@
  * http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
  *****************************************************************************/
 
-#if 0 // Remove this.
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -19,9 +17,9 @@
 extern int errno;
 extern int waderrno;
 
-#define ERRORTEMPLATE_NONE        0
-#define ERRORTEMPLATE_NO_FILENAME 1
-#define ERRORTEMPLATE_WAD_ERROR   10
+#define ERRORSWAP_NONE        0
+#define ERRORSWAP_NO_FILENAME 1
+#define ERRORSWAP_WAD_ERROR   10
 
 typedef struct
 {
@@ -46,15 +44,11 @@ static int parse_file(arg_parser_t *argparser, wadtool_options_template_t *optio
 	if (!options->filename)
 	{
 		fprintf(stderr, "ERROR: No WAD file.\n");
-		return ERRORTEMPLATE_NO_FILENAME;
+		return ERRORSWAP_NO_FILENAME;
 	}
 
-	// Open a shallow mapping.
-	options->wad = WAD_OpenMap(options->filename);
 	// Open a file.
 	options->wad = WAD_Open(options->filename);
-	// Open a buffer from a file.
-	options->wad = WAD_OpenBuffer(options->filename);
 
 	if (!options->wad)
 	{
@@ -62,13 +56,14 @@ static int parse_file(arg_parser_t *argparser, wadtool_options_template_t *optio
 			fprintf(stderr, "ERROR: %s %s\n", strwaderror(waderrno), strerror(errno));
 		else
 			fprintf(stderr, "ERROR: %s\n", strwaderror(waderrno));
-		return ERRORTEMPLATE_WAD_ERROR + waderrno;
+		return ERRORSWAP_WAD_ERROR + waderrno;
 	}
 	nextarg(argparser);
 	return 0;
 }
 
 #define SWITCHSTATE_INIT		0
+
 
 // If nonzero, bad parse.
 static int parse_switches(arg_parser_t *argparser, wadtool_options_template_t *options)
@@ -99,21 +94,25 @@ static int call(arg_parser_t *argparser)
 
 static void usage()
 {
-	// TODO: Finish this.
-	printf("Usage: wad template\n");
+	printf("Usage: wad swap [filename] [source] [destination]\n");
 }
 
 static void help()
 {
-	// TODO: Finish this.
+	printf("[filename]: \n");
+	printf("    The name of the WAD file to swap entries in.\n");
+	printf("\n");
+	printf("[source]: \n");
+	printf("    The source entry index or name.\n");
+	printf("\n");
+	printf("[destination]: \n");
+	printf("    The destination entry index or name.\n");
 }
 
-wadtool_t WADTOOL_Template = {
-	"name",
-	"Description",
+wadtool_t WADTOOL_Swap = {
+	"swap",
+	"Swaps the placement of two entries.",
 	&call,
 	&usage,
 	&help,
 };
-
-#endif // Remove this
