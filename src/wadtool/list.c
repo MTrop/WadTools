@@ -243,6 +243,9 @@ static int call(arg_parser_t *argparser)
 	{
 		return err;
 	}
+
+	options.range_count = WAD_EntryCount(options.wad);
+
 	if (err = parse_switches(argparser, &options)) // the single equals is intentional.
 	{
 		WAD_Close(options.wad);

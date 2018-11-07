@@ -17,9 +17,13 @@
 extern int errno;
 extern int waderrno;
 
-#define ERRORTEMPLATE_NONE        0
-#define ERRORTEMPLATE_NO_FILENAME 1
-#define ERRORTEMPLATE_WAD_ERROR   10
+#define ERRORSHIFT_NONE        		0
+#define ERRORSHIFT_NO_FILENAME 		1
+#define ERRORSHIFT_NO_SOURCE 		2
+#define ERRORSHIFT_NO_DESTINATION 	3
+#define ERRORSHIFT_BAD_COUNT 		4
+#define ERRORSHIFT_BAD_INDEX 		5
+#define ERRORSHIFT_WAD_ERROR   		10
 
 typedef struct
 {
@@ -28,8 +32,8 @@ typedef struct
 	/** The WAD to use. */
 	wad_t *wad;
 
-	/** Start index. */
-	int start;
+	/** Source index. */
+	int source;
 	/** Entry count. */
 	int count;
 	/** Destination index. */
@@ -40,8 +44,54 @@ typedef struct
 
 static int exec(wadtool_options_shift_t *options)
 {
-	printf("ERROR: NOT SUPPORTED YET!\n");
-	return -1;
+	wad_t *wad = options->wad;
+
+	if (options->source < 0 || options->source + options->count > WAD_EntryCount(wad))
+	{
+		fprintf(stderr, "ERROR: Source or source + count is out of index range.\n");
+		return ERRORSHIFT_BAD_INDEX;
+	}
+
+	if (options->destination < 0 || options->destination + options->count > WAD_EntryCount(wad))
+	{
+		fprintf(stderr, "ERROR: Destination or destination + count is out of index range.\n");
+		return ERRORSHIFT_BAD_INDEX;
+	}
+
+	if (options->count <= 0)
+	{
+		fprintf(stderr, "ERROR: Bad count. Must be greater than 0.\n");
+		return ERRORSHIFT_BAD_COUNT;
+	}
+
+	if (WAD_ShiftEntries(wad, options->source, options->count, options->destination))
+	{
+		if (waderrno == WADERROR_FILE_ERROR)
+			fprintf(stderr, "ERROR: %s %s\n", strwaderror(waderrno), strerror(errno));
+		else
+			fprintf(stderr, "ERROR: %s\n", strwaderror(waderrno));
+		return ERRORSHIFT_WAD_ERROR + waderrno;
+	}
+
+	if (options->count == 1)
+	{
+		printf("Shifted entry %d in %s to index %d.\n", 
+			options->source, 
+			options->filename,
+			options->destination
+		);
+	}
+	else
+	{
+		printf("Shifted entries %d to %d in %s to index %d.\n", 
+			options->source, 
+			options->source + options->count - 1,
+			options->filename,
+			options->destination
+		);
+	}
+
+	return ERRORSHIFT_NONE;
 }
 
 // If nonzero, bad parse.
@@ -51,7 +101,7 @@ static int parse_file(arg_parser_t *argparser, wadtool_options_shift_t *options)
 	if (!options->filename)
 	{
 		fprintf(stderr, "ERROR: No WAD file.\n");
-		return ERRORTEMPLATE_NO_FILENAME;
+		return ERRORSHIFT_NO_FILENAME;
 	}
 
 	// Open a file.
@@ -63,7 +113,7 @@ static int parse_file(arg_parser_t *argparser, wadtool_options_shift_t *options)
 			fprintf(stderr, "ERROR: %s %s\n", strwaderror(waderrno), strerror(errno));
 		else
 			fprintf(stderr, "ERROR: %s\n", strwaderror(waderrno));
-		return ERRORTEMPLATE_WAD_ERROR + waderrno;
+		return ERRORSHIFT_WAD_ERROR + waderrno;
 	}
 	nextarg(argparser);
 	return 0;
@@ -72,8 +122,26 @@ static int parse_file(arg_parser_t *argparser, wadtool_options_shift_t *options)
 // If nonzero, bad parse.
 static int parse_parameters(arg_parser_t *argparser, wadtool_options_shift_t *options)
 {
-	// TODO: Finish this.
-	return -1;
+	if (!currarg(argparser))
+	{
+		fprintf(stderr, "ERROR: Expected source index.\n");
+		return ERRORSHIFT_NO_SOURCE;
+	}
+	
+	options->source = atoi(takearg(argparser));
+
+	if (!currarg(argparser))
+	{
+		fprintf(stderr, "ERROR: Expected destination index.\n");
+		return ERRORSHIFT_NO_DESTINATION;
+	}
+
+	options->destination = atoi(takearg(argparser));
+
+	if (currarg(argparser))
+		options->count = atoi(takearg(argparser));
+
+	return 0;
 }
 
 static int call(arg_parser_t *argparser)
