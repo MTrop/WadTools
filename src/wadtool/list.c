@@ -44,7 +44,7 @@ typedef struct
 	/** Range start. */
 	int range_start;
 	/** Range end. */
-	int range_end;
+	int range_count;
 
 	/** Reverse output. */
 	int reverse;
@@ -56,25 +56,22 @@ typedef struct
 static int exec(wadtool_options_list_t *options)
 {
 	wad_t *wad = options->wad;
-	int start, end, len;
+	int start, len;
 	start = options->range_start;
-	if (options->range_end <= 0 || options->range_end > WAD_EntryCount(wad))
-		end = WAD_EntryCount(wad);
-	else
-		end = options->range_end;
+	len = options->range_count;
+	if (start < 0 || start + len > WAD_EntryCount(wad))
+		len = WAD_EntryCount(wad) - start;
 	
-	if (end <= start)
+	if (!len)
 	{
 		printf("No entries.\n");
 		return ERRORLIST_NONE;
 	}
 
-	len = end - start;
 	int i;
-
 	int count = 0;
 	listentry_t *entrydata = (listentry_t*)WAD_MALLOC(sizeof(listentry_t) * len);
-	for (i = start; i < end; i++)
+	for (i = start; i < start + len; i++)
 	{
 		entrydata[count].index = i;
 		entrydata[count].entry = wad->entries[i];
@@ -84,7 +81,7 @@ static int exec(wadtool_options_list_t *options)
 	qsort(entries, len, sizeof(listentry_t*), options->sortfunc);
 
 	if (!options->no_header && !options->inline_header)
-		printf("Entries in %s, %d to %d\n", options->filename, start, end - 1);
+		printf("Entries in %s, %d to %d\n", options->filename, start, start + len - 1);
 
 	listentries_print(entries, count, count, options->listflags, options->no_header, options->inline_header, options->reverse);
 
@@ -185,7 +182,7 @@ static int parse_switches(arg_parser_t *argparser, wadtool_options_list_t *optio
 			{
 				int i = atoi(currarg(argparser));
 				nextarg(argparser);
-				options->range_end = i;
+				options->range_count = i;
 				state = SWITCHSTATE_INIT;
 			}
 		}
@@ -297,9 +294,9 @@ static void help()
 	printf("\n");
 	printf("    Filters:\n");
 	printf("\n");
-	printf("        --range x y         Only selects from the entries from index x to y,\n");
-	printf("        -r x y              inclusive-exclusive (for example, `--range 0 20`\n");
-	printf("                            means index 0 up to 19). If `y` is not specified,\n");
+	printf("        --range x c         Only selects from the entries from index x,\n");
+	printf("        -r x c              c entries (for example, `--range 0 20` means index\n");
+	printf("                            0 up to 19, 20 entries). If `c` is not specified,\n");
 	printf("                            assumes end of entry list.\n");
 	printf("\n");
 	printf("    Other:\n");

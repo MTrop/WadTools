@@ -132,10 +132,11 @@ int main(int argc, char **argv)
 			for (i = 0; i < WADTOOL_COUNT; i++)
 			{
 				wadtool_t* tool = WADTOOLS_ALL[i];
-				printf("--------------------------------\n");
+				printf("-------------------------------------------------------------------------------\n");
 				printf("--- %s\n", tool->name);
-				printf("--------------------------------\n");
+				printf("-------------------------------------------------------------------------------\n");
 				print_tool_help(tool);
+				printf("\n");
 			}
 			return 0;
 		}

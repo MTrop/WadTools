@@ -28,11 +28,11 @@ typedef struct
 	/** The WAD to use. */
 	wad_t *wad;
 
-	/** Entry start. */
+	/** Start index. */
 	int start;
-	/** Entry end. */
-	int end;
-	/** DEstination index. */
+	/** Entry count. */
+	int count;
+	/** Destination index. */
 	int destination;
 
 } wadtool_options_shift_t;
@@ -69,25 +69,23 @@ static int parse_file(arg_parser_t *argparser, wadtool_options_shift_t *options)
 	return 0;
 }
 
-#define SWITCHSTATE_INIT		0
-
 // If nonzero, bad parse.
-static int parse_switches(arg_parser_t *argparser, wadtool_options_shift_t *options)
+static int parse_parameters(arg_parser_t *argparser, wadtool_options_shift_t *options)
 {
-	int state = SWITCHSTATE_INIT;
-	return 0;
+	// TODO: Finish this.
+	return -1;
 }
 
 static int call(arg_parser_t *argparser)
 {
-	wadtool_options_shift_t options = {NULL, NULL, -1, -1, -1};
+	wadtool_options_shift_t options = {NULL, NULL, -1, 1, -1};
 
 	int err;
 	if (err = parse_file(argparser, &options)) // the single equals is intentional.
 	{
 		return err;
 	}
-	if (err = parse_switches(argparser, &options)) // the single equals is intentional.
+	if (err = parse_parameters(argparser, &options)) // the single equals is intentional.
 	{
 		WAD_Close(options.wad);
 		return err;
@@ -100,18 +98,27 @@ static int call(arg_parser_t *argparser)
 
 static void usage()
 {
-	// TODO: Finish this.
-	printf("Usage: wad template\n");
+	printf("Usage: wad shift [filename] [source] [destination] <count>\n");
 }
 
 static void help()
 {
-	// TODO: Finish this.
+	printf("[filename]: \n");
+	printf("    The name of the WAD file to shift the entries of.\n");
+	printf("\n");
+	printf("[source]: \n");
+	printf("    The source entry index.\n");
+	printf("\n");
+	printf("[destination]: \n");
+	printf("    The destination index.\n");
+	printf("\n");
+	printf("<count>: (optional, default 1)\n");
+	printf("    The amount of contiguous entries from source to move.\n");
 }
 
 wadtool_t WADTOOL_Shift = {
 	"shift",
-	"Shifts the order of one or more entries.",
+	"Shifts the order of one or more entries, displacing entries.",
 	&call,
 	&usage,
 	&help,

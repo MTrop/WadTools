@@ -191,7 +191,7 @@ static int exec(wadtool_options_search_t *options)
 			int offset = WAD_GetEntryIndex(wad, options->criterion0);
 			if (offset < 0)
 			{
-				fprintf(stderr, "ERROR: Map name %s not found!\n");
+				fprintf(stderr, "ERROR: Map name %s not found!\n", options->criterion0);
 				return ERRORSEARCH_MAP_NOT_FOUND;
 			}
 
@@ -428,7 +428,7 @@ static int parse_switches(arg_parser_t *argparser, wadtool_options_search_t *opt
 				options->reverse = 1;
 			else if (matcharg(argparser, SWITCH_SORT) || matcharg(argparser, SWITCH_SORT2))
 				state = SWITCHSTATE_SORTTYPE;
-			else if (matcharg(argparser, SWITCH_LIMIT))
+			else if (matcharg(argparser, SWITCH_LIMIT) || matcharg(argparser, SWITCH_LIMIT2))
 				state = SWITCHSTATE_LIMIT;
 			else
 			{
@@ -642,8 +642,8 @@ static void help()
 	printf("        --reverse-sort      Reverses sort order.\n");
 	printf("        -rs\n");
 	printf("\n");
-	printf("        --limit x           Limits the amount of entries returned to `x`\n");
-	printf("                            entries (after sorting).\n");
+	printf("        --count x           Limits the amount of entries returned to `x`\n");
+	printf("        -c x                entries (after sorting).\n");
 }
 
 wadtool_t WADTOOL_Search = {

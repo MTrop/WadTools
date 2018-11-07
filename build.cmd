@@ -186,6 +186,12 @@ goto _end
 call :_buildpackageall
 call :__mkdist
 for %%F in (%SRCDIR%\*.c) do (
+	set MAINFILEDIR=%SRCDIR%
+	set MAINFILE=%%~nF
+	call :__compilefile
+)
+for %%F in (%TESTSRCDIR%\*.c) do (
+	set MAINFILEDIR=%TESTSRCDIR%
 	set MAINFILE=%%~nF
 	call :__compilefile
 )
