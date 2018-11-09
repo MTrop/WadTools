@@ -9,17 +9,21 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 #include <errno.h>
 #include "wadtool.h"
+#include "common.h"
 #include "wad/wad.h"
 #include "wad/waderrno.h"
 
 extern int errno;
 extern int waderrno;
 
-#define ERRORSWAP_NONE        0
-#define ERRORSWAP_NO_FILENAME 1
-#define ERRORSWAP_WAD_ERROR   10
+#define ERRORSWAP_NONE        		0
+#define ERRORSWAP_NO_FILENAME 		1
+#define ERRORSWAP_MISSING_PARAMETER	2
+#define ERRORSWAP_BAD_ENTRY			3
+#define ERRORSWAP_WAD_ERROR   		10
 
 typedef struct
 {
@@ -27,14 +31,63 @@ typedef struct
 	char *filename;
 	/** The WAD to use. */
 	wad_t *wad;
+	/** Source entry/index. */
+	char *source;
+	/** Destination entry/index. */
+	char *destination;
 
 } wadtool_options_template_t;
 
 
+static void strupper(char* str)
+{
+	while (*str)
+	{
+		*str = toupper(*str);
+		str++;
+	}
+}
+
 static int exec(wadtool_options_template_t *options)
 {
-	printf("ERROR: NOT SUPPORTED YET!\n");
-	return -1;
+	wad_t *wad = options->wad;
+
+	int sidx = WADTools_FindEntryIndex(wad, ET_DETECT, options->source, 0);
+	if (sidx < 0)
+	{
+		fprintf(stderr, "ERROR: Could not find source entry.\n");
+		return ERRORSWAP_BAD_ENTRY;
+	}
+	else if (sidx >= WAD_EntryCount(wad))
+	{
+		fprintf(stderr, "ERROR: Source entry is out of range.\n");
+		return ERRORSWAP_BAD_ENTRY;
+	}
+
+	int didx = WADTools_FindEntryIndex(wad, ET_DETECT, options->destination, 0);
+	if (didx < 0)
+	{
+		fprintf(stderr, "ERROR: Could not find destination entry.\n");
+		return ERRORSWAP_BAD_ENTRY;
+	}
+	else if (didx >= WAD_EntryCount(wad))
+	{
+		fprintf(stderr, "ERROR: Destination entry is out of range.\n");
+		return ERRORSWAP_BAD_ENTRY;
+	}
+
+	if (WAD_SwapEntry(wad, sidx, didx))
+	{
+		if (waderrno == WADERROR_FILE_ERROR)
+			fprintf(stderr, "ERROR: %s %s\n", strwaderror(waderrno), strerror(errno));
+		else
+			fprintf(stderr, "ERROR: %s\n", strwaderror(waderrno));
+		return ERRORSWAP_WAD_ERROR + waderrno;
+	}
+	
+	printf("Swapped index %d and %d in %s.\n", sidx, didx, options->filename);
+
+	return ERRORSWAP_NONE;
 }
 
 // If nonzero, bad parse.
@@ -62,13 +115,27 @@ static int parse_file(arg_parser_t *argparser, wadtool_options_template_t *optio
 	return 0;
 }
 
-#define SWITCHSTATE_INIT		0
-
-
 // If nonzero, bad parse.
 static int parse_switches(arg_parser_t *argparser, wadtool_options_template_t *options)
 {
-	int state = SWITCHSTATE_INIT;
+	if (!currarg(argparser))
+	{
+		fprintf(stderr, "ERROR: Missing source.\n");
+		return ERRORSWAP_MISSING_PARAMETER;
+	}
+
+	options->source = takearg(argparser);
+	strupper(options->source);
+
+	if (!currarg(argparser))
+	{
+		fprintf(stderr, "ERROR: Missing destination.\n");
+		return ERRORSWAP_MISSING_PARAMETER;
+	}
+
+	options->destination = takearg(argparser);
+	strupper(options->destination);
+
 	return 0;
 }
 

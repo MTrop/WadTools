@@ -73,57 +73,24 @@ static void strupper(char* str)
 
 static int exec(wadtool_options_dump_t *options)
 {
-	int start;
+	int start, index;
 	if (!options->startfrom)
 		start = 0;
-	else switch (options->startfrom_entrytype)
+	else
 	{
-		default:
-		case ET_DETECT:
-		{
-			if (!(start = atoi(options->startfrom)) && strcmp(options->criteria, "0") != 0 && (start = WAD_GetEntryIndex(options->wad, options->startfrom)) < 0)
-				start = 0;
-		}
-		break;
-
-		case ET_INDEX:
-			start = atoi(options->startfrom);
-		break;
-
-		case ET_NAME:
-		{
-			if ((start = WAD_GetEntryIndex(options->wad, options->startfrom)) < 0)
-				start = 0;
-		}
-		break;
+		start = WADTools_FindEntryIndex(options->wad, options->startfrom_entrytype, options->startfrom, 0);
+		if (start < 0)
+			start = 0;
 	}
 
-	int index;
 	if (!options->criteria)
 	{
 		fprintf(stderr, "ERROR: Expected entry or index.\n");
 		return ERRORDUMP_MISSING_PARAMETER;
 	}
-	else switch (options->criteria_entrytype)
+	else
 	{
-		default:
-		case ET_DETECT:
-		{
-			if (!(index = atoi(options->criteria)) && strcmp(options->criteria, "0") != 0 && (index = WAD_GetEntryIndexOffset(options->wad, options->criteria, start)) < 0)
-				index = -1;
-		}
-		break;
-
-		case ET_INDEX:
-			index = atoi(options->criteria);
-		break;
-
-		case ET_NAME:
-		{
-			if ((index = WAD_GetEntryIndexOffset(options->wad, options->criteria, start)) < 0)
-				index = -1;
-		}
-		break;
+		index = WADTools_FindEntryIndex(options->wad, options->criteria_entrytype, options->criteria, start);
 	}
 
 	if (index < 0)
@@ -133,6 +100,12 @@ static int exec(wadtool_options_dump_t *options)
 	}
 
 	wadentry_t *entry = WAD_GetEntry(options->wad, index);
+	if (!entry)
+	{
+		fprintf(stderr, "ERROR: Could not find entry.\n");
+		return ERRORDUMP_MISSING_PARAMETER;
+	}
+
 	stream_t *stream = STREAM_OpenWADStream(options->wad, entry);
 	if (!stream)
 	{

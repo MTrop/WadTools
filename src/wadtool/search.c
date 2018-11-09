@@ -12,7 +12,8 @@
 #include <string.h>
 #include <errno.h>
 #include "wadtool.h"
-#include "list_common.h"
+#include "common.h"
+#include "common_list.h"
 #include "wad/wad_config.h"
 #include "wad/wad.h"
 #include "wad/waderrno.h"
@@ -181,7 +182,7 @@ static int exec(wadtool_options_search_t *options)
 					count++;
 				}
 			}
-			entries = listentry_shadow(entrydata, count);
+			entries = WADTools_ListEntryShadow(entrydata, count);
 			qsort(entries, count, sizeof(listentry_t*), options->sortfunc);
 		}
 		break;
@@ -226,7 +227,7 @@ static int exec(wadtool_options_search_t *options)
 			entrydata[count].index = offset;
 			entrydata[count].entry = WAD_GetEntry(wad, offset);
 			count++;
-			entries = listentry_shadow(entrydata, count);
+			entries = WADTools_ListEntryShadow(entrydata, count);
 			qsort(entries, count, sizeof(listentry_t*), options->sortfunc);
 		}
 		break;
@@ -266,7 +267,7 @@ static int exec(wadtool_options_search_t *options)
 					count++;
 				}
 			}
-			entries = listentry_shadow(entrydata, count);
+			entries = WADTools_ListEntryShadow(entrydata, count);
 			qsort(entries, count, sizeof(listentry_t*), options->sortfunc);
 		}
 		break;
@@ -297,7 +298,7 @@ static int exec(wadtool_options_search_t *options)
 				entrydata[count].entry = entry;
 				count++;
 			}
-			entries = listentry_shadow(entrydata, count);
+			entries = WADTools_ListEntryShadow(entrydata, count);
 			qsort(entries, count, sizeof(listentry_t*), options->sortfunc);
 		}
 		break;
@@ -331,7 +332,7 @@ static int exec(wadtool_options_search_t *options)
 	// sanitize limit
 	options->limit = options->limit <= 0 ? count : options->limit;
 
-	listentries_print(entries, count, options->limit, options->listflags, options->no_header, options->inline_header, options->reverse);
+	WADTools_ListEntriesPrint(entries, count, options->limit, options->listflags, options->no_header, options->inline_header, options->reverse);
 
 	if (entries) WAD_FREE(entries);
 	if (entrydata) WAD_FREE(entrydata);
@@ -442,22 +443,22 @@ static int parse_switches(arg_parser_t *argparser, wadtool_options_search_t *opt
 		{
 			if (matcharg(argparser, SORT_INDEX))
 			{
-				options->sortfunc = &listentry_sort_index;
+				options->sortfunc = &WADTools_ListEntrySortIndex;
 				state = SWITCHSTATE_INIT;
 			}
 			else if (matcharg(argparser, SORT_NAME))
 			{
-				options->sortfunc = &listentry_sort_name;
+				options->sortfunc = &WADTools_ListEntrySortName;
 				state = SWITCHSTATE_INIT;
 			}
 			else if (matcharg(argparser, SORT_LENGTH))
 			{
-				options->sortfunc = &listentry_sort_length;
+				options->sortfunc = &WADTools_ListEntrySortLength;
 				state = SWITCHSTATE_INIT;
 			}
 			else if (matcharg(argparser, SORT_OFFSET))
 			{
-				options->sortfunc = &listentry_sort_offset;
+				options->sortfunc = &WADTools_ListEntrySortOffset;
 				state = SWITCHSTATE_INIT;
 			}
 			else
@@ -536,7 +537,7 @@ static int parse_criteria(arg_parser_t *argparser, wadtool_options_search_t *opt
 
 static int call(arg_parser_t *argparser)
 {
-	wadtool_options_search_t options = {NULL, NULL, 0, 0, 0, 0, &listentry_sort_index, ST_NONE, NULL, NULL, 0};
+	wadtool_options_search_t options = {NULL, NULL, 0, 0, 0, 0, &WADTools_ListEntrySortIndex, ST_NONE, NULL, NULL, 0};
 
 	int err;
 	if (err = parse_mode(argparser, &options)) // the single equals is intentional.

@@ -10,34 +10,35 @@
 #include <stdio.h>
 
 #include "common.h"
+#include "common_list.h"
 #include "wad/wad.h"
 #include "wad/wad_config.h"
 
 // to avoid the overflow in an arithmetic method
 #define COMPARE_INT(x,y)	((x) == (y) ? 0 : ((x) < (y) ? -1 : 1))
 
-int listentry_sort_index(const void *a, const void *b)
+int WADTools_ListEntrySortIndex(const void *a, const void *b)
 {
 	listentry_t *x = *(listentry_t**)a;
 	listentry_t *y = *(listentry_t**)b;
 	return COMPARE_INT(x->index, y->index);
 }
 
-int listentry_sort_name(const void *a, const void *b)
+int WADTools_ListEntrySortName(const void *a, const void *b)
 {
 	listentry_t *x = *(listentry_t**)a;
 	listentry_t *y = *(listentry_t**)b;
 	return strncmp(x->entry->name, y->entry->name, 8);
 }
 
-int listentry_sort_length(const void *a, const void *b)
+int WADTools_ListEntrySortLength(const void *a, const void *b)
 {
 	listentry_t *x = *(listentry_t**)a;
 	listentry_t *y = *(listentry_t**)b;
 	return COMPARE_INT(x->entry->length, y->entry->length);
 }
 
-int listentry_sort_offset(const void *a, const void *b)
+int WADTools_ListEntrySortOffset(const void *a, const void *b)
 {
 	listentry_t *x = *(listentry_t**)a;
 	listentry_t *y = *(listentry_t**)b;
@@ -74,7 +75,7 @@ static void listentry_print(listentry_t *listentry, int listflags, int no_header
 	printf("\n");
 }
 
-void listentries_print(listentry_t **entries, size_t count, size_t limit, int listflags, int no_header, int inline_header, int reverse)
+void WADTools_ListEntriesPrint(listentry_t **entries, size_t count, size_t limit, int listflags, int no_header, int inline_header, int reverse)
 {
 	if (!no_header && !inline_header)
 	{
@@ -111,7 +112,7 @@ void listentries_print(listentry_t **entries, size_t count, size_t limit, int li
 	}
 }
 
-listentry_t** listentry_shadow(listentry_t *v, size_t n)
+listentry_t** WADTools_ListEntryShadow(listentry_t *v, size_t n)
 {
 	int i = 0;
 	listentry_t **out = (listentry_t**)WAD_MALLOC(sizeof(listentry_t*) * n);

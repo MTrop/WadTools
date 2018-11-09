@@ -11,7 +11,8 @@
 #include <string.h>
 #include <errno.h>
 #include "wadtool.h"
-#include "list_common.h"
+#include "common.h"
+#include "common_list.h"
 #include "wad/wad_config.h"
 #include "wad/wad.h"
 #include "wad/waderrno.h"
@@ -77,13 +78,13 @@ static int exec(wadtool_options_list_t *options)
 		entrydata[count].entry = wad->entries[i];
 		count++;
 	}
-	listentry_t **entries = listentry_shadow(entrydata, len);
+	listentry_t **entries = WADTools_ListEntryShadow(entrydata, len);
 	qsort(entries, len, sizeof(listentry_t*), options->sortfunc);
 
 	if (!options->no_header && !options->inline_header)
 		printf("Entries in %s, %d to %d\n", options->filename, start, start + len - 1);
 
-	listentries_print(entries, count, count, options->listflags, options->no_header, options->inline_header, options->reverse);
+	WADTools_ListEntriesPrint(entries, count, count, options->listflags, options->no_header, options->inline_header, options->reverse);
 
 	WAD_FREE(entries);
 	WAD_FREE(entrydata);
@@ -192,22 +193,22 @@ static int parse_switches(arg_parser_t *argparser, wadtool_options_list_t *optio
 		{
 			if (matcharg(argparser, SORT_INDEX))
 			{
-				options->sortfunc = &listentry_sort_index;
+				options->sortfunc = &WADTools_ListEntrySortIndex;
 				state = SWITCHSTATE_INIT;
 			}
 			else if (matcharg(argparser, SORT_NAME))
 			{
-				options->sortfunc = &listentry_sort_name;
+				options->sortfunc = &WADTools_ListEntrySortName;
 				state = SWITCHSTATE_INIT;
 			}
 			else if (matcharg(argparser, SORT_LENGTH))
 			{
-				options->sortfunc = &listentry_sort_length;
+				options->sortfunc = &WADTools_ListEntrySortLength;
 				state = SWITCHSTATE_INIT;
 			}
 			else if (matcharg(argparser, SORT_OFFSET))
 			{
-				options->sortfunc = &listentry_sort_offset;
+				options->sortfunc = &WADTools_ListEntrySortOffset;
 				state = SWITCHSTATE_INIT;
 			}
 			else
@@ -236,7 +237,7 @@ static int parse_switches(arg_parser_t *argparser, wadtool_options_list_t *optio
 
 static int call(arg_parser_t *argparser)
 {
-	wadtool_options_list_t options = {NULL, NULL, 0, 0, 0, 0, 0, 0, &listentry_sort_index};
+	wadtool_options_list_t options = {NULL, NULL, 0, 0, 0, 0, 0, 0, &WADTools_ListEntrySortIndex};
 
 	int err;
 	if (err = parse_file(argparser, &options)) // the single equals is intentional.
