@@ -54,11 +54,11 @@ typedef struct
 	/** Entry criteria. */
 	char *criteria;
 	/** Entry type. */
-	entrytype_t criteria_entrytype;
+	entry_search_type_t criteria_entrytype;
 	/** Entry start criteria. */
 	char *startfrom;
 	/** Entry type. */
-	entrytype_t startfrom_entrytype;
+	entry_search_type_t startfrom_entrytype;
 
 } wadtool_options_dump_t;
 
