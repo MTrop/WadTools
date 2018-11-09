@@ -23,13 +23,15 @@
 #include "wadtool/dump.h"
 #include "wadtool/shift.h"
 #include "wadtool/swap.h"
+#include "wadtool/rename.h"
 
-#define WADTOOL_COUNT 7
+#define WADTOOL_COUNT 8
 wadtool_t* WADTOOLS_ALL[WADTOOL_COUNT] = {
 	&WADTOOL_Create,
 	&WADTOOL_Dump,
 	&WADTOOL_Info,
 	&WADTOOL_List,
+	&WADTOOL_Rename,
 	&WADTOOL_Search,
 	&WADTOOL_Shift,
 	&WADTOOL_Swap,
@@ -46,6 +48,7 @@ wadtool_t* WADTOOLS_ALL[WADTOOL_COUNT] = {
 #define COMMAND_DUMP 	"dump"
 #define COMMAND_SHIFT 	"shift"
 #define COMMAND_SWAP 	"swap"
+#define COMMAND_RENAME 	"rename"
 
 // =====================================================
 
@@ -101,6 +104,8 @@ static wadtool_t* parse_tool(arg_parser_t *argparser)
 		return &WADTOOL_Shift;
 	else if (matcharg(argparser, COMMAND_SWAP))
 		return &WADTOOL_Swap;
+	else if (matcharg(argparser, COMMAND_RENAME))
+		return &WADTOOL_Rename;
 	else
 		return &DEFAULT_TOOL;
 }

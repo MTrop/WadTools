@@ -13,6 +13,7 @@
 #include <errno.h>
 #include "wadtool.h"
 #include "common.h"
+#include "swap.h"
 #include "wad/wad.h"
 #include "wad/waderrno.h"
 
@@ -36,7 +37,7 @@ typedef struct
 	/** Destination entry/index. */
 	char *destination;
 
-} wadtool_options_template_t;
+} wadtool_options_swap_t;
 
 
 static void strupper(char* str)
@@ -48,7 +49,7 @@ static void strupper(char* str)
 	}
 }
 
-static int exec(wadtool_options_template_t *options)
+static int exec(wadtool_options_swap_t *options)
 {
 	wad_t *wad = options->wad;
 
@@ -76,6 +77,9 @@ static int exec(wadtool_options_template_t *options)
 		return ERRORSWAP_BAD_ENTRY;
 	}
 
+	wadentry_t *srcEntry = WAD_GetEntry(wad, sidx);
+	wadentry_t *destEntry = WAD_GetEntry(wad, didx);
+
 	if (WAD_SwapEntry(wad, sidx, didx))
 	{
 		if (waderrno == WADERROR_FILE_ERROR)
@@ -85,13 +89,13 @@ static int exec(wadtool_options_template_t *options)
 		return ERRORSWAP_WAD_ERROR + waderrno;
 	}
 	
-	printf("Swapped index %d and %d in %s.\n", sidx, didx, options->filename);
+	printf("Swapped index %d (%s) and %d (%s) in %s.\n", sidx, srcEntry->name, didx, destEntry->name, options->filename);
 
 	return ERRORSWAP_NONE;
 }
 
 // If nonzero, bad parse.
-static int parse_file(arg_parser_t *argparser, wadtool_options_template_t *options)
+static int parse_file(arg_parser_t *argparser, wadtool_options_swap_t *options)
 {
 	options->filename = currarg(argparser);
 	if (!options->filename)
@@ -116,7 +120,7 @@ static int parse_file(arg_parser_t *argparser, wadtool_options_template_t *optio
 }
 
 // If nonzero, bad parse.
-static int parse_switches(arg_parser_t *argparser, wadtool_options_template_t *options)
+static int parse_switches(arg_parser_t *argparser, wadtool_options_swap_t *options)
 {
 	if (!currarg(argparser))
 	{
@@ -141,7 +145,7 @@ static int parse_switches(arg_parser_t *argparser, wadtool_options_template_t *o
 
 static int call(arg_parser_t *argparser)
 {
-	wadtool_options_template_t options = {NULL, NULL};
+	wadtool_options_swap_t options = {NULL, NULL, NULL, NULL};
 
 	int err;
 	if (err = parse_file(argparser, &options)) // the single equals is intentional.
