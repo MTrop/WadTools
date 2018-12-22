@@ -139,7 +139,7 @@ int WADTools_FindEntryIndex(wad_t *wad, entry_search_type_t entrytype, const cha
 		case ET_INDEX:
 		{
 			result = atoi(entry);
-			if (!result && strcmp(entry, "0") == 0)
+			if (!result && strcmp(entry, "0") != 0)
 				result = -1;
 		}
 		break;

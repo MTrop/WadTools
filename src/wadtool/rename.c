@@ -72,11 +72,21 @@ static int exec(wadtool_options_rename_t *options)
 	}
 
 	char oldName[9];
+	char newName[9];
 	wadentry_t *srcEntry = WAD_GetEntry(wad, sidx);
-	sprintf(oldName, "%8.8s", srcEntry->name);
+	sprintf(oldName, "%-.8s", srcEntry->name);
+	sprintf(newName, "%-.8s", options->newName);
 
-	// TODO: Finish this.
-	
+	memcpy(srcEntry->name, newName, 8);
+
+	if (WAD_CommitEntries(wad))
+	{
+		if (waderrno == WADERROR_FILE_ERROR)
+			fprintf(stderr, "ERROR: %s %s\n", strwaderror(waderrno), strerror(errno));
+		else
+			fprintf(stderr, "ERROR: %s\n", strwaderror(waderrno));
+		return ERRORRENAME_WAD_ERROR + waderrno;
+	}
 	printf("Renamed entry at index %d (%s) to %s in %s.\n", sidx, oldName, srcEntry->name, options->filename);
 
 	return ERRORRENAME_NONE;
@@ -119,7 +129,22 @@ static int parse_switches(arg_parser_t *argparser, wadtool_options_rename_t *opt
 	options->entry = takearg(argparser);
 	strupper(options->entry);
 
-	// TODO: Finish this.
+	if (!currarg(argparser))
+	{
+		fprintf(stderr, "ERROR: Missing new name.\n");
+		return ERRORRENAME_MISSING_PARAMETER;
+	}
+
+	options->newName = takearg(argparser);
+	strupper(options->newName);
+
+	while (currarg(argparser))
+	{
+		if (matcharg(argparser, SWITCH_INDEX) || matcharg(argparser, SWITCH_INDEX2))
+			options->entrytype = ET_INDEX;
+		else if (matcharg(argparser, SWITCH_NAME) || matcharg(argparser, SWITCH_NAME2))
+			options->entrytype = ET_NAME;
+	}
 
 	return 0;
 }
