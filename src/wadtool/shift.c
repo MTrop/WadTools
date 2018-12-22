@@ -186,7 +186,7 @@ static void help()
 
 wadtool_t WADTOOL_Shift = {
 	"shift",
-	"Shifts the order of one or more entries, displacing entries.",
+	"Shifts ordering of one or more entries, displacing others.",
 	&call,
 	&usage,
 	&help,

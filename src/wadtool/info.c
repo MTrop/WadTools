@@ -85,21 +85,17 @@ static int parse_file(arg_parser_t *argparser, wadtool_options_info_t *options)
 	return 0;
 }
 
-#define SWITCHSTATE_INIT		0
-#define SWITCHSTATE_STARTFROM	1
-
 // If nonzero, bad parse.
 static int parse_switches(arg_parser_t *argparser, wadtool_options_info_t *options)
 {
-	if (matcharg(argparser, SWITCH_CONDENSED))
-		options->condensed = 1;
-	else if (matcharg(argparser, SWITCH_CONDENSED2))
+	if (matcharg(argparser, SWITCH_CONDENSED) || matcharg(argparser, SWITCH_CONDENSED2))
 		options->condensed = 1;
 	else if (currarg(argparser))
 	{
 		fprintf(stderr, "ERROR: Bad switch: %s\n", currarg(argparser));
 		return ERRORINFO_BAD_SWITCH;
 	}
+	return 0;
 }
 
 static int call(arg_parser_t *argparser)
