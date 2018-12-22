@@ -130,6 +130,10 @@ static int exec(wadtool_options_dump_t *options)
 		fflush(stdout);
 	}
 
+#ifdef _WIN32
+	_setmode(_fileno(stdout), _O_TEXT);
+#endif
+
 	return ERRORDUMP_NONE;
 }
 

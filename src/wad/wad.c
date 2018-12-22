@@ -165,7 +165,7 @@ static int WAD_ExpandBuffer(wad_t *wad, int newsize)
 // Load a WAD file's entries.
 static int WAD_SetupBuildEntrylist(FILE *fp, wad_t *wad)
 {
-	int i, count = wad->header.entry_count;
+	int i, count = WAD_EntryCount(wad);
 	
 	if (WAD_ExpandEntrylist(wad, count))
 		return 1;
@@ -224,7 +224,7 @@ static void WAD_FreeAllocated(wad_t *wad)
 	WAD_FREE(wad);
 }
 
-// Copies an entry name.
+// Copies/sanitizes an entry name.
 static int WAD_EntryNameCopy(const char *src, char *dest)
 {
 	int i = 0;
@@ -255,7 +255,7 @@ static wadentry_t* WAD_AddEntryCommon(wad_t *wad, const char *name, int32_t leng
 {
 	index = min(wad->header.entry_count, index);
 	
-	if (index >= wad->entries_capacity)
+	if (wad->header.entry_count + 1 >= wad->entries_capacity)
 		if (WAD_ExpandEntrylist(wad, wad->entries_capacity * 2))
 			return NULL;
 	
