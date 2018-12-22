@@ -244,12 +244,12 @@ static int call(arg_parser_t *argparser)
 
 static void usage()
 {
-	printf("Usage: wad dump [filename] [entry] [switches]\n");
+	printf("Usage: wad dump [wadfile] [entry] [switches]\n");
 }
 
 static void help()
 {
-	printf("[filename]:\n");
+	printf("[wadfile]:\n");
 	printf("    The name of the WAD file to open.\n");
 	printf("\n");
 	printf("[entry]:\n");

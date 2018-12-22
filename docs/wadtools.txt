@@ -23,7 +23,7 @@ wad rename
     Renames a WAD entry.
 
 wad add
-    Add an entry (or multiple) to a WAD file.
+    Add an entry to a WAD file.
 wad remove
     Removes an entry from a WAD file.
 wad clean
@@ -65,3 +65,8 @@ wad map search
     Searches in a map.
 wad map search things
     Searches thing data in a map.
+
+wad map import
+    Imports a map from one WAD into this one.
+wad map export
+    Exports a map from one WAD into a new or existing WAD.

@@ -124,12 +124,12 @@ static int call(arg_parser_t *argparser)
 
 static void usage()
 {
-	printf("Usage: wad info [filename] [switches]\n");
+	printf("Usage: wad info [wadfile] [switches]\n");
 }
 
 static void help()
 {
-	printf("[filename]: \n");
+	printf("[wadfile]: \n");
 	printf("    The name of the WAD file to inspect.\n");
 	printf("\n");
 	printf("[switches]: \n");

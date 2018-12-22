@@ -24,9 +24,11 @@
 #include "wadtool/shift.h"
 #include "wadtool/swap.h"
 #include "wadtool/rename.h"
+#include "wadtool/add.h"
 
-#define WADTOOL_COUNT 8
+#define WADTOOL_COUNT 9
 wadtool_t* WADTOOLS_ALL[WADTOOL_COUNT] = {
+	&WADTOOL_Add,
 	&WADTOOL_Create,
 	&WADTOOL_Dump,
 	&WADTOOL_Info,
@@ -40,6 +42,7 @@ wadtool_t* WADTOOLS_ALL[WADTOOL_COUNT] = {
 // ================== Command Names ====================
 
 #define COMMAND_HELP 	"help"
+#define COMMAND_ADD 	"add"
 #define COMMAND_ALL 	"all"
 #define COMMAND_CREATE	"create"
 #define COMMAND_INFO 	"info"
@@ -90,6 +93,8 @@ static wadtool_t* parse_tool(arg_parser_t *argparser)
 {
 	if (!argparser->arg)
 		return &DEFAULT_TOOL;
+	else if (matcharg(argparser, COMMAND_ADD))
+		return &WADTOOL_Add;
 	else if (matcharg(argparser, COMMAND_CREATE))
 		return &WADTOOL_Create;
 	else if (matcharg(argparser, COMMAND_INFO))
@@ -136,6 +141,7 @@ int main(int argc, char **argv)
 		if (matcharg(&parser, COMMAND_ALL))
 		{
 			print_splash(&parser);
+			printf("\n");
 			print_help();
 			printf("\n");
 			int i;

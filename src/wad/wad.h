@@ -44,7 +44,7 @@ typedef struct {
 	/** Entry content length. */
 	int32_t length;
 	/** Entry name. */
-	unsigned char name[8]; // 8 + null - last byte never read nor written.
+	unsigned char name[8]; // not null-terminated if all 8 are used!
 	
 } wadentry_t;
 

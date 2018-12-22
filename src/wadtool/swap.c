@@ -165,12 +165,12 @@ static int call(arg_parser_t *argparser)
 
 static void usage()
 {
-	printf("Usage: wad swap [filename] [source] [destination]\n");
+	printf("Usage: wad swap [wadfile] [source] [destination]\n");
 }
 
 static void help()
 {
-	printf("[filename]: \n");
+	printf("[wadfile]: \n");
 	printf("    The name of the WAD file to swap entries in.\n");
 	printf("\n");
 	printf("[source]: \n");

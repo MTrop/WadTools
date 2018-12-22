@@ -364,12 +364,12 @@ static int parse_mode(arg_parser_t *argparser, wadtool_options_search_t *options
 	}
 	else if (!currarg(argparser))
 	{
-		printf("ERROR: Expected mode.\n");
+		fprintf(stderr, "ERROR: Expected mode.\n");
 		return ERRORSEARCH_MISSING_PARAMETER;
 	}
 	else
 	{
-		printf("ERROR: Bad mode: %s\n", currarg(argparser));
+		fprintf(stderr, "ERROR: Bad mode: %s\n", currarg(argparser));
 		return ERRORSEARCH_BAD_MODE;
 	}
 }
@@ -566,12 +566,12 @@ static int call(arg_parser_t *argparser)
 
 static void usage()
 {
-	printf("Usage: wad search [mode] [filename] ...\n");
+	printf("Usage: wad search [mode] [wadfile] ...\n");
 	printf("\n");
-	printf("       wad search maps [filename] [switches]\n");
-	printf("       wad search map [filename] [headername] [switches]\n");
-	printf("       wad search name [filename] [string] [switches]\n");
-	printf("       wad search namespace [filename] [prefix] [switches]\n");
+	printf("       wad search maps [wadfile] [switches]\n");
+	printf("       wad search map [wadfile] [headername] [switches]\n");
+	printf("       wad search name [wadfile] [string] [switches]\n");
+	printf("       wad search namespace [wadfile] [prefix] [switches]\n");
 }
 
 static void help()
@@ -599,7 +599,7 @@ static void help()
 	printf("                                The namespace characters (only up to two are\n");
 	printf("                                used).\n");
 	printf("\n");
-	printf("[filename]: \n");
+	printf("[wadfile]: \n");
 	printf("    The name of the WAD file to search the entries of.\n");
 	printf("\n");
 	printf("[switches]: \n");

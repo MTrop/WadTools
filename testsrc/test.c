@@ -177,7 +177,7 @@ int main(int argc, char** argv)
 	print_error();
 	print_wad(wad);
 
-	printf("asdfasdf\n");
+	printf("DONE\n");
 
 	WAD_Close(wad);
 	return 0;

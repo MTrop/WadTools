@@ -95,6 +95,7 @@ static int WAD_ExpandEntrylist(wad_t *wad, int newsize)
 	int i;
 	wadentry_t **oldarray;
 	int oldsize = wad->entries_capacity;
+	newsize = max(newsize, 1);
 	
 	if (newsize <= oldsize)
 		return 0;
@@ -258,22 +259,23 @@ static wadentry_t* WAD_AddEntryCommon(wad_t *wad, const char *name, int32_t leng
 		if (WAD_ExpandEntrylist(wad, wad->entries_capacity * 2))
 			return NULL;
 	
-	wadentry_t *swap = wad->entries[wad->header.entry_count];
+	// FIXME: Something not working here.
+	wadentry_t *newentry = wad->entries[wad->header.entry_count];
+	WAD_EntryNameCopy(name, newentry->name);
+	newentry->length = length;
+	newentry->offset = offset;
 
 	int i = wad->header.entry_count;
-	while (i >= index)
+	while (i > index)
 	{
-		wad->entries[i] = wad->entries[i - 1];
+		wadentry_t *e = wad->entries[i - 1];
+		wad->entries[i - 1] = wad->entries[i];
+		wad->entries[i] = e;
 		i--;
 	}
 
-	int x = WAD_EntryNameCopy(name, swap->name);
-	swap->length = length;
-	swap->offset = offset;
-
-	wad->entries[index] = swap;
 	wad->header.entry_count++;
-	return wad->entries[index];
+	return newentry;
 }
 
 static int entrycmpr(const void *a, const void *b)
@@ -668,7 +670,7 @@ static wadentry_t* wi_file_add_entry_at(wad_t *wad, const char *name, int index,
 	return entry;
 }
 
-// Implementation of wadfuncs_t.wi_map_add_entry_data_at(wad_t*, const char*, int, FILE*)
+// Implementation of wadfuncs_t.add_entry_data_at(wad_t*, const char*, int, FILE*)
 static wadentry_t* wi_file_add_entry_data_at(wad_t *wad, const char *name, int index, FILE *stream)
 {
 	wadentry_t* entry;
@@ -689,6 +691,7 @@ static wadentry_t* wi_file_add_entry_data_at(wad_t *wad, const char *name, int i
 			waderrno = WADERROR_FILE_ERROR;
 			return NULL;
 		}
+		fflush(stream);
 		count += buf;
 	}
 	

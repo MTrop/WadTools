@@ -166,12 +166,12 @@ static int call(arg_parser_t *argparser)
 
 static void usage()
 {
-	printf("Usage: wad shift [filename] [source] [destination] <count>\n");
+	printf("Usage: wad shift [wadfile] [source] [destination] <count>\n");
 }
 
 static void help()
 {
-	printf("[filename]: \n");
+	printf("[wadfile]: \n");
 	printf("    The name of the WAD file to shift the entries of.\n");
 	printf("\n");
 	printf("[source]: \n");
