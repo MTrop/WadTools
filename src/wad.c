@@ -12,7 +12,7 @@
 
 #define WADTOOLS_VERSION "0.1.0"
 
-#define WADTOOLS_SPLASH "WAD Tools v" WADTOOLS_VERSION " (C) 2018 Matt Tropiano"
+#define WADTOOLS_SPLASH "WAD Tools v" WADTOOLS_VERSION " (C) 2018-2019 Matt Tropiano"
 
 // ==================== All Tools =====================
 
@@ -25,8 +25,9 @@
 #include "wadtool/swap.h"
 #include "wadtool/rename.h"
 #include "wadtool/add.h"
+#include "wadtool/remove.h"
 
-#define WADTOOL_COUNT 9
+#define WADTOOL_COUNT 10
 wadtool_t* WADTOOLS_ALL[WADTOOL_COUNT] = {
 	&WADTOOL_Add,
 	&WADTOOL_Create,
@@ -34,6 +35,7 @@ wadtool_t* WADTOOLS_ALL[WADTOOL_COUNT] = {
 	&WADTOOL_Info,
 	&WADTOOL_List,
 	&WADTOOL_Rename,
+	&WADTOOL_Remove,
 	&WADTOOL_Search,
 	&WADTOOL_Shift,
 	&WADTOOL_Swap,
@@ -45,13 +47,14 @@ wadtool_t* WADTOOLS_ALL[WADTOOL_COUNT] = {
 #define COMMAND_ADD 	"add"
 #define COMMAND_ALL 	"all"
 #define COMMAND_CREATE	"create"
+#define COMMAND_DUMP 	"dump"
 #define COMMAND_INFO 	"info"
 #define COMMAND_LIST 	"list"
+#define COMMAND_REMOVE 	"remove"
+#define COMMAND_RENAME 	"rename"
 #define COMMAND_SEARCH 	"search"
-#define COMMAND_DUMP 	"dump"
 #define COMMAND_SHIFT 	"shift"
 #define COMMAND_SWAP 	"swap"
-#define COMMAND_RENAME 	"rename"
 
 // =====================================================
 
@@ -111,6 +114,8 @@ static wadtool_t* parse_tool(arg_parser_t *argparser)
 		return &WADTOOL_Swap;
 	else if (matcharg(argparser, COMMAND_RENAME))
 		return &WADTOOL_Rename;
+	else if (matcharg(argparser, COMMAND_REMOVE))
+		return &WADTOOL_Remove;
 	else
 		return &DEFAULT_TOOL;
 }
