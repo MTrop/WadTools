@@ -1,6 +1,6 @@
 # WAD Tool Suite
 
-Copyright (C) 2018 Matt Tropiano
+Copyright (C) 2018-2019 Matt Tropiano
 
 ## NOTICE
 
@@ -30,48 +30,24 @@ Also, I needed an excuse to re-learn C. Everyone's gotta know C, right?
 
 ## Building this Stuff
 
-The only build "script" in this so far is a CMD batch that builds the associated packages 
-incrementally and the root projects optionally. This has been tested in the following environments
+A Makefile is provided for this project. This has been tested in the following environments
 and toolchains:
 
 * Windows 7 x64
-* MinGW (GCC 4.8.1 and Msys 1.0 TR)
+* MinGW (GCC 4.8.1)
 
 Yup, that's it. Who knows what the future holds!
 
 
 ## To Build
 
-To build a subpackage (directory under `src`), type:
+To build:
 
-	build package [dirname]
+	make
 
-...Where `[dirname]` is a directory name. They get built to `build\obj\[dirname]`.
+To clean up the build directories:
 
-To build all subpackages:
-
-	build packageall
-
-To build a utility (a C file in `src` directory root), type:
-
-	build [filename]
-
-...Where `[filename]` is the file name, **without the ".c"**. They get linked to `dist\[filename].exe`.
-
-But that builds all packages and links all packages. If you want to build/link the utility incrementally:
-
-	build incr [filename]
-
-And if you want to build it all:
-
-	build all
-
-Or clean up the build directories:
-
-	build clean
-
-
-NOTE that you need GCC and TR visible on your PATH or it will not let you continue!
+	make clean
 
 
 ## Other
