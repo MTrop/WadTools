@@ -1333,6 +1333,19 @@ lexer_token_t* LXR_NextToken(lexer_t *lexer)
 			}
 			break; // LXRT_STATE_LINE_COMMENT
 		
+			////// UNUSED //////
+			case LXRT_END_OF_STREAM:
+			case LXRT_SPACE:
+			case LXRT_TAB:
+			case LXRT_NEWLINE:
+			case LXRT_KEYWORD:
+			case LXRT_COUNT:
+			{
+				state = LXRT_UNKNOWN;
+			}
+			break;
+			////////////////////
+
 		} // switch
 		
 	} // while

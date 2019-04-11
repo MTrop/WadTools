@@ -65,6 +65,7 @@ static char* STREAM_TypeName(stream_type_t type)
 	{
 		case STREAMI_FILE: return "File";
 		case STREAMI_BUFFER: return "Buffer";
+		case STREAMI_UNKNOWN: return "!UNKNOWN!";
 	}
 	
 	return "Unknown";
@@ -267,6 +268,7 @@ static streamfuncs_t* STREAM_funcs(stream_type_t type)
 	{
 		case STREAMI_FILE: return &STREAMI_FILE_STREAMFUNCS;
 		case STREAMI_BUFFER: return &STREAMI_BUFFER_STREAMFUNCS;
+		case STREAMI_UNKNOWN: return NULL;
 	}
 	
 	return NULL;
@@ -555,7 +557,7 @@ void STREAM_Dump(stream_t *stream)
 	printf("\tLength: %d\n", stream->length);
 	if (stream->type == STREAMI_FILE)
 	{
-		printf("FILE\n", stream->file_origin_pos);
+		printf("FILE\n");
 		printf("\tOrigin Pos: %d\n", stream->file_origin_pos);
 		printf("\tOpened? %s\n", stream->file_opened ? "YES" : "NO");
 	}
