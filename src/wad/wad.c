@@ -134,7 +134,6 @@ static int WAD_ExpandEntrylist(wad_t *wad, int newsize)
 // Expands/reallocates the internal data buffer in a wad_t, if new size is greater than the current capacity.
 static int WAD_ExpandBuffer(wad_t *wad, int newsize)
 {
-	int i;
 	unsigned char *oldarray;
 	int oldsize = wad->buffer_capacity;
 	
@@ -165,7 +164,7 @@ static int WAD_ExpandBuffer(wad_t *wad, int newsize)
 // Load a WAD file's entries.
 static int WAD_SetupBuildEntrylist(FILE *fp, wad_t *wad)
 {
-	int i, count = WAD_EntryCount(wad);
+	int count = WAD_EntryCount(wad);
 	
 	if (WAD_ExpandEntrylist(wad, count))
 		return 1;
@@ -184,7 +183,6 @@ static int WAD_SetupBuildEntrylist(FILE *fp, wad_t *wad)
 // Loads the contents of a WAD file into the buffer handle.
 static int WAD_SetupBuildBuffer(FILE *fp, wad_t *wad)
 {
-	int i;
 	int len = (wad->header.entry_list_offset) - sizeof(wadheader_t);
 	int remain = len;
 	int count;
@@ -236,7 +234,7 @@ static int WAD_EntryNameCopy(const char *src, char *dest)
 		
 		// upper-case the letter.
 		if (c > 0x20 && c < 0x7F)
-			dest[i] = toupper(c);
+			dest[i] = (char)toupper(c);
 		else
 			dest[i] = '_';
 		
