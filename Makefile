@@ -7,16 +7,19 @@
 ##############
 
 # Source directory.
-SRC_DIR       := src
+SRC_DIR          := src
+# Test Source directory.
+TESTSRC_DIR      := testsrc
 # Build directory.
-BUILD_DIR     := build
+BUILD_DIR        := build
 # Distributable directory.
-DIST_DIR      := dist
+DIST_DIR         := dist
 # Modules to build.
-MODULES       := io parser struct wad wadio wadtool
+MODULES          := io parser struct wad wadio wadtool
 # Images to build.
-EXECUTABLES   := wad
-EXE_SUFFIX    := .exe
+TEST_EXECUTABLES := test testlexer teststream
+EXECUTABLES      := wad
+EXE_SUFFIX       := .exe
 
 
 ##############
@@ -24,16 +27,16 @@ EXE_SUFFIX    := .exe
 ##############
 
 # C Compiler
-CC            := gcc
+CC               := gcc
 # C Compiler Flags
-CCFLAGS       := -Wall
+CCFLAGS          := -Wall
 # C Include Directories
-INCLUDES      := "-I./$(SRC_DIR)"
+INCLUDES         := "-I./$(SRC_DIR)"
 
 # Make directory command.
-MKDIR_CMD     := @mkdir
+MKDIR_CMD        := @mkdir
 # Delete directory tree command.
-DELDIR_CMD    := @rm -Rf
+DELDIR_CMD       := @rm -Rf
 
 
 ##############
