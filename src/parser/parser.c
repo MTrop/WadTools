@@ -41,6 +41,24 @@ int PARSER_Destroy(parser_t *parser)
 }
 
 // ---------------------------------------------------------------
+// lexer_token_t* PARSER_Next(parser_t *parser)
+// See parser.h
+// ---------------------------------------------------------------
+inline lexer_token_t* PARSER_Next(parser_t *parser)
+{
+	return LXR_NextToken(parser->lexer);
+} 
+
+// ---------------------------------------------------------------
+// lexer_token_t* PARSER_Current(parser_t *parser)
+// See parser.h
+// ---------------------------------------------------------------
+inline lexer_token_t* PARSER_Current(parser_t *parser)
+{
+	return &(parser->lexer->token);
+} 
+
+// ---------------------------------------------------------------
 // int PARSER_IsType(parser_t *parser, lexeme_type_t type)
 // See parser.h
 // ---------------------------------------------------------------

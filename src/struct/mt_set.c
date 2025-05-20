@@ -107,12 +107,22 @@ void MT_SetDestroy(mt_set_t *set)
 	MTS_FREE(set);
 }
 
-void MT_SetClear(mt_set_t *set)
+inline void MT_SetClear(mt_set_t *set)
 {
 	set->size = 0;
 }
 
-int MT_SetSearch(mt_set_t *set, void *value)
+inline int MT_SetLength(mt_set_t *set)
+{
+	return set->size;
+}
+
+inline int MT_SetCapacity(mt_set_t *set)
+{
+	return set->capacity;
+}
+
+inline int MT_SetSearch(mt_set_t *set, void *value)
 {
 	return MT_DoSearch(set->items, set->size, set->comparefunc, value);
 }
@@ -158,6 +168,11 @@ void* MT_SetRemove(mt_set_t *set, void *value)
 	}
 	return NULL;
 }
+
+inline int MT_SetContains(mt_set_t *set, void *value)
+{
+	return MT_SetSearch(set, value) >= 0 ? 1 : 0;
+} 
 
 int MT_SetUnion(mt_set_t *out, mt_set_t *first, mt_set_t *second)
 {
@@ -232,7 +247,7 @@ void MT_SetDump(mt_set_t *set, void (*dumpfunc)(void*))
 		if (dumpfunc)
 			(*dumpfunc)(set->items[i]);
 		else
-			printf("%x ", set->items[i]);
+			printf("%x ", (unsigned int)set->items[i]);
 	}
 	printf("]\n");
 }

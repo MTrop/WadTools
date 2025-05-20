@@ -531,6 +531,9 @@ static int parse_criteria(arg_parser_t *argparser, wadtool_options_search_t *opt
 			strupper(options->criterion0);
 		}
 		break;
+
+		default:
+			break;
 	}
 	return 0;
 }
@@ -540,20 +543,20 @@ static int call(arg_parser_t *argparser)
 	wadtool_options_search_t options = {NULL, NULL, 0, 0, 0, 0, &WADTools_ListEntrySortIndex, ST_NONE, NULL, NULL, 0};
 
 	int err;
-	if (err = parse_mode(argparser, &options)) // the single equals is intentional.
+	if ((err = parse_mode(argparser, &options)))
 	{
 		return err;
 	}
-	if (err = parse_file(argparser, &options)) // the single equals is intentional.
+	if ((err = parse_file(argparser, &options)))
 	{
 		return err;
 	}
-	if (err = parse_criteria(argparser, &options)) // the single equals is intentional.
+	if ((err = parse_criteria(argparser, &options)))
 	{
 		WAD_Close(options.wad);
 		return err;
 	}
-	if (err = parse_switches(argparser, &options)) // the single equals is intentional.
+	if ((err = parse_switches(argparser, &options)))
 	{
 		WAD_Close(options.wad);
 		return err;

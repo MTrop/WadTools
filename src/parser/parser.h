@@ -24,7 +24,7 @@ typedef struct {
 
 /**
  * Creates a new parser.
- * PARSER_Next() must be called or else this will not 
+ * PARSER_Next() must be called or else this will not retrieve the first token.
  * @param lexer the lexer to encapsulate. Cannot be NULL.
  * @return a new lexer or NULL if it couldn't be allocated.
  */
@@ -41,19 +41,19 @@ int PARSER_Destroy(parser_t *parser);
 
 /**
  * Gets the next token from the underlying lexer.
- * @param p the parser to use.
+ * @param parser the parser to use.
  * @return the pointer to the next token.
  * @see lexer.h/LXR_NextToken(lexer_token_t*)
  */
-#define PARSER_Next(p) LXR_NextToken((p)->lexer)
+lexer_token_t* PARSER_Next(parser_t *parser);
 
 /**
  * Gets the current token from the underlying lexer.
- * @param p the parser to use.
+ * @param parser the parser to use.
  * @return the pointer to the current token.
  * @see lexer.h/LXR_NextToken(lexer_token_t*)
  */
-#define PARSER_Current(p) (&((p)->lexer->token))
+lexer_token_t* PARSER_Current(parser_t *parser);
 
 /**
  * Checks if the current lexeme type on the current token is the provided type.

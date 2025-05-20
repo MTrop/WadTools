@@ -1,6 +1,6 @@
 # WAD Tool Suite
 
-Copyright (C) 2018-2019 Matt Tropiano
+Copyright (C) 2018-2025 Matt Tropiano
 
 ## NOTICE
 
@@ -34,7 +34,9 @@ A Makefile is provided for this project. This has been tested in the following e
 and toolchains:
 
 * Windows 7 x64
-* MinGW (GCC 4.8.1)
+* Windows 10 x64
+* MinGW GCC 4.8.1
+* MinGW GCC 6.3.0
 
 Yup, that's it. Who knows what the future holds!
 

@@ -134,7 +134,6 @@ static int WAD_ExpandEntrylist(wad_t *wad, int newsize)
 // Expands/reallocates the internal data buffer in a wad_t, if new size is greater than the current capacity.
 static int WAD_ExpandBuffer(wad_t *wad, int newsize)
 {
-	int i;
 	unsigned char *oldarray;
 	int oldsize = wad->buffer_capacity;
 	
@@ -165,7 +164,8 @@ static int WAD_ExpandBuffer(wad_t *wad, int newsize)
 // Load a WAD file's entries.
 static int WAD_SetupBuildEntrylist(FILE *fp, wad_t *wad)
 {
-	int i, count = WAD_EntryCount(wad);
+	int i;
+	int count = WAD_EntryCount(wad);
 	
 	if (WAD_ExpandEntrylist(wad, count))
 		return 1;
@@ -174,7 +174,7 @@ static int WAD_SetupBuildEntrylist(FILE *fp, wad_t *wad)
 	if (fseek(fp, wad->header.entry_list_offset, SEEK_SET))
 		return 1;
 	
-	for (int i = 0; i < count; i++)
+	for (i = 0; i < count; i++)
 		if (!fread(wad->entries[i], sizeof(wadentry_t), 1, fp))
 			return 1;
 	
@@ -184,7 +184,6 @@ static int WAD_SetupBuildEntrylist(FILE *fp, wad_t *wad)
 // Loads the contents of a WAD file into the buffer handle.
 static int WAD_SetupBuildBuffer(FILE *fp, wad_t *wad)
 {
-	int i;
 	int len = (wad->header.entry_list_offset) - sizeof(wadheader_t);
 	int remain = len;
 	int count;
@@ -236,7 +235,7 @@ static int WAD_EntryNameCopy(const char *src, char *dest)
 		
 		// upper-case the letter.
 		if (c > 0x20 && c < 0x7F)
-			dest[i] = toupper(c);
+			dest[i] = (char)toupper(c);
 		else
 			dest[i] = '_';
 		
@@ -880,7 +879,7 @@ static wadentry_t* wi_buffer_add_entry_data_at(wad_t *wad, const char *name, int
 	int buf = 0;
 	int count = 0;
 	unsigned char *dest = NULL;
-	while (buf = fread(cbuf, 1, CBUF_LEN, stream))
+	while ((buf = fread(cbuf, 1, CBUF_LEN, stream)))
 	{
 		if (wi_buffer_attempt_expand(wad, buf))
 		{
@@ -1022,9 +1021,9 @@ static wadfuncs_t* WAD_funcs(wadimpl_t impl)
 		case WI_MAP: return &WI_MAP_WADFUNCS;
 		case WI_FILE: return &WI_FILE_WADFUNCS;
 		case WI_BUFFER: return &WI_BUFFER_WADFUNCS;
+		case WI_UNKNOWN: return NULL;
+		default: return NULL;
 	}
-	
-	return NULL;
 }
 
 #define WI_FUNC(w,f) (WAD_funcs((w)->type))->f
@@ -1255,6 +1254,24 @@ wad_t* WAD_CreateBufferInit(int size)
 	out->type = WI_BUFFER;
 
 	return out;
+}
+
+// ---------------------------------------------------------------
+// int WAD_GetImplementation(wad_t *wad)
+// See wad.h
+// ---------------------------------------------------------------
+inline int WAD_GetImplementation(wad_t *wad)
+{
+	return wad->type;
+}
+
+// ---------------------------------------------------------------
+// int WAD_EntryCount(wad_t *wad)
+// See wad.h
+// ---------------------------------------------------------------
+inline int WAD_EntryCount(wad_t *wad)
+{
+	return wad->header.entry_count;
 }
 
 // ---------------------------------------------------------------

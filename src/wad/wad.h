@@ -44,7 +44,7 @@ typedef struct {
 	/** Entry content length. */
 	int32_t length;
 	/** Entry name. */
-	unsigned char name[8]; // not null-terminated if all 8 are used!
+	char name[8]; // not null-terminated if all 8 are used!
 	
 } wadentry_t;
 
@@ -142,7 +142,7 @@ wad_t* WAD_OpenMap(char *filename);
  * Creates a WAD buffer in memory by loading the contents of an existing WAD file completely into memory.
  * The file is not left open - no handle is kept.
  * @param filename the file name to open.
- * @return a newly-allocated wad_t (mapping implementation), or NULL on error.
+ * @return a newly-allocated wad_t (buffer implementation), or NULL on error.
  */
 wad_t* WAD_OpenBuffer(char *filename);
 
@@ -156,16 +156,23 @@ wad_t* WAD_CreateBuffer();
 /**
  * Creates a WAD buffer in memory with a specific initial content buffer size.
  * @param size the initial size, in bytes. 
- * @return a newly-allocated wad_t (mapping implementation), or NULL on error.
+ * @return a newly-allocated wad_t (buffer implementation), or NULL on error.
  */
 wad_t* WAD_CreateBufferInit(int size);
+
+/**
+ * Returns a WAD's implementation type.
+ * @param wad the pointer to the open WAD.
+ * @return the implementation type.
+ */
+int WAD_GetImplementation(wad_t *wad);
 
 /**
  * Gets the amount of entries that this WAD contains.
  * @param wad the pointer to the open WAD.
  * @return the amount of entries or -1 on error.
  */
-#define WAD_EntryCount(w) ((int)((w)->header.entry_count))
+int WAD_EntryCount(wad_t *wad);
 
 /**
  * Commits changes to WAD entries that would not ordinarily be
@@ -507,7 +514,7 @@ int WAD_Close(wad_t *wad);
  * NOTE: Must have WAD_IteratorNext called on it to get the first entry!
  * @param wad the pointer to the open WAD.
  * @param start the starting index into the entry list.
- * @return the amount of entries or -1 on error.
+ * @return a pointer to the new iterator.
  */
 waditerator_t* WAD_IteratorCreate(wad_t *wad, int start);
 
@@ -516,7 +523,6 @@ waditerator_t* WAD_IteratorCreate(wad_t *wad, int start);
  * NOTE: Must have WAD_IteratorNext called on it to get the first entry!
  * @param iter pointer to the iterator.
  * @param start the starting index into the entry list.
- * @return the amount of entries or -1 on error.
  */
 void WAD_IteratorReset(waditerator_t *iter, int start);
 

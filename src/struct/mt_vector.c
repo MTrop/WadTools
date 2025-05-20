@@ -161,7 +161,7 @@ void MT_VectorDump(mt_vector_t *vector, void (*dumpfunc)(void*))
 		if (dumpfunc)
 			(*dumpfunc)(vector->items[i]);
 		else
-			printf("%x ", vector->items[i]);
+			printf("%x ", (unsigned int)vector->items[i]);
 	}
 	printf("]\n");
 }

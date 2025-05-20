@@ -154,11 +154,11 @@ static int call(arg_parser_t *argparser)
 	wadtool_options_rename_t options = {NULL, NULL, NULL, ET_DETECT, NULL};
 
 	int err;
-	if (err = parse_file(argparser, &options)) // the single equals is intentional.
+	if ((err = parse_file(argparser, &options)))
 	{
 		return err;
 	}
-	if (err = parse_switches(argparser, &options)) // the single equals is intentional.
+	if ((err = parse_switches(argparser, &options)))
 	{
 		WAD_Close(options.wad);
 		return err;

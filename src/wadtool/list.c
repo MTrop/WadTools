@@ -240,14 +240,14 @@ static int call(arg_parser_t *argparser)
 	wadtool_options_list_t options = {NULL, NULL, 0, 0, 0, 0, 0, 0, &WADTools_ListEntrySortIndex};
 
 	int err;
-	if (err = parse_file(argparser, &options)) // the single equals is intentional.
+	if ((err = parse_file(argparser, &options)))
 	{
 		return err;
 	}
 
 	options.range_count = WAD_EntryCount(options.wad);
 
-	if (err = parse_switches(argparser, &options)) // the single equals is intentional.
+	if ((err = parse_switches(argparser, &options)))
 	{
 		WAD_Close(options.wad);
 		return err;

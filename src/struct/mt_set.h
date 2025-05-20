@@ -35,34 +35,34 @@ mt_set_t* MT_SetCreate(int capacity, int (*comparefunc)(void*, void*));
 /**
  * Frees the contents of a dynamic set object.
  * DOES NOT FREE THE CONTAINED OBJECTS.
- * @param set the address of the set object.
+ * @param set the pointer to the set object.
  */
 void MT_SetDestroy(mt_set_t *set);
 
 /**
  * Clears the contents of a set object.
  * This removes all refs.
- * @param set the address of the set object.
+ * @param set the pointer to the set object.
  */
 void MT_SetClear(mt_set_t *set);
 
 /**
  * Returns amount of refs in the selector.
- * @param set the address of the set object.
+ * @param set the pointer to the set object.
  * @return the amount of refs in the set.
  */
-#define MT_SetLength(s) ((s)->size)
+int MT_SetLength(mt_set_t *set);
 
 /**
  * Returns amount of refs that can be added to the set before expansion.
- * @param set the address of the set object.
+ * @param set the pointer to the set object.
  * @return the current capacity of the set.
  */
-#define MT_SetCapacity(s) ((s)->capacity)
+int MT_SetCapacity(mt_set_t *set);
 
 /**
  * Adds a ref (if not exist).
- * @param set the address of the set object.
+ * @param set the pointer to the set object.
  * @param value the reference to add.
  * @return 1 if added, 0 if not.
  */
@@ -90,7 +90,7 @@ int MT_SetSearch(mt_set_t *set, void *value);
  * @param value the value to check for.
  * @return 1 if so, 0 if not.
  */
-#define MT_SetContains(s,v) (MT_SetSearch((s), (v)) >= 0 ? 1 : 0)
+int MT_SetContains(mt_set_t *set, void *value);
 
 /**
  * Gets a ref from an index in the set (and casts it).

@@ -77,9 +77,8 @@ static void strupper(char* str)
 
 static void extractFileName(char *targetBuffer, char *filename, size_t maxbytes)
 {
-	char *nameptr, *endptr;
-	nameptr = (nameptr = strrchr(filename, PATHSEPARATOR)) ? ++nameptr : filename;
-	endptr = (endptr = strchr(nameptr, EXTENSIONSEPARATOR)) ? endptr : nameptr + strlen(nameptr);
+	char *nameptr = (nameptr = strrchr(filename, PATHSEPARATOR)) ? ++nameptr : filename;
+	char *endptr = (endptr = strchr(nameptr, EXTENSIONSEPARATOR)) ? endptr : nameptr + strlen(nameptr);
 	size_t len = MIN(endptr - nameptr, maxbytes);
 	memcpy(targetBuffer, nameptr, len);
 	if (len < maxbytes)
@@ -290,11 +289,11 @@ static int call(arg_parser_t *argparser)
 	wadtool_options_add_t options = {NULL, NULL, NULL, NULL, 0, -1};
 
 	int err;
-	if (err = parse_file(argparser, &options)) // the single equals is intentional.
+	if ((err = parse_file(argparser, &options)))
 	{
 		return err;
 	}
-	if (err = parse_switches(argparser, &options)) // the single equals is intentional.
+	if ((err = parse_switches(argparser, &options)))
 	{
 		WAD_Close(options.wad);
 		return err;

@@ -18,9 +18,9 @@
 extern int errno;
 extern int waderrno;
 
-#define ERRORTEMPLATE_NONE        0
-#define ERRORTEMPLATE_NO_FILENAME 1
-#define ERRORTEMPLATE_WAD_ERROR   10
+#define ERRORREMOVE_NONE        0
+#define ERRORREMOVE_NO_FILENAME 1
+#define ERRORREMOVE_WAD_ERROR   10
 
 typedef struct
 {
@@ -35,7 +35,7 @@ static void strupper(char* str)
 {
 	while (*str)
 	{
-		*str = toupper(*str);
+		*str = (char)toupper(*str);
 		str++;
 	}
 }
@@ -53,15 +53,11 @@ static int parse_file(arg_parser_t *argparser, wadtool_options_remove_t *options
 	if (!options->filename)
 	{
 		fprintf(stderr, "ERROR: No WAD file.\n");
-		return ERRORTEMPLATE_NO_FILENAME;
+		return ERRORREMOVE_NO_FILENAME;
 	}
 
-	// Open a shallow mapping.
-	options->wad = WAD_OpenMap(options->filename);
 	// Open a file.
 	options->wad = WAD_Open(options->filename);
-	// Open a buffer from a file.
-	options->wad = WAD_OpenBuffer(options->filename);
 
 	if (!options->wad)
 	{
@@ -69,7 +65,7 @@ static int parse_file(arg_parser_t *argparser, wadtool_options_remove_t *options
 			fprintf(stderr, "ERROR: %s %s\n", strwaderror(waderrno), strerror(errno));
 		else
 			fprintf(stderr, "ERROR: %s\n", strwaderror(waderrno));
-		return ERRORTEMPLATE_WAD_ERROR + waderrno;
+		return ERRORREMOVE_WAD_ERROR + waderrno;
 	}
 	nextarg(argparser);
 	return 0;
@@ -80,7 +76,7 @@ static int parse_file(arg_parser_t *argparser, wadtool_options_remove_t *options
 // If nonzero, bad parse.
 static int parse_switches(arg_parser_t *argparser, wadtool_options_remove_t *options)
 {
-	int state = SWITCHSTATE_INIT;
+	// int state = SWITCHSTATE_INIT;
 	return 0;
 }
 
@@ -89,11 +85,11 @@ static int call(arg_parser_t *argparser)
 	wadtool_options_remove_t options = {NULL, NULL};
 
 	int err;
-	if (err = parse_file(argparser, &options)) // the single equals is intentional.
+	if ((err = parse_file(argparser, &options)))
 	{
 		return err;
 	}
-	if (err = parse_switches(argparser, &options)) // the single equals is intentional.
+	if ((err = parse_switches(argparser, &options)))
 	{
 		WAD_Close(options.wad);
 		return err;
