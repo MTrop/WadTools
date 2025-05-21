@@ -61,14 +61,14 @@ typedef struct {
 // ================ Common WAD Functions ====================
 
 /**
- * Creates a new stream.
+ * Creates a new stream from a file.
  * @param filename the name of the file to open.
  * @return a new lexer stream or NULL if it couldn't be opened or allocated.
  */
 stream_t* STREAM_Open(char *filename);
 
 /**
- * Creates a new stream with a backing buffer.
+ * Creates a new stream from a file with a backing buffer.
  * The stream name is the file's name.
  * @param filename the name of the file to open.
  * @return a new stream or NULL if it couldn't be opened or allocated.
@@ -148,7 +148,7 @@ size_t STREAM_Length(stream_t *stream);
 /**
  * Gets a single character from the stream.
  * @param stream the stream.
- * @return the character read cast as an integer or EOF and end of stream.
+ * @return the character read cast as an integer or EOF for end of stream.
  */
 int STREAM_GetChar(stream_t *stream);
 
