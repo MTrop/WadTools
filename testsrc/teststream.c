@@ -21,8 +21,8 @@ int main(int argc, char** argv)
 	//stream_t* stream = STREAM_OpenBufferedFile(fp, 1024);
 	//stream_t* stream = STREAM_OpenFileSection(fp, 87);
 	//stream_t* stream = STREAM_OpenBufferedFileSection(fp, 87, 1024);
-	char *str = "abcdefghijklmnopqrstuvwxyz0123456789";
-	stream_t* stream = STREAM_OpenBuffer(str, strlen(str));
+	const char *str = "abcdefghijklmnopqrstuvwxyz0123456789";
+	stream_t* stream = STREAM_OpenBuffer((unsigned char*)str, strlen(str));
 	
 	if (!stream)
 	{

@@ -41,7 +41,7 @@ void print_wad(wad_t *wad)
 	wadentry_t *entry;
 	int i = 0;
 	printf("---- Name     Size     Offset\n");
-	while (entry = WAD_IteratorNext(iter))
+	while ((entry = WAD_IteratorNext(iter)))
 		printf("%04d %-8.8s %-8d %-9d\n", i++, entry->name, entry->length, entry->offset);
 	printf("Count %d\n", wad->header.entry_count);
 	printf("Capacity %d\n", wad->entries_capacity);
@@ -61,7 +61,7 @@ void print_wad2(wad_t *wad)
 	for (i = 0; i < wad->entries_capacity; i++)
 	{
 		entry = wad->entries[i];
-		printf("%04d %08x %-8.8s %-8d %-9d\n", i, entry, entry->name, entry->length, entry->offset);
+		printf("%04d %08x %-8.8s %-8d %-9d\n", i, (unsigned int)entry, entry->name, entry->length, entry->offset);
 	}
 	printf("Count %d\n", wad->header.entry_count);
 	printf("Capacity %d\n", wad->entries_capacity);
@@ -99,13 +99,13 @@ int main(int argc, char** argv)
 	WAD_CreateEntry(wad, "LUMP02");
 	WAD_CreateEntryAt(wad, "LUMP03", 1);
 	
-	unsigned char *junk = "This is some kind of message.";
-	unsigned char *junk2 = "This is another type of message.";
+	char *junk = "This is some kind of message.";
+	char *junk2 = "This is another type of message.";
 	
-	WAD_AddEntry(wad, "LUMP04", junk, strlen(junk));
+	WAD_AddEntry(wad, "LUMP04", (unsigned char*)junk, strlen(junk));
 	print_error();
 	
-	WAD_AddEntryAt(wad, "LUMP05", 2, junk2, strlen(junk2));
+	WAD_AddEntryAt(wad, "LUMP05", 2, (unsigned char*)junk2, strlen(junk2));
 	print_error();
 
 	FILE *f1 = fopen("gcc.txt", "rb");
