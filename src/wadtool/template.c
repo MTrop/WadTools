@@ -22,6 +22,7 @@ extern int waderrno;
 #define ERRORTEMPLATE_NONE        0
 #define ERRORTEMPLATE_NO_FILENAME 1
 #define ERRORTEMPLATE_WAD_ERROR   10
+#define ERRORTEMPLATE_IO_ERROR    20
 
 typedef struct
 {
@@ -59,10 +60,15 @@ static int parse_file(arg_parser_t *argparser, wadtool_options_template_t *optio
 	if (!options->wad)
 	{
 		if (waderrno == WADERROR_FILE_ERROR)
+		{
 			fprintf(stderr, "ERROR: %s %s\n", strwaderror(waderrno), strerror(errno));
+			return ERRORTEMPLATE_IO_ERROR + errno;
+		}
 		else
+		{
 			fprintf(stderr, "ERROR: %s\n", strwaderror(waderrno));
-		return ERRORTEMPLATE_WAD_ERROR + waderrno;
+			return ERRORTEMPLATE_WAD_ERROR + waderrno;
+		}
 	}
 	nextarg(argparser);
 	return 0;

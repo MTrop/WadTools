@@ -25,6 +25,7 @@ extern int waderrno;
 #define ERRORLIST_BAD_SWITCH    2
 #define ERRORLIST_BAD_SORT    	3
 #define ERRORLIST_WAD_ERROR     10
+#define ERRORLIST_IO_ERROR      20
 
 #define SWITCH_RANGE			"--range"
 #define SWITCH_RANGE2		    "-r"
@@ -107,10 +108,15 @@ static int parse_file(arg_parser_t *argparser, wadtool_options_list_t *options)
 	if (!options->wad)
 	{
 		if (waderrno == WADERROR_FILE_ERROR)
+		{
 			fprintf(stderr, "ERROR: %s %s\n", strwaderror(waderrno), strerror(errno));
+			return ERRORLIST_IO_ERROR + errno;
+		}
 		else
+		{
 			fprintf(stderr, "ERROR: %s\n", strwaderror(waderrno));
-		return ERRORLIST_WAD_ERROR + waderrno;
+			return ERRORLIST_WAD_ERROR + waderrno;
+		}
 	}
 	nextarg(argparser);
 	return 0;

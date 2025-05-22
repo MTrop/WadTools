@@ -19,12 +19,12 @@ inline char* currarg(arg_parser_t *argparser)
 	return argparser->arg;
 }
 
-inline int currargis(arg_parser_t *argparser, char *s)
+inline int currargis(arg_parser_t *argparser, const char *s)
 {
 	return strieql(currarg(argparser), s);
 }
 
-inline int currargstart(arg_parser_t *argparser, char *s)
+inline int currargstart(arg_parser_t *argparser, const char *s)
 {
 	return stristart(currarg(argparser), s);
 }
@@ -50,7 +50,7 @@ char* takearg(arg_parser_t *argparser)
 	return out;
 }
 
-int matcharg(arg_parser_t *argparser, char *s)
+int matcharg(arg_parser_t *argparser, const char *s)
 {
 	if (currargis(argparser, s))
 	{

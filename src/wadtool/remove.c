@@ -20,7 +20,11 @@ extern int waderrno;
 
 #define ERRORREMOVE_NONE        0
 #define ERRORREMOVE_NO_FILENAME 1
+#define ERRORREMOVE_NO_INDEX    2
+#define ERRORREMOVE_NO_COUNT    3
 #define ERRORREMOVE_WAD_ERROR   10
+#define ERRORREMOVE_IO_ERROR    20
+
 
 typedef struct
 {
@@ -28,22 +32,45 @@ typedef struct
 	char *filename;
 	/** The WAD to use. */
 	wad_t *wad;
+	
+	/** The entry index. */
+	int index;
+	/** The removal count. */
+	size_t count;
 
 } wadtool_options_remove_t;
 
-static void strupper(char* str)
-{
-	while (*str)
-	{
-		*str = (char)toupper(*str);
-		str++;
-	}
-}
 
 static int exec(wadtool_options_remove_t *options)
 {
-	printf("ERROR: NOT SUPPORTED YET!\n");
-	return -1;
+	if (options->index < 0 || options->index >= WAD_EntryCount(options->wad))
+	{
+		fprintf(stderr, "ERROR: Index out of range.\n");
+		return ERRORREMOVE_NO_INDEX;
+	}
+
+	if (options->count == 0)
+	{
+		fprintf(stderr, "ERROR: Nothing to remove.\n");
+		return ERRORREMOVE_NO_COUNT;
+	}
+
+	if (WAD_RemoveEntryRange(options->wad, options->index, options->count))
+	{
+		if (waderrno == WADERROR_FILE_ERROR)
+		{
+			fprintf(stderr, "ERROR: %s %s\n", strwaderror(waderrno), strerror(errno));
+			return ERRORREMOVE_IO_ERROR + errno;
+		}
+		else
+		{
+			fprintf(stderr, "ERROR: %s\n", strwaderror(waderrno));
+			return ERRORREMOVE_WAD_ERROR + waderrno;
+		}
+	}
+
+	printf("Removed %d entries from index %d.", options->count, options->index);
+	return ERRORREMOVE_NONE;
 }
 
 // If nonzero, bad parse.
@@ -62,27 +89,57 @@ static int parse_file(arg_parser_t *argparser, wadtool_options_remove_t *options
 	if (!options->wad)
 	{
 		if (waderrno == WADERROR_FILE_ERROR)
+		{
 			fprintf(stderr, "ERROR: %s %s\n", strwaderror(waderrno), strerror(errno));
+			return ERRORREMOVE_IO_ERROR + errno;
+		}
 		else
+		{
 			fprintf(stderr, "ERROR: %s\n", strwaderror(waderrno));
-		return ERRORREMOVE_WAD_ERROR + waderrno;
+			return ERRORREMOVE_WAD_ERROR + waderrno;
+		}
 	}
 	nextarg(argparser);
 	return 0;
 }
 
 #define SWITCHSTATE_INIT		0
+#define SWITCHSTATE_COUNT		1
 
 // If nonzero, bad parse.
 static int parse_switches(arg_parser_t *argparser, wadtool_options_remove_t *options)
 {
-	// int state = SWITCHSTATE_INIT;
+	// Default count.
+	options->count = 1;
+
+	int state = SWITCHSTATE_INIT;
+	while (currarg(argparser)) switch (state)
+	{
+		case SWITCHSTATE_INIT:
+		{
+			options->index = atoi(currarg(argparser));
+			nextarg(argparser);
+			state = SWITCHSTATE_COUNT;
+		}
+		break;
+
+		case SWITCHSTATE_COUNT:
+		{
+			int count = atoi(currarg(argparser));
+			if (count >= 0)
+				options->count = (size_t)count;
+			nextarg(argparser);
+			state = SWITCHSTATE_INIT;
+		}
+		break;
+	}
+
 	return 0;
 }
 
 static int call(arg_parser_t *argparser)
 {
-	wadtool_options_remove_t options = {NULL, NULL};
+	wadtool_options_remove_t options = {NULL, NULL, -1, 0};
 
 	int err;
 	if ((err = parse_file(argparser, &options)))
@@ -102,13 +159,19 @@ static int call(arg_parser_t *argparser)
 
 static void usage()
 {
-	// TODO: Finish this.
-	printf("Usage: wad remove [wadfile] [entryname]\n");
+	printf("Usage: wad remove [wadfile] [entry] <count>\n");
 }
 
 static void help()
 {
-	// TODO: Finish this.
+	printf("[wadfile]: \n");
+	printf("    The WAD file to remove an entry in.\n");
+	printf("\n");
+	printf("[entry]: \n");
+	printf("    Entry index to remove.\n");
+	printf("\n");
+	printf("<count>: (optional, default 1)\n");
+	printf("    The amount of entries to remove, including the selected entry.\n");
 }
 
 wadtool_t WADTOOL_Remove = {

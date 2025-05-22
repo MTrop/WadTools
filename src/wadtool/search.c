@@ -21,24 +21,25 @@
 extern int errno;
 extern int waderrno;
 
-#define ERRORSEARCH_NONE				0
-#define ERRORSEARCH_NO_FILENAME			1
-#define ERRORSEARCH_BAD_SWITCH			2
-#define ERRORSEARCH_BAD_MODE			3
-#define ERRORSEARCH_MISSING_PARAMETER	4
-#define ERRORSEARCH_BAD_SORT			5
-#define ERRORSEARCH_WAD_ERROR			10
+#define ERRORSEARCH_NONE                0
+#define ERRORSEARCH_NO_FILENAME         1
+#define ERRORSEARCH_BAD_SWITCH          2
+#define ERRORSEARCH_BAD_MODE            3
+#define ERRORSEARCH_MISSING_PARAMETER   4
+#define ERRORSEARCH_BAD_SORT            5
+#define ERRORSEARCH_WAD_ERROR           10
+#define ERRORSEARCH_IO_ERROR            20
 
 #define ERRORSEARCH_MAP_NOT_FOUND		30
 
 
-#define MODE_MAP			    		"map"
-#define MODE_MAPS			    		"maps"
-#define MODE_NAME			    		"name"
-#define MODE_NAMESPACE					"namespace"
+#define MODE_MAP                        "map"
+#define MODE_MAPS                       "maps"
+#define MODE_NAME                       "name"
+#define MODE_NAMESPACE                  "namespace"
 
-#define MAPENTRY_SEARCHNAME				"THINGS"
-#define MAPENTRY_SEARCHNAME2			"TEXTMAP"
+#define MAPENTRY_SEARCHNAME             "THINGS"
+#define MAPENTRY_SEARCHNAME2            "TEXTMAP"
 
 // MUST BE ALPHABETICAL!
 #define MAP_ENTRY_NAMES_COUNT 22
@@ -390,10 +391,15 @@ static int parse_file(arg_parser_t *argparser, wadtool_options_search_t *options
 	if (!options->wad)
 	{
 		if (waderrno == WADERROR_FILE_ERROR)
+		{
 			fprintf(stderr, "ERROR: %s %s\n", strwaderror(waderrno), strerror(errno));
+			return ERRORSEARCH_IO_ERROR + errno;
+		}
 		else
+		{
 			fprintf(stderr, "ERROR: %s\n", strwaderror(waderrno));
-		return ERRORSEARCH_WAD_ERROR + waderrno;
+			return ERRORSEARCH_WAD_ERROR + waderrno;
+		}
 	}
 	nextarg(argparser);
 	return 0;

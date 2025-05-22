@@ -37,15 +37,15 @@ void print_wad(wad_t *wad)
 	printf("Content Size %d bytes\n", wad->header.entry_list_offset - sizeof(wadheader_t));
 	printf("List start at %d\n", wad->header.entry_list_offset);
 	
-	waditerator_t *iter = WAD_IteratorCreate(wad, 0);
+	waditerator_t iter;
+	WAD_IteratorInit(&iter, wad, 0);
 	wadentry_t *entry;
 	int i = 0;
 	printf("---- Name     Size     Offset\n");
-	while ((entry = WAD_IteratorNext(iter)))
+	while ((entry = WAD_IteratorNext(&iter)))
 		printf("%04d %-8.8s %-8d %-9d\n", i++, entry->name, entry->length, entry->offset);
 	printf("Count %d\n", wad->header.entry_count);
 	printf("Capacity %d\n", wad->entries_capacity);
-	WAD_IteratorClose(iter);
 }
 
 void print_wad2(wad_t *wad)
@@ -54,7 +54,6 @@ void print_wad2(wad_t *wad)
 	printf("Content Size %d bytes\n", wad->header.entry_list_offset - sizeof(wadheader_t));
 	printf("List start at %d\n", wad->header.entry_list_offset);
 	
-	waditerator_t *iter = WAD_IteratorCreate(wad, 0);
 	wadentry_t *entry;
 	int i = 0;
 	printf("---- Name     Size     Offset\n");
@@ -65,7 +64,6 @@ void print_wad2(wad_t *wad)
 	}
 	printf("Count %d\n", wad->header.entry_count);
 	printf("Capacity %d\n", wad->entries_capacity);
-	WAD_IteratorClose(iter);
 }
 
 
@@ -82,8 +80,7 @@ void print_error()
 
 int main(int argc, char** argv)
 {
-	//wad_t* wad = WAD_Create("TEST.wad");
-	wad_t* wad = WAD_Create("butt.wad");
+	wad_t* wad = WAD_Create("TEST.wad");
 	
 	if (!wad)
 	{

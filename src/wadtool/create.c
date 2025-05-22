@@ -20,6 +20,7 @@ extern int waderrno;
 #define ERRORCREATE_NONE        0
 #define ERRORCREATE_NO_FILENAME 1
 #define ERRORCREATE_WAD_ERROR   10
+#define ERRORCREATE_IO_ERROR    20
 
 typedef struct
 {
@@ -36,10 +37,15 @@ static int exec(wadtool_options_create_t *options)
 	if (!wad)
 	{
 		if (waderrno == WADERROR_FILE_ERROR)
-			printf("ERROR: %s %s\n", strwaderror(waderrno), strerror(errno));
+		{
+			fprintf(stderr, "ERROR: %s %s\n", strwaderror(waderrno), strerror(errno));
+			return ERRORCREATE_IO_ERROR + errno;
+		}
 		else
-			printf("ERROR: %s\n", strwaderror(waderrno));
-		return ERRORCREATE_WAD_ERROR + waderrno;
+		{
+			fprintf(stderr, "ERROR: %s\n", strwaderror(waderrno));
+			return ERRORCREATE_WAD_ERROR + waderrno;
+		}
 	}
 	
 	WAD_Close(wad);

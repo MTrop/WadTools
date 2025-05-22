@@ -17,13 +17,14 @@
 extern int errno;
 extern int waderrno;
 
-#define ERRORSHIFT_NONE        		0
-#define ERRORSHIFT_NO_FILENAME 		1
-#define ERRORSHIFT_NO_SOURCE 		2
-#define ERRORSHIFT_NO_DESTINATION 	3
-#define ERRORSHIFT_BAD_COUNT 		4
-#define ERRORSHIFT_BAD_INDEX 		5
-#define ERRORSHIFT_WAD_ERROR   		10
+#define ERRORSHIFT_NONE             0
+#define ERRORSHIFT_NO_FILENAME      1
+#define ERRORSHIFT_NO_SOURCE        2
+#define ERRORSHIFT_NO_DESTINATION   3
+#define ERRORSHIFT_BAD_COUNT        4
+#define ERRORSHIFT_BAD_INDEX        5
+#define ERRORSHIFT_WAD_ERROR        10
+#define ERRORSHIFT_IO_ERROR         20
 
 typedef struct
 {
@@ -67,10 +68,15 @@ static int exec(wadtool_options_shift_t *options)
 	if (WAD_ShiftEntries(wad, options->source, options->count, options->destination))
 	{
 		if (waderrno == WADERROR_FILE_ERROR)
+		{
 			fprintf(stderr, "ERROR: %s %s\n", strwaderror(waderrno), strerror(errno));
+			return ERRORSHIFT_IO_ERROR + errno;
+		}
 		else
+		{
 			fprintf(stderr, "ERROR: %s\n", strwaderror(waderrno));
-		return ERRORSHIFT_WAD_ERROR + waderrno;
+			return ERRORSHIFT_WAD_ERROR + waderrno;
+		}
 	}
 
 	if (options->count == 1)
@@ -110,10 +116,15 @@ static int parse_file(arg_parser_t *argparser, wadtool_options_shift_t *options)
 	if (!options->wad)
 	{
 		if (waderrno == WADERROR_FILE_ERROR)
+		{
 			fprintf(stderr, "ERROR: %s %s\n", strwaderror(waderrno), strerror(errno));
+			return ERRORSHIFT_IO_ERROR + errno;
+		}
 		else
+		{
 			fprintf(stderr, "ERROR: %s\n", strwaderror(waderrno));
-		return ERRORSHIFT_WAD_ERROR + waderrno;
+			return ERRORSHIFT_WAD_ERROR + waderrno;
+		}
 	}
 	nextarg(argparser);
 	return 0;

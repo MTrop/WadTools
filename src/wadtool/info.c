@@ -21,6 +21,7 @@ extern int waderrno;
 #define ERRORINFO_NO_FILENAME   1
 #define ERRORINFO_BAD_SWITCH    2
 #define ERRORINFO_WAD_ERROR     10
+#define ERRORINFO_IO_ERROR      20
 
 #define SWITCH_CONDENSED        "-c"
 #define SWITCH_CONDENSED2       "--condensed"
@@ -76,10 +77,15 @@ static int parse_file(arg_parser_t *argparser, wadtool_options_info_t *options)
 	if (!options->wad)
 	{
 		if (waderrno == WADERROR_FILE_ERROR)
+		{
 			fprintf(stderr, "ERROR: %s %s\n", strwaderror(waderrno), strerror(errno));
+			return ERRORINFO_IO_ERROR + errno;
+		}
 		else
+		{
 			fprintf(stderr, "ERROR: %s\n", strwaderror(waderrno));
-		return ERRORINFO_WAD_ERROR + waderrno;
+			return ERRORINFO_WAD_ERROR + waderrno;
+		}
 	}
 	nextarg(argparser);
 	return 0;

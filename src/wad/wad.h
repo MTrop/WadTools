@@ -510,6 +510,16 @@ int WAD_ReadEntryData(wad_t *wad, wadentry_t *entry, void *destination, size_t s
 int WAD_Close(wad_t *wad);
 
 /**
+ * Initializes a WAD iterator.
+ * This can be useful for stack-instantiated iterators.
+ * @param iter pointer to the iterator.
+ * @param wad the pointer to the open WAD.
+ * @param start the starting index into the entry list.
+ * @return a pointer to the new iterator.
+ */
+void WAD_IteratorInit(waditerator_t *iter, wad_t *wad, int start);
+
+/**
  * Creates a WAD iterator.
  * NOTE: Must have WAD_IteratorNext called on it to get the first entry!
  * @param wad the pointer to the open WAD.
@@ -535,6 +545,7 @@ wadentry_t* WAD_IteratorNext(waditerator_t *iter);
 
 /**
  * Frees a WAD iterator.
+ * Use only if WAD_IteratorCreate was called to create it!
  * @param iter pointer to the iterator.
  */
 void WAD_IteratorClose(waditerator_t *iter);

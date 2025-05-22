@@ -43,7 +43,7 @@ typedef struct {
 /**
  * Get the current argument.
  * @param argparser the parser to use.
- * @return the next argument, or NULL if no more.
+ * @return the current argument, or NULL if no more.
  */
 char* currarg(arg_parser_t *argparser);
 
@@ -53,7 +53,7 @@ char* currarg(arg_parser_t *argparser);
  * @param s the target string to compare.
  * @return 1 if equal, 0 if not.
  */
-int currargis(arg_parser_t *argparser, char *s);
+int currargis(arg_parser_t *argparser, const char *s);
 
 /**
  * Check if the current argument starts with a certain string (case insensitive).
@@ -61,7 +61,7 @@ int currargis(arg_parser_t *argparser, char *s);
  * @param s the target string to compare.
  * @return 1 if equal, 0 if not.
  */
-int currargstart(arg_parser_t *argparser, char *s);
+int currargstart(arg_parser_t *argparser, const char *s);
 
 /**
  * Advances the parser and returns the argument.
@@ -83,6 +83,6 @@ char* takearg(arg_parser_t *argparser);
  * @param s the string to test.
  * @return 1 if equal and the parser was advanced, 0 if not.
  */
-int matcharg(arg_parser_t *argparser, char *s);
+int matcharg(arg_parser_t *argparser, const char *s);
 
 #endif

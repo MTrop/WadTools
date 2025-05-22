@@ -20,16 +20,17 @@
 extern int errno;
 extern int waderrno;
 
-#define ERRORRENAME_NONE        		0
-#define ERRORRENAME_NO_FILENAME 		1
-#define ERRORRENAME_MISSING_PARAMETER	2
-#define ERRORRENAME_BAD_ENTRY			3
-#define ERRORRENAME_WAD_ERROR   		10
+#define ERRORRENAME_NONE                0
+#define ERRORRENAME_NO_FILENAME         1
+#define ERRORRENAME_MISSING_PARAMETER   2
+#define ERRORRENAME_BAD_ENTRY           3
+#define ERRORRENAME_WAD_ERROR           10
+#define ERRORRENAME_IO_ERROR            20
 
-#define SWITCH_INDEX				"-i"
-#define SWITCH_INDEX2				"--index"
-#define SWITCH_NAME					"-n"
-#define SWITCH_NAME2				"--name"
+#define SWITCH_INDEX                    "-i"
+#define SWITCH_INDEX2                   "--index"
+#define SWITCH_NAME                     "-n"
+#define SWITCH_NAME2                    "--name"
 
 typedef struct
 {
@@ -82,10 +83,15 @@ static int exec(wadtool_options_rename_t *options)
 	if (WAD_CommitEntries(wad))
 	{
 		if (waderrno == WADERROR_FILE_ERROR)
+		{
 			fprintf(stderr, "ERROR: %s %s\n", strwaderror(waderrno), strerror(errno));
+			return ERRORRENAME_IO_ERROR + errno;
+		}
 		else
+		{
 			fprintf(stderr, "ERROR: %s\n", strwaderror(waderrno));
-		return ERRORRENAME_WAD_ERROR + waderrno;
+			return ERRORRENAME_WAD_ERROR + waderrno;
+		}
 	}
 	printf("Renamed entry at index %d (%s) to %s in %s.\n", sidx, oldName, srcEntry->name, options->filename);
 
@@ -108,10 +114,15 @@ static int parse_file(arg_parser_t *argparser, wadtool_options_rename_t *options
 	if (!options->wad)
 	{
 		if (waderrno == WADERROR_FILE_ERROR)
+		{
 			fprintf(stderr, "ERROR: %s %s\n", strwaderror(waderrno), strerror(errno));
+			return ERRORRENAME_IO_ERROR + errno;
+		}
 		else
+		{
 			fprintf(stderr, "ERROR: %s\n", strwaderror(waderrno));
-		return ERRORRENAME_WAD_ERROR + waderrno;
+			return ERRORRENAME_WAD_ERROR + waderrno;
+		}
 	}
 	nextarg(argparser);
 	return 0;

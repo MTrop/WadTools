@@ -117,10 +117,15 @@ static int add(wad_t *wad, char *sourceFile, char *entryName, int addIndex)
 		if (!outentry)
 		{
 			if (waderrno == WADERROR_FILE_ERROR)
+			{
 				fprintf(stderr, "ERROR: %s %s\n", strwaderror(waderrno), strerror(errno));
+				return ERRORADD_IO_ERROR + errno;
+			}
 			else
+			{
 				fprintf(stderr, "ERROR: %s\n", strwaderror(waderrno));
-			return ERRORADD_WAD_ERROR + errno;
+				return ERRORADD_WAD_ERROR + waderrno;
+			}
 		}
 
 		fclose(fp);
@@ -211,10 +216,15 @@ static int parse_file(arg_parser_t *argparser, wadtool_options_add_t *options)
 	if (!options->wad)
 	{
 		if (waderrno == WADERROR_FILE_ERROR)
+		{
 			fprintf(stderr, "ERROR: %s %s\n", strwaderror(waderrno), strerror(errno));
+			return ERRORADD_IO_ERROR + errno;
+		}
 		else
+		{
 			fprintf(stderr, "ERROR: %s\n", strwaderror(waderrno));
-		return ERRORADD_WAD_ERROR + waderrno;
+			return ERRORADD_WAD_ERROR + waderrno;
+		}
 	}
 	nextarg(argparser);
 	return 0;

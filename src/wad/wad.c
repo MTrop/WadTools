@@ -1922,6 +1922,18 @@ int WAD_Close(wad_t *wad)
 }
 
 // ---------------------------------------------------------------
+// void WAD_IteratorInit(waditerator_t *iter, wad_t *wad, int start)
+// See wad.h
+// ---------------------------------------------------------------
+void WAD_IteratorInit(waditerator_t *iter, wad_t *wad, int start)
+{
+	iter->wad = wad;
+	iter->entry = NULL;
+	iter->next = start;
+	iter->count = (int)(wad->header.entry_count);
+}
+
+// ---------------------------------------------------------------
 // waditerator_t* WAD_IteratorCreate(wad_t *wad, int start)
 // See wad.h
 // ---------------------------------------------------------------
@@ -1932,17 +1944,13 @@ waditerator_t* WAD_IteratorCreate(wad_t *wad, int start)
 
 	waditerator_t *out = (waditerator_t*)WAD_MALLOC(sizeof(waditerator_t));
 	
-	if (wad == NULL)
+	if (out == NULL)
 	{
 		waderrno = WADERROR_OUT_OF_MEMORY;
 		return NULL;
 	}
 
-	out->wad = wad;
-	out->entry = NULL;
-	out->next = start;
-	out->count = (int)(wad->header.entry_count);
-	
+	WAD_IteratorInit(out, wad, start);
 	return out;
 }
 

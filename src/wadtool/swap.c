@@ -20,11 +20,12 @@
 extern int errno;
 extern int waderrno;
 
-#define ERRORSWAP_NONE        		0
-#define ERRORSWAP_NO_FILENAME 		1
-#define ERRORSWAP_MISSING_PARAMETER	2
-#define ERRORSWAP_BAD_ENTRY			3
-#define ERRORSWAP_WAD_ERROR   		10
+#define ERRORSWAP_NONE              0
+#define ERRORSWAP_NO_FILENAME       1
+#define ERRORSWAP_MISSING_PARAMETER 2
+#define ERRORSWAP_BAD_ENTRY         3
+#define ERRORSWAP_WAD_ERROR         10
+#define ERRORSWAP_IO_ERROR          20
 
 typedef struct
 {
@@ -83,10 +84,15 @@ static int exec(wadtool_options_swap_t *options)
 	if (WAD_SwapEntry(wad, sidx, didx))
 	{
 		if (waderrno == WADERROR_FILE_ERROR)
+		{
 			fprintf(stderr, "ERROR: %s %s\n", strwaderror(waderrno), strerror(errno));
+			return ERRORSWAP_IO_ERROR + errno;
+		}
 		else
+		{
 			fprintf(stderr, "ERROR: %s\n", strwaderror(waderrno));
-		return ERRORSWAP_WAD_ERROR + waderrno;
+			return ERRORSWAP_WAD_ERROR + waderrno;
+		}
 	}
 	
 	printf("Swapped index %d (%s) and %d (%s) in %s.\n", sidx, srcEntry->name, didx, destEntry->name, options->filename);
@@ -110,10 +116,15 @@ static int parse_file(arg_parser_t *argparser, wadtool_options_swap_t *options)
 	if (!options->wad)
 	{
 		if (waderrno == WADERROR_FILE_ERROR)
+		{
 			fprintf(stderr, "ERROR: %s %s\n", strwaderror(waderrno), strerror(errno));
+			return ERRORSWAP_IO_ERROR + errno;
+		}
 		else
+		{
 			fprintf(stderr, "ERROR: %s\n", strwaderror(waderrno));
-		return ERRORSWAP_WAD_ERROR + waderrno;
+			return ERRORSWAP_WAD_ERROR + waderrno;
+		}
 	}
 	nextarg(argparser);
 	return 0;

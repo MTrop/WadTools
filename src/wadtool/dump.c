@@ -32,6 +32,7 @@ extern int waderrno;
 #define ERRORDUMP_STREAM_ERROR		4
 #define ERRORDUMP_NOTHING_PRINTED	5
 #define ERRORDUMP_WAD_ERROR   		10
+#define ERRORDUMP_IO_ERROR   		20
 
 #define SWITCH_INDEX				"-i"
 #define SWITCH_INDEX2				"--index"
@@ -204,10 +205,15 @@ static int parse_file(arg_parser_t *argparser, wadtool_options_dump_t *options)
 	if (!options->wad)
 	{
 		if (waderrno == WADERROR_FILE_ERROR)
+		{
 			fprintf(stderr, "ERROR: %s %s\n", strwaderror(waderrno), strerror(errno));
+			return ERRORDUMP_IO_ERROR + errno;
+		}
 		else
+		{
 			fprintf(stderr, "ERROR: %s\n", strwaderror(waderrno));
-		return ERRORDUMP_WAD_ERROR + waderrno;
+			return ERRORDUMP_WAD_ERROR + waderrno;
+		}
 	}
 	nextarg(argparser);
 	return 0;
