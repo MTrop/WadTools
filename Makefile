@@ -71,6 +71,9 @@ clean:
 	@rm -Rf $(BUILD_DIR)
 	@echo Done.
 
+cleanexe:
+	@rm $(LINKED_FILES)
+
 compile: $(MODULE_OBJ_FILES)
 
 testcompile: compile $(TEST_MODULE_OBJ_FILES)

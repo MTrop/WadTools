@@ -28,8 +28,6 @@ wad remove
     Removes an entry from a WAD file.
 wad clean
     Garbage-collects abandoned entries in a WAD file, making a new WAD.
-wad delete
-    Shortcut for [remove] plus [clean].
 
 wad import
     Add the contents of a WAD to a WAD.

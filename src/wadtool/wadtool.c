@@ -9,7 +9,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "wadtool.h"
-#include "wad/wad_config.h"
 
 #define strieql(s,t) (stricmp((s),(t)) == 0)
 #define stristart(s,t) (strnicmp((s),(t), strlen((t))) == 0)

@@ -9,11 +9,9 @@
 #ifdef _WIN32
 #include <fcntl.h>
 #include <io.h>
-#define PATHSEPARATOR '\\'
 #endif
-#ifndef _WIN32
-#define PATHSEPARATOR '/'
-#endif
+#define PATHSEPARATOR_WIN '\\'
+#define PATHSEPARATOR_UNIX '/'
 #define EXTENSIONSEPARATOR '.'
 
 #include <stdlib.h>
@@ -70,14 +68,29 @@ static void strupper(char* str)
 {
 	while (*str)
 	{
-		*str = toupper(*str);
+		*str = (char)toupper(*str);
 		str++;
 	}
 }
 
 static void extractFileName(char *targetBuffer, char *filename, size_t maxbytes)
 {
-	char *nameptr = (nameptr = strrchr(filename, PATHSEPARATOR)) ? ++nameptr : filename;
+	char *nameptr;
+	
+	nameptr = strrchr(filename, PATHSEPARATOR_WIN);
+	if (!nameptr)
+	{
+		nameptr = strrchr(filename, PATHSEPARATOR_UNIX);
+		if (!nameptr)
+			nameptr = filename;
+		else
+			++nameptr;
+	}
+	else
+	{
+		++nameptr;
+	}
+	
 	char *endptr = (endptr = strchr(nameptr, EXTENSIONSEPARATOR)) ? endptr : nameptr + strlen(nameptr);
 	size_t len = MIN(endptr - nameptr, maxbytes);
 	memcpy(targetBuffer, nameptr, len);
@@ -135,6 +148,8 @@ static int add(wad_t *wad, char *sourceFile, char *entryName, int addIndex)
 	return ERRORADD_NONE;
 }
 
+#define MAX_FILENAME_SIZE 512
+
 static int exec(wadtool_options_add_t *options)
 {
 	wad_t *wad = options->wad;
@@ -166,14 +181,14 @@ static int exec(wadtool_options_add_t *options)
 		}
 
 		int ret = 0;
-		char filenameLine[512];
-		while (!ret && STREAM_ReadLine(listin, filenameLine, 512) >= 0)
+		char filenameLine[MAX_FILENAME_SIZE];
+		while (!ret && STREAM_ReadLine(listin, filenameLine, MAX_FILENAME_SIZE) >= 0)
 		{
 			if (options->entryName)
 				ret = add(wad, filenameLine, options->entryName, addIndex++);
 			else
 			{
-				extractFileName(entryName, filenameLine, 512);
+				extractFileName(entryName, filenameLine, MAX_FILENAME_SIZE);
 				ret = add(wad, filenameLine, entryName, addIndex++);
 			}
 		}
@@ -193,7 +208,7 @@ static int exec(wadtool_options_add_t *options)
 				fprintf(stderr, "ERROR: Must specify an entry name via `--entry-name` switch if source is STDIN.\n");
 				return ERRORADD_MISSING_PARAMETER;
 			}
-			extractFileName(entryName, sourceFile, 512);
+			extractFileName(entryName, sourceFile, MAX_FILENAME_SIZE);
 			ret = add(wad, sourceFile, entryName, addIndex++);
 		}
 		return ret;
@@ -346,8 +361,8 @@ static void help()
 	printf("                                  new entry will be appended to the end.\n");
 	printf("\n");
 	printf("        --list                    Signifies that the incoming source is a\n");
-	printf("        -l                        list of files, rather than a single file\n");
-	printf("                                  or stream.\n");
+	printf("        -l                        list of newline-separated files, rather than\n");
+	printf("                                  a single file or stream.\n");
 }
 
 wadtool_t WADTOOL_Add = {

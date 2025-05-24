@@ -81,6 +81,12 @@ static int exec(wadtool_options_swap_t *options)
 	wadentry_t *srcEntry = WAD_GetEntry(wad, sidx);
 	wadentry_t *destEntry = WAD_GetEntry(wad, didx);
 
+	// null-pad entry names.
+	char srcname[9];
+	char destname[9];
+	sprintf(srcname, "%-.8s", srcEntry->name);
+	sprintf(destname, "%-.8s", destEntry->name);
+	
 	if (WAD_SwapEntry(wad, sidx, didx))
 	{
 		if (waderrno == WADERROR_FILE_ERROR)
@@ -94,8 +100,8 @@ static int exec(wadtool_options_swap_t *options)
 			return ERRORSWAP_WAD_ERROR + waderrno;
 		}
 	}
-	
-	printf("Swapped index %d (%s) and %d (%s) in %s.\n", sidx, srcEntry->name, didx, destEntry->name, options->filename);
+
+	printf("Swapped index %d (%s) and %d (%s) in %s.\n", sidx, srcname, didx, destname, options->filename);
 
 	return ERRORSWAP_NONE;
 }

@@ -306,7 +306,7 @@ int WAD_GetEntryLastIndex(wad_t *wad, const char *name);
  * Bad characters in names are coerced into valid characters.
  * @param wad the pointer to the open WAD.
  * @param name the entry name.
- * @return a pointer to the created entry.
+ * @return a pointer to the created entry, or NULL if not created.
  */
 wadentry_t* WAD_CreateEntry(wad_t *wad, const char *name);
 
@@ -317,7 +317,7 @@ wadentry_t* WAD_CreateEntry(wad_t *wad, const char *name);
  * @param wad the pointer to the open WAD.
  * @param name the entry name.
  * @param index the index position (0-based) to add the entry at.
- * @return a pointer to the created entry.
+ * @return a pointer to the created entry, or NULL if not created.
  */
 wadentry_t* WAD_CreateEntryAt(wad_t *wad, const char *name, int index);
 
@@ -329,7 +329,7 @@ wadentry_t* WAD_CreateEntryAt(wad_t *wad, const char *name, int index);
  * @param name the entry name.
  * @param buffer the pointer to the data to write.
  * @param buffer_size the amount of data in bytes to write.
- * @return a pointer to the created entry.
+ * @return a pointer to the created entry, or NULL if not created.
  */
 wadentry_t* WAD_AddEntry(wad_t *wad, const char *name, unsigned char *buffer, size_t buffer_size);
 
@@ -343,7 +343,7 @@ wadentry_t* WAD_AddEntry(wad_t *wad, const char *name, unsigned char *buffer, si
  * @param index the index position (0-based) to add the entry at.
  * @param buffer the pointer to the data to write.
  * @param buffer_size the amount of data in bytes to write.
- * @return a pointer to the created entry.
+ * @return a pointer to the created entry, or NULL if not created.
  */
 wadentry_t* WAD_AddEntryAt(wad_t *wad, const char *name, int index, unsigned char *buffer, size_t buffer_size);
 
@@ -355,7 +355,7 @@ wadentry_t* WAD_AddEntryAt(wad_t *wad, const char *name, int index, unsigned cha
  * @param wad the pointer to the open WAD.
  * @param name the entry name.
  * @param stream the input stream.
- * @return a pointer to the created entry.
+ * @return a pointer to the created entry, or NULL if not created.
  */
 wadentry_t* WAD_AddEntryData(wad_t *wad, const char *name, FILE *stream);
 
@@ -369,7 +369,7 @@ wadentry_t* WAD_AddEntryData(wad_t *wad, const char *name, FILE *stream);
  * @param name the entry name.
  * @param index the index position (0-based) to add the entry at.
  * @param stream the input stream.
- * @return a pointer to the created entry.
+ * @return a pointer to the created entry, or NULL if not created.
  */
 wadentry_t* WAD_AddEntryDataAt(wad_t *wad, const char *name, int index, FILE *stream);
 
@@ -382,7 +382,7 @@ wadentry_t* WAD_AddEntryDataAt(wad_t *wad, const char *name, int index, FILE *st
  * @param name the entry name.
  * @param length the length of the entry in bytes.
  * @param offset the offset into the WAD in bytes (content starts at 12).
- * @return a pointer to the created entry.
+ * @return a pointer to the created entry, or NULL if not created.
  */
 wadentry_t* WAD_AddExplicitEntry(wad_t *wad, const char *name, size_t length, int offset);
 
@@ -396,7 +396,7 @@ wadentry_t* WAD_AddExplicitEntry(wad_t *wad, const char *name, size_t length, in
  * @param index the index position (0-based) to add the entry at.
  * @param length the length of the entry in bytes.
  * @param offset the offset into the WAD in bytes (content starts at 12).
- * @return a pointer to the created entry.
+ * @return a pointer to the created entry, or NULL if not created.
  */
 wadentry_t* WAD_AddExplicitEntryAt(wad_t *wad, const char *name, int index, size_t length, int offset);
 
@@ -405,7 +405,7 @@ wadentry_t* WAD_AddExplicitEntryAt(wad_t *wad, const char *name, int index, size
  * Equivalent to WAD_AddExplicitEntry(wad, name, 0, 0).
  * @param wad the pointer to the open WAD.
  * @param name the entry name.
- * @return a pointer to the created entry.
+ * @return a pointer to the created entry, or NULL if not created.
  */
 wadentry_t* WAD_AddMarkerEntry(wad_t *wad, const char *name);
 
@@ -415,7 +415,7 @@ wadentry_t* WAD_AddMarkerEntry(wad_t *wad, const char *name);
  * @param wad the pointer to the open WAD.
  * @param name the entry name.
  * @param index the index position (0-based) to add the entry at.
- * @return a pointer to the created entry.
+ * @return a pointer to the created entry, or NULL if not created.
  */
 wadentry_t* WAD_AddMarkerEntryAt(wad_t *wad, const char *name, int index);
 
@@ -512,6 +512,7 @@ int WAD_Close(wad_t *wad);
 /**
  * Initializes a WAD iterator.
  * This can be useful for stack-instantiated iterators.
+ * NOTE: Must have WAD_IteratorNext called on it to get the first entry!
  * @param iter pointer to the iterator.
  * @param wad the pointer to the open WAD.
  * @param start the starting index into the entry list.
@@ -539,7 +540,7 @@ void WAD_IteratorReset(waditerator_t *iter, int start);
 /**
  * Advances a WAD iterator to the next entry.
  * @param iter pointer to the iterator.
- * @return a pointer to the next entry.
+ * @return a pointer to the next entry, or NULL if no more entries.
  */
 wadentry_t* WAD_IteratorNext(waditerator_t *iter);
 

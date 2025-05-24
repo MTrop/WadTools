@@ -258,7 +258,6 @@ static wadentry_t* WAD_AddEntryCommon(wad_t *wad, const char *name, int32_t leng
 		if (WAD_ExpandEntrylist(wad, wad->entries_capacity * 2))
 			return NULL;
 	
-	// FIXME: Something not working here.
 	wadentry_t *newentry = wad->entries[wad->header.entry_count];
 	WAD_EntryNameCopy(name, newentry->name);
 	newentry->length = length;
@@ -277,19 +276,11 @@ static wadentry_t* WAD_AddEntryCommon(wad_t *wad, const char *name, int32_t leng
 	return newentry;
 }
 
-static int entrycmpr(const void *a, const void *b)
-{
-	wadentry_t *x = *(wadentry_t**)a;
-	wadentry_t *y = *(wadentry_t**)b;
-	int i = x->length < 0 && !x->name[0] ? 1 : 0;
-	int j = y->length < 0 && !y->name[0] ? 1 : 0;
-	return i - j;
-}
-
 // Removes a set of entries. Just the entries - no other data.
-static int WAD_RemoveEntriesCommon(wad_t *wad, int *indices, int count)
+static int WAD_RemoveEntriesCommon(wad_t *wad, int *indices, const int count)
 {
-	int i, index;
+	int i, j, index;
+	int removed = 0;
 	for (i = 0; i < count; i++)
 	{
 		index = indices[i];
@@ -299,12 +290,32 @@ static int WAD_RemoveEntriesCommon(wad_t *wad, int *indices, int count)
 			return 1;
 		}
 		wadentry_t *entry = wad->entries[index];
-		entry->length = -1;
-		entry->name[0] = '\0';
+		if (entry->length != -1) // account for dupes in indices
+		{
+			entry->length = -1;
+			entry->name[0] = '\0';
+			++removed;
+		}
 	}
 
-	qsort(wad->entries, wad->header.entry_count, sizeof(wadentry_t*), entrycmpr);
-	wad->header.entry_count = wad->header.entry_count - count;
+	// rebuild new list with "removed" entries at the end
+	wadentry_t **newentrylist = (wadentry_t**)WAD_MALLOC(sizeof(wadentry_t*) * wad->entries_capacity);
+	
+	index = 0;
+	j = wad->header.entry_count - removed;
+	for (i = 0; i < wad->header.entry_count; i++)
+	{
+		if (wad->entries[i]->length >= 0)
+			newentrylist[index++] = wad->entries[i];
+		else
+			newentrylist[j++] = wad->entries[i];
+	}
+
+	WAD_FREE(wad->entries); // free old list of pointers
+
+	wad->entries = newentrylist;
+	wad->header.entry_count = wad->header.entry_count - removed;
+
 	return 0;
 }
 
@@ -323,21 +334,23 @@ static int WAD_RemoveEntryRangeCommon(wad_t *wad, int start, int count)
 		return 1;
 	}
 
+	int i;
 	int end = min(start + count, wad->header.entry_count);
+	count = end - start; // adjust if too many
 
-	wadentry_t **e = (wadentry_t**)WAD_MALLOC(sizeof(wadentry_t*) * count);
-	if (!e)
+	int *indices = (int*)WAD_MALLOC(sizeof(int) * count);
+	if (!indices)
+	{
+		waderrno = WADERROR_OUT_OF_MEMORY;
 		return 1;
+	}
 
-	// Do a bunch of shifting
-	size_t size = sizeof(wadentry_t*) * count;
-	size_t endsize = sizeof(wadentry_t*) * (wad->header.entry_count - end);
-	memcpy(e, &(wad->entries[start]), size);
-	memmove(&(wad->entries[start]), &(wad->entries[end]), endsize);
-	memcpy(&(wad->entries[start + count - 1]), e, size);
+	for (i = 0; i < count; i++)
+		indices[i] = start + i;
 
-	wad->header.entry_count = wad->header.entry_count - count;
-	WAD_FREE(e);
+	WAD_RemoveEntriesCommon(wad, indices, count);
+
+	WAD_FREE(indices);
 	return 0;
 }
 
@@ -359,9 +372,10 @@ static int WAD_SwapEntryCommon(wad_t *wad, int a, int b)
 	if (a == b)
 		return 0;
 
-	wadentry_t *temp = wad->entries[a];
-	wad->entries[a] = wad->entries[b];
-	wad->entries[b] = temp;
+	wadentry_t temp;
+	memcpy(&temp, wad->entries[a], sizeof(wadentry_t));
+	memcpy(wad->entries[a], wad->entries[b], sizeof(wadentry_t));
+	memcpy(wad->entries[b], &temp, sizeof(wadentry_t));
 	return 0;
 }
 
@@ -1861,13 +1875,14 @@ int WAD_GetEntryData(wad_t *wad, wadentry_t *entry, unsigned char *destination)
 		return 1;
 	}
 	
-	if ((WI_FUNC(wad, get_data))(wad, entry, destination) < 0)
+	int len = (WI_FUNC(wad, get_data))(wad, entry, destination);
+	if (len < 0)
 	{
 		// waderrno/errno set in call.
 		return -1;
 	}
 
-	return 0;
+	return len;
 }
 
 // ---------------------------------------------------------------
@@ -1883,16 +1898,17 @@ int WAD_ReadEntryData(wad_t *wad, wadentry_t *entry, void *destination, size_t s
 	if (wad == NULL)
 	{
 		waderrno = WADERROR_WAD_INVALID;
-		return 1;
+		return -1;
 	}
 	
-	if ((WI_FUNC(wad, read_data))(wad, entry, destination, size, count) < 0)
+	int out = (WI_FUNC(wad, read_data))(wad, entry, destination, size, count);
+	if (out < 0)
 	{
 		// waderrno/errno set in call.
 		return -1;
 	}
 
-	return 0;
+	return out;
 }
 
 // ---------------------------------------------------------------

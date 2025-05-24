@@ -69,7 +69,7 @@ static int exec(wadtool_options_remove_t *options)
 		}
 	}
 
-	printf("Removed %d entries from index %d.", options->count, options->index);
+	printf("Removed %d entries from index %d.\n", options->count, options->index);
 	return ERRORREMOVE_NONE;
 }
 

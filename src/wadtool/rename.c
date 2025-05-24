@@ -93,7 +93,7 @@ static int exec(wadtool_options_rename_t *options)
 			return ERRORRENAME_WAD_ERROR + waderrno;
 		}
 	}
-	printf("Renamed entry at index %d (%s) to %s in %s.\n", sidx, oldName, srcEntry->name, options->filename);
+	printf("Renamed entry at index %d (%s) to %s in %s.\n", sidx, oldName, newName, options->filename);
 
 	return ERRORRENAME_NONE;
 }
